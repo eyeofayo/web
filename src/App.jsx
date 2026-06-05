@@ -11,7 +11,6 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AdminPage from './pages/AdminPage';
-import FilesPage from './pages/FilesPage';
 
 // Import Navigation and NotificationDisplay components
 import { Navigation, NotificationDisplay, RouteAccessControl } from '@components/Components';
@@ -47,11 +46,6 @@ function AppRouter() {
         <Route path="/components" element={
           <RouteAccessControl path="/components">
             <ComponentDemo />
-          </RouteAccessControl>
-        } />
-        <Route path="/files" element={
-          <RouteAccessControl path="/files">
-            <FilesPage />
           </RouteAccessControl>
         } />
         <Route path="/admin" element={

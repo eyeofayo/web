@@ -1327,18 +1327,32 @@ const COMPONENT_METADATA = {
     Editor: {
         component: Editor,
         defaultProps: {
+            mode: 'markdown',
             content: '# Hello World\n\nStart editing...',
             placeholder: 'Write something amazing...',
             readOnly: false,
             showToolbar: true,
             toolbarPosition: 'top',
             theme: null,
+            filePath: 'example.js',
             diffContent: '# Previous Version\n\nThis version highlights what changed.',
             width: '100%',
             minHeight: '320px'
         },
         propConfigs: {
+            mode: {
+                type: 'select',
+                label: 'Mode',
+                group: 'Content',
+                options: ['markdown', 'code', 'document'],
+                optionLabels: {
+                    markdown: 'Markdown (MDX)',
+                    code: 'Code (Monaco)',
+                    document: 'Document (Rich Text)'
+                }
+            },
             placeholder: { type: 'text', label: 'Placeholder', group: 'Content' },
+            filePath: { type: 'text', label: 'File Path (code mode)', group: 'Content' },
             readOnly: { type: 'boolean', label: 'Read Only', group: 'Behavior' },
             showToolbar: { type: 'boolean', label: 'Show Toolbar', group: 'Toolbar' },
             toolbarPosition: {
@@ -1378,7 +1392,7 @@ const COMPONENT_METADATA = {
             },
             diffContent: { type: 'text', label: 'Diff Content', group: 'Advanced' }
         },
-    description: 'Rich MDX editor with markdown support and syntax highlighting'
+    description: 'Tri-modal editor: rich Markdown (MDX), code (Monaco), and rich-text document modes'
     },
 
     Flow: {

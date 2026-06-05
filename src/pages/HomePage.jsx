@@ -11,8 +11,7 @@ const TAGLINES = [
   "Real-Time Collaboration Built-In",
   "Developer-Friendly Architecture",
   "Full Observability & Persistent Logs",
-  "Enterprise-Grade Security",
-  "File System Compatible with most File Types"
+  "Enterprise-Grade Security"
 ];
 
 const HomePage = () => {
@@ -147,7 +146,6 @@ const HomePage = () => {
           <Badge size="lg" color="secondary">Dynamic Theming</Badge>
           <Badge size="lg" color="success">Extensive API Service</Badge>
           <Badge size="lg" color="warning">Enterprise Security</Badge>
-          <Badge size="lg" color="tertiary">Cloud-Based File System</Badge>
         </Container>
 
       </Container>
@@ -262,83 +260,7 @@ const HomePage = () => {
             </Container>
           </Card>
 
-          {/* Feature 2: File Management System */}
-          <Card 
-            width="100%"
-            maxWidth="350px"
-            minWidth="280px"
-            hover={true} 
-            padding="lg"
-            genie={{
-              trigger: 'hover',
-              variant: 'popover',
-              content: (
-                <Container layout="flex-column" gap="xs" padding="sm">
-                  <Typography weight="bold" size="xs">File System Features</Typography>
-                  <Container layout="flex" gap="xs" align="center"><Icon name="FiCheck" size="xs" color="success" /><Typography size="xs">Auto compression (75%)</Typography></Container>
-                  <Container layout="flex" gap="xs" align="center"><Icon name="FiCheck" size="xs" color="success" /><Typography size="xs">GridFS for large files</Typography></Container>
-                  <Container layout="flex" gap="xs" align="center"><Icon name="FiCheck" size="xs" color="success" /><Typography size="xs">Folder hierarchy</Typography></Container>
-                  <Container layout="flex" gap="xs" align="center"><Icon name="FiCheck" size="xs" color="success" /><Typography size="xs">Fine-grained permissions</Typography></Container>
-                </Container>
-              )
-            }}
-          >
-            <Container layout="flex-column" gap="md" align="center">
-              <Icon name="FiFolder" size="xl" color="secondary" />
-              <Typography variant="h3" size="lg" weight="bold" align="center">
-                Advanced File System
-              </Typography>
-              <Typography size="sm" align="center">
-                Hierarchical file management with compression, permissions, and metadata processing
-              </Typography>
-              <Container layout="flex" gap="sm" wrap="wrap" justify="center">
-                <Badge color="primary" size="sm">Compression</Badge>
-                <Badge color="warning" size="sm">GridFS</Badge>
-                <Badge color="success" size="sm">Permissions</Badge>
-                <Badge color="secondary" size="sm">Metadata</Badge>
-              </Container>
-            </Container>
-          </Card>
-
-          {/* Feature 3: Real-Time Collaboration */}
-          <Card 
-            width="100%"
-            maxWidth="350px"
-            minWidth="280px"
-            hover={true} 
-            padding="lg"
-            genie={{
-              trigger: 'hover',
-              variant: 'popover',
-              content: (
-                <Container layout="flex-column" gap="xs" padding="sm">
-                  <Typography weight="bold" size="xs">Collaboration</Typography>
-                  <Container layout="flex" gap="xs" align="center"><Icon name="FiCheck" size="xs" color="success" /><Typography size="xs">CRDT conflict resolution</Typography></Container>
-                  <Container layout="flex" gap="xs" align="center"><Icon name="FiCheck" size="xs" color="success" /><Typography size="xs">Real-time cursor sync</Typography></Container>
-                  <Container layout="flex" gap="xs" align="center"><Icon name="FiCheck" size="xs" color="success" /><Typography size="xs">Auto-save to MongoDB</Typography></Container>
-                  <Container layout="flex" gap="xs" align="center"><Icon name="FiCheck" size="xs" color="success" /><Typography size="xs">Offline support</Typography></Container>
-                </Container>
-              )
-            }}
-          >
-            <Container layout="flex-column" gap="md" align="center">
-              <Icon name="FiUsers" size="xl" color="warning" />
-              <Typography variant="h3" size="lg" weight="bold" align="center">
-                Live Collaboration
-              </Typography>
-              <Typography size="sm" align="center">
-                Yjs-powered real-time editing with conflict-free synchronization for collaborative text files and messaging support
-              </Typography>
-              <Container layout="flex" gap="sm" wrap="wrap" justify="center">
-                <Badge color="warning" size="sm">Yjs CRDTs</Badge>
-                <Badge color="primary" size="sm">WebSocket</Badge>
-                <Badge color="success" size="sm">Auto-save</Badge>
-                <Badge color="secondary" size="sm">Conflict-free</Badge>
-              </Container>
-            </Container>
-          </Card>
-
-          {/* Feature 4: Intelligent Caching */}
+          {/* Feature 2: Intelligent Caching */}
           <Card 
             width="100%"
             maxWidth="350px"
@@ -615,7 +537,6 @@ const architectureNodes = [
   },
   // Child Nodes (positions relative to group)
   { id: 'http-server', type: 'editable', position: { x: 250, y: 100 }, parentId: 'api-server-group', extent: 'parent', data: { label: 'Express HTTP Server', color: 'primary', fontSize: 'lg', fontWeight: 'bold', shape: 'rectangle' } },
-  { id: 'yjs-server', type: 'editable', position: { x: 650, y: 100 }, parentId: 'api-server-group', extent: 'parent', data: { label: 'Yjs Websocket Server', color: 'warning', fontSize: 'lg', fontWeight: 'bold', shape: 'rectangle' } },
   { id: 'security-middleware', type: 'editable', position: { x: 450, y: 300 }, parentId: 'api-server-group', extent: 'parent', data: { label: 'Security Middleware', color: 'error', fontSize: 'lg', fontWeight: 'bold', shape: 'diamond' } },
   { id: 'routes', type: 'editable', position: { x: 300, y: 500 }, parentId: 'api-server-group', extent: 'parent', data: { label: 'Routes', color: 'secondary', fontSize: 'lg', fontWeight: 'bold', shape: 'rectangle' } },
   { id: 'other-middleware', type: 'editable', position: { x: 250, y: 700 }, parentId: 'api-server-group', extent: 'parent', data: { label: 'Other Middleware', color: 'tertiary', fontSize: 'lg', fontWeight: 'bold', shape: 'rectangle' } },
@@ -624,7 +545,6 @@ const architectureNodes = [
   { id: 'logger', type: 'editable', position: { x: 550, y: 800 }, parentId: 'api-server-group', extent: 'parent', data: { label: 'Winston Logger', color: 'neutral', fontSize: 'md', fontWeight: 'bold', shape: 'rectangle' } },
   { id: 'redis-db', type: 'editable', position: { x: 50, y: 800 }, parentId: 'api-server-group', extent: 'parent', data: { label: 'Redis Cache', color: 'error', fontSize: 'lg', fontWeight: 'bold', shape: 'cylinder' } },
   { id: 'mongodb', type: 'editable', position: { x: 1000, y: 600 }, parentId: 'api-server-group', extent: 'parent', data: { label: 'MongoDB Atlas', color: 'success', fontSize: 'lg', fontWeight: 'bold', shape: 'cylinder' } },
-  { id: 'y-mongo', type: 'editable', position: { x: 1000, y: 300 }, parentId: 'api-server-group', extent: 'parent', data: { label: 'Y-Mongo Provider', color: 'warning', fontSize: 'md', fontWeight: 'bold', shape: 'rectangle' } },
 ];
 
 const architectureEdges = [
@@ -715,25 +635,8 @@ const architectureEdges = [
   },
 
   { 
-    id: 'e1', 
-    source: 'http-server',
-    sourceHandle: 'right-source',
-    target: 'yjs-server',
-    targetHandle: 'left-target',
-    animated: true
-  },
-  { 
     id: 'e2', 
     source: 'http-server', 
-    sourceHandle: 'bottom-source',
-    target: 'security-middleware',
-    targetHandle: 'top-target',
-    animated: true,
-    markerEnd: { type: 'arrowclosed' }
-  },
-  { 
-    id: 'e3', 
-    source: 'yjs-server',
     sourceHandle: 'bottom-source',
     target: 'security-middleware',
     targetHandle: 'top-target',
@@ -812,25 +715,6 @@ const architectureEdges = [
     targetHandle: 'left-target',
     animated: true,
     markerEnd: { type: 'arrowclosed' }
-  },
-  {
-    id: 'e14',
-    source: 'yjs-server',
-    sourceHandle: 'right-source',
-    target: 'y-mongo',
-    targetHandle: 'top-target',
-    animated: true,
-    markerEnd: { type: 'arrowclosed' }
-  },
-  {
-    id: 'e15',
-    source: 'y-mongo',
-    sourceHandle: 'bottom-source',
-    target: 'mongodb',
-    targetHandle: 'top-target',
-    animated: true,
-    markerEnd: { type: 'arrowclosed' },
-    label: 'CRDT Doc Persistence'
   },
 ];
 

@@ -18,6 +18,7 @@ import {
     diffSourcePlugin,
     DiffSourceToggleWrapper,
     headingsPlugin,
+    HighlightToggle,
     imagePlugin,
     InsertCodeBlock,
     InsertImage,
@@ -28,15 +29,21 @@ import {
     listsPlugin,
     ListsToggle,
     MDXEditor,
+    markdownSourceEditorValue$,
     quotePlugin,
+    realmPlugin,
     Separator,
+    StrikeThroughSupSubToggles,
     tablePlugin,
     thematicBreakPlugin,
     toolbarPlugin,
     UndoRedo,
 } from '@mdxeditor/editor';
 
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 import MonacoEditor, { loader } from '@monaco-editor/react';
+import { MonacoBinding } from 'y-monaco';
 loader.init(); // pre-warm Monaco bundle
 
 // ---------------------------------------------------------------------------
@@ -165,7 +172,116 @@ import { useEditor, EditorContent, NodeViewWrapper, ReactNodeViewRenderer } from
 import { StarterKit } from '@tiptap/starter-kit';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
-import { FontFamily } from '@tiptap/extension-font-family';
+import { FontFamily as _FontFamily } from '@tiptap/extension-font-family';
+
+// Canonical font substitutions: Linux/LibreOffice/macOS font names → fonts
+// available on Windows (and widely available on all platforms).
+const DOCX_FONT_SUBS = {
+    // Liberation family (metric-compatible RedHat replacements)
+    'Liberation Sans':              'Arial',
+    'Liberation Sans Narrow':       'Arial Narrow',
+    'Liberation Serif':             'Times New Roman',
+    'Liberation Mono':              'Courier New',
+    // DejaVu family
+    'DejaVu Sans':                  'Verdana',
+    'DejaVu Sans Condensed':        'Verdana',
+    'DejaVu Sans Mono':             'Courier New',
+    'DejaVu Serif':                 'Georgia',
+    'DejaVu Serif Condensed':       'Georgia',
+    // Nimbus / URW PostScript family
+    'Nimbus Sans L':                'Arial',
+    'Nimbus Sans':                  'Arial',
+    'Nimbus Roman No9 L':           'Times New Roman',
+    'Nimbus Roman':                 'Times New Roman',
+    'Nimbus Mono L':                'Courier New',
+    'Nimbus Mono':                  'Courier New',
+    'URW Bookman L':                'Book Antiqua',
+    'URW Bookman':                  'Book Antiqua',
+    'URW Gothic L':                 'Century Gothic',
+    'URW Gothic':                   'Century Gothic',
+    'URW Palladio L':               'Palatino Linotype',
+    'URW Palladio':                 'Palatino Linotype',
+    'URW Chancery L':               'Palatino Linotype',
+    // GNU FreeFont
+    'FreeSans':                     'Arial',
+    'FreeSerif':                    'Times New Roman',
+    'FreeMono':                     'Courier New',
+    // Bitstream fonts
+    'Bitstream Charter':            'Georgia',
+    'Bitstream Vera Sans':          'Verdana',
+    'Bitstream Vera Sans Mono':     'Courier New',
+    'Bitstream Vera Serif':         'Georgia',
+    'Charter':                      'Georgia',
+    // Linux Libertine / Biolinum (common in academic DOCX)
+    'Linux Libertine':              'Times New Roman',
+    'Linux Libertine O':            'Times New Roman',
+    'Linux Libertine G':            'Times New Roman',
+    'Linux Biolinum':               'Arial',
+    'Linux Biolinum O':             'Arial',
+    'Linux Biolinum G':             'Arial',
+    // macOS system fonts that may appear in DOCX from Mac users
+    'Helvetica':                    'Arial',
+    'Helvetica Neue':               'Arial',
+    'Gill Sans':                    'Trebuchet MS',
+    'Gill Sans MT':                 'Trebuchet MS',
+    'Optima':                       'Segoe UI',
+    'Futura':                       'Century Gothic',
+    'Hoefler Text':                 'Times New Roman',
+    'Lucida Grande':                'Tahoma',
+    'Geneva':                       'Verdana',
+    'Palatino':                     'Palatino Linotype',
+    'New York':                     'Georgia',
+    'SF Pro':                       'Segoe UI',
+    'SF Pro Text':                  'Segoe UI',
+    'SF Pro Display':               'Segoe UI',
+    'SF Mono':                      'Courier New',
+    'Menlo':                        'Consolas',
+    'Monaco':                       'Courier New',
+    // Legacy / alternate PostScript names
+    'Times':                        'Times New Roman',
+    'Courier':                      'Courier New',
+    'Arial MT':                     'Arial',
+    'Helvetica-Bold':               'Arial',
+};
+
+// Weight/style keywords that Word and LibreOffice embed directly in the
+// font-family name (e.g. "Montserrat Medium", "Calibri Light").
+// Strip them so browsers can match the base typeface.
+// "Narrow", "Condensed", "Expanded" are intentionally excluded — those are
+// distinct faces with their own metrics (e.g. "Arial Narrow" must stay intact).
+const FONT_WEIGHT_SUFFIX_RE = /\s+(Thin|Extra\s?Light|Ultra\s?Light|Light|Regular|Normal|Medium|Semi\s?Bold|Demi\s?Bold|Bold|Extra\s?Bold|Ultra\s?Bold|Black|Heavy)\s*$/i;
+
+const normFont = (raw) => {
+    if (!raw) return null;
+    const name = raw.split(',')[0].trim().replace(/^["']|["']$/g, '').trim();
+    if (!name) return null;
+    // Direct substitution first
+    if (DOCX_FONT_SUBS[name]) return DOCX_FONT_SUBS[name];
+    // Strip weight suffix embedded in the name (e.g. "Montserrat Medium" → "Montserrat")
+    const stripped = name.replace(FONT_WEIGHT_SUFFIX_RE, '').trim();
+    if (stripped !== name) {
+        if (DOCX_FONT_SUBS[stripped]) return DOCX_FONT_SUBS[stripped];
+        return stripped;
+    }
+    return name;
+};
+
+// FontFamily extended to normalise substitute font names at parse time.
+const FontFamily = _FontFamily.extend({
+    addGlobalAttributes() {
+        return [{
+            types: this.options.types,
+            attributes: {
+                fontFamily: {
+                    default: null,
+                    parseHTML: (el) => normFont(el.style.fontFamily) || null,
+                    renderHTML: (attrs) => attrs.fontFamily
+                        ? { style: `font-family: ${attrs.fontFamily}` } : {},
+                },
+            },
+        }];
+    },
+});
 import { Highlight } from '@tiptap/extension-highlight';
 import { Image as TiptapImage } from '@tiptap/extension-image';
 import { Link } from '@tiptap/extension-link';
@@ -252,6 +368,48 @@ const ResizableImage = TiptapImage.extend({
     addNodeView() { return ReactNodeViewRenderer(ResizableImageView); },
 });
 
+const styleAttr = {
+    default: null,
+    parseHTML: element => element.getAttribute('style') || null,
+    renderHTML: attributes => attributes.style ? { style: attributes.style } : {},
+};
+
+const StyledTable = Table.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            style: styleAttr,
+        };
+    },
+});
+
+const StyledTableRow = TableRow.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            style: styleAttr,
+        };
+    },
+});
+
+const StyledTableCell = TableCell.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            style: styleAttr,
+        };
+    },
+});
+
+const StyledTableHeader = TableHeader.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            style: styleAttr,
+        };
+    },
+});
+
 const FontSize = Extension.create({
     name: 'fontSize',
     addGlobalAttributes() {
@@ -281,7 +439,14 @@ const FontSize = Extension.create({
 
 const cssAttr = (prop, cssProp, key) => ({
     default: null,
-    parseHTML: el => el.style[prop] || null,
+    parseHTML: el => {
+        const raw = el.style[prop];
+        // Normalise font substitutes at parse time so stored content always
+        // contains a canonical name that the browser can render (e.g. 'Arial'
+        // rather than 'Liberation Sans' from LibreOffice-created DOCX files).
+        if (prop === 'fontFamily') return normFont(raw) || null;
+        return raw || null;
+    },
     renderHTML: a => { const v = a[key || prop]; return v ? { style: `${cssProp}: ${v}` } : {}; },
 });
 
@@ -362,10 +527,17 @@ const CodeEditorInner = forwardRef(({
     width      = '100%',
     height     = null,
     minHeight  = '500px',
+    // Native YJS collaboration: when ytext is provided, MonacoBinding
+    // wires the editor model directly to the shared Y.Text.  In that path
+    // `content`/`onChange` are ignored — the binding is the source of truth.
+    ytext      = null,
+    provider   = null,
 }, ref) => {
     const { currentTheme } = useTheme();
     const monacoRef    = useRef(null);
     const editorRef    = useRef(null);
+    const bindingRef   = useRef(null);
+    const collaborative = !!ytext;
 
     const language = useMemo(() => detectLanguage(filePath), [filePath]);
 
@@ -373,26 +545,75 @@ const CodeEditorInner = forwardRef(({
         if (!monacoRef.current) return;
         // Defer by one frame so ThemeContext has flushed the new body class
         // and the --code-* CSS custom properties are live before we read them.
-        const raf = requestAnimationFrame(() => applyMonacoTheme(monacoRef.current, currentTheme));
+        const raf = requestAnimationFrame(() => {
+            applyMonacoTheme(monacoRef.current, currentTheme);
+            // Update font to match the new theme's monospace font
+            const monoFont = getComputedStyle(document.body).getPropertyValue('--font-family-monospace').trim();
+            if (monoFont && editorRef.current) {
+                editorRef.current.updateOptions({ fontFamily: monoFont });
+            }
+        });
         return () => cancelAnimationFrame(raf);
     }, [currentTheme]);
+
+    // Non-collab path: manually sync prop -> editor value.  In the collab
+    // path MonacoBinding owns the model and we must NOT setValue() (it
+    // would clobber the shared state).
     useEffect(() => {
-        if (editorRef.current && content !== editorRef.current.getValue())
-            editorRef.current.setValue(content || '');
-    }, [content]);
+        if (collaborative) return;
+        if (!editorRef.current) return;
+        if (content === editorRef.current.getValue()) return;
+        const viewState = editorRef.current.saveViewState();
+        editorRef.current.setValue(content || '');
+        if (viewState) editorRef.current.restoreViewState(viewState);
+    }, [content, collaborative]);
 
     const handleEditorDidMount = useCallback((editor, monaco) => {
         monacoRef.current = monaco;
         editorRef.current = editor;
         applyMonacoTheme(monaco, currentTheme);
-    }, [currentTheme]);
+        // Apply theme monospace font on mount
+        const monoFont = getComputedStyle(document.body).getPropertyValue('--font-family-monospace').trim();
+        if (monoFont) editor.updateOptions({ fontFamily: monoFont });
+
+        // Native YJS collaboration via y-monaco.  Binds Monaco's text model
+        // directly to the shared Y.Text — multi-user cursors, no manual diffs,
+        // no setValue/onChange round-trip, no debounced char-by-char syncing.
+        if (collaborative) {
+            try {
+                const model = editor.getModel();
+                if (model) {
+                    bindingRef.current = new MonacoBinding(
+                        ytext,
+                        model,
+                        new Set([editor]),
+                        provider?.awareness ?? null,
+                    );
+                }
+            } catch (err) {
+                // Falling back is not possible from inside the binding —
+                // surface so the dev sees the issue and the manual diff
+                // bridge can still run via the onChange path next time.
+                // eslint-disable-next-line no-console
+                console.error('MonacoBinding failed to attach', err);
+            }
+        }
+    }, [currentTheme, collaborative, ytext, provider]);
+
+    // Destroy the YJS binding when the editor unmounts or the ytext changes.
+    useEffect(() => () => {
+        try { bindingRef.current?.destroy?.(); } catch { /* ignore */ }
+        bindingRef.current = null;
+    }, [ytext]);
 
     const changeTimerRef = useRef(null);
+    // Non-collab onChange: debounced to avoid hammering the manual diff
+    // bridge.  In the collab path MonacoBinding bypasses this entirely.
     const handleChange = useCallback((value) => {
-        if (!onChange) return;
+        if (collaborative || !onChange) return;
         clearTimeout(changeTimerRef.current);
         changeTimerRef.current = setTimeout(() => onChange(value), 500);
-    }, [onChange]);
+    }, [onChange, collaborative]);
     useEffect(() => () => clearTimeout(changeTimerRef.current), []);
 
     useImperativeHandle(ref, () => ({
@@ -439,22 +660,23 @@ const CodeEditorInner = forwardRef(({
                 <MonacoEditor
                     height="100%"
                     language={language}
-                    defaultValue={content}
+                    defaultValue={collaborative ? '' : content}
                     onChange={handleChange}
                     onMount={handleEditorDidMount}
                     options={{
                         readOnly,
                         minimap: { enabled: true },
                         fontSize: 14,
+                        fontFamily: getComputedStyle(document.body).getPropertyValue('--font-family-monospace').trim() || 'monospace',
                         lineNumbers: 'on',
                         scrollBeyondLastLine: false,
+                        padding: { bottom: 8 },
                         wordWrap: 'on',
                         wrappingIndent: 'indent',
                         automaticLayout: true,
                         tabSize: 2,
                         renderLineHighlight: 'all',
                         bracketPairColorization: { enabled: true },
-                        padding: { top: 16, bottom: 16 },
                     }}
                     loading={
                         <Container layout="flex" align="center" justify="center" minHeight={minHeight}>
@@ -638,7 +860,17 @@ const DocumentToolbar = ({ editor }) => {
 
     // TipTap wraps multi-word font names in CSS quotes ("Times New Roman").
     // Strip them so the value matches the plain strings in FONT_FAMILIES.
-    const rawFont = editor.getAttributes('textStyle').fontFamily || '';
+    // Also fall back to the paragraph-level paraFontFamily attribute (set by
+    // ParagraphFormatting) when no inline TextStyle mark carries a font —
+    // this covers imported DOCX content where font is on the <p> node not a <span>.
+    const rawFont = editor.getAttributes('textStyle').fontFamily
+        || editor.getAttributes('paragraph').paraFontFamily
+        || editor.getAttributes('heading').paraFontFamily
+        || '';
+    // Strip any CSS quotes TipTap may wrap around multi-word names.
+    // (Parse-time normalization in the FontFamily extension and cssAttr means
+    // substitute names like 'Liberation Sans' are already converted to 'Arial'
+    // before reaching here — this just strips residual quotes.)
     const currentFont = rawFont.replace(/^["']|["']$/g, '');
 
     // For font size: prefer the explicit textStyle mark attribute (strip px
@@ -953,7 +1185,113 @@ const DocumentToolbar = ({ editor }) => {
             </Button>
 
             <Button size="xs" color="secondary" className="docx-toolbar-btn"
-                onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
+                selected={editor.isActive('table')}
+                genie={{
+                    trigger: 'click',
+                    variant: 'popover',
+                    padding: 'sm',
+                    content: (() => {
+                        const inTable = editor.isActive('table');
+                        const cellAttrs = inTable ? editor.getAttributes('tableCell') : {};
+                        const cellBg = (() => {
+                            const m = (cellAttrs.style || '').match(/background-color:\s*([^;]+)/i);
+                            return m ? m[1].trim() : '';
+                        })();
+                        const setCellBg = (color) => {
+                            // Merge background-color into the cell/header style attribute
+                            // without clobbering other inline styles the user may have set.
+                            const apply = (typeName) => {
+                                const current = editor.getAttributes(typeName).style || '';
+                                const stripped = current
+                                    .split(';')
+                                    .map(s => s.trim())
+                                    .filter(s => s && !/^background-color\s*:/i.test(s))
+                                    .join('; ');
+                                const next = color
+                                    ? `${stripped ? stripped + '; ' : ''}background-color: ${color}`
+                                    : stripped;
+                                editor.chain().focus().updateAttributes(typeName, { style: next || null }).run();
+                            };
+                            apply('tableCell');
+                            apply('tableHeader');
+                        };
+                        const CELL_COLORS = ['#fef08a', '#bbf7d0', '#bfdbfe', '#fbcfe8', '#fed7aa', '#e9d5ff', '#fecaca', '#374151'];
+                        return (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '180px' }}>
+                                <Button size="xs" color="secondary"
+                                    onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
+                                    <Icon name="FiGrid" size="xs" /> Insert table
+                                </Button>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+                                    <Button size="xs" color="secondary" disabled={!inTable}
+                                        onClick={() => editor.chain().focus().addColumnBefore().run()}>
+                                        <Icon name="FiChevronsLeft" size="xs" /> Col before
+                                    </Button>
+                                    <Button size="xs" color="secondary" disabled={!inTable}
+                                        onClick={() => editor.chain().focus().addColumnAfter().run()}>
+                                        Col after <Icon name="FiChevronsRight" size="xs" />
+                                    </Button>
+                                    <Button size="xs" color="secondary" disabled={!inTable}
+                                        onClick={() => editor.chain().focus().addRowBefore().run()}>
+                                        <Icon name="FiChevronsUp" size="xs" /> Row before
+                                    </Button>
+                                    <Button size="xs" color="secondary" disabled={!inTable}
+                                        onClick={() => editor.chain().focus().addRowAfter().run()}>
+                                        <Icon name="FiChevronsDown" size="xs" /> Row after
+                                    </Button>
+                                    <Button size="xs" color="error" disabled={!inTable}
+                                        onClick={() => editor.chain().focus().deleteColumn().run()}>
+                                        <Icon name="FiMinusSquare" size="xs" /> Del col
+                                    </Button>
+                                    <Button size="xs" color="error" disabled={!inTable}
+                                        onClick={() => editor.chain().focus().deleteRow().run()}>
+                                        <Icon name="FiMinusSquare" size="xs" /> Del row
+                                    </Button>
+                                </div>
+                                <Button size="xs" color="secondary" disabled={!inTable}
+                                    onClick={() => editor.chain().focus().toggleHeaderRow().run()}>
+                                    <Icon name="FiColumns" size="xs" /> Toggle header row
+                                </Button>
+                                <Button size="xs" color="secondary" disabled={!inTable}
+                                    onClick={() => editor.chain().focus().toggleHeaderColumn().run()}>
+                                    <Icon name="FiColumns" size="xs" /> Toggle header col
+                                </Button>
+                                <Button size="xs" color="secondary" disabled={!inTable}
+                                    onClick={() => editor.chain().focus().mergeOrSplit().run()}>
+                                    <Icon name="FiMaximize2" size="xs" /> Merge / split
+                                </Button>
+                                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '6px' }}>
+                                    <div style={{ fontSize: '11px', opacity: 0.7, marginBottom: '4px' }}>Cell background</div>
+                                    <div className="docx-color-grid">
+                                        {CELL_COLORS.map((c) => (
+                                            <button key={c} type="button" className="docx-color-swatch"
+                                                style={{ background: c, outline: cellBg.toLowerCase() === c.toLowerCase() ? '2px solid var(--primary-color)' : 'none' }}
+                                                title={c} disabled={!inTable}
+                                                onClick={() => setCellBg(c)} />
+                                        ))}
+                                        <label className="docx-color-swatch docx-color-custom" title="Custom cell color">
+                                            <Icon name="FiDroplet" size="xs" />
+                                            <input type="color"
+                                                value={/^#[0-9a-f]{6}$/i.test(cellBg) ? cellBg : '#374151'}
+                                                disabled={!inTable}
+                                                onChange={(e) => setCellBg(e.target.value)}
+                                            />
+                                        </label>
+                                        <button type="button" className="docx-color-swatch docx-color-reset"
+                                            title="Clear cell color" disabled={!inTable}
+                                            onClick={() => setCellBg('')}>
+                                            <Icon name="FiX" size="xs" />
+                                        </button>
+                                    </div>
+                                </div>
+                                <Button size="xs" color="error" disabled={!inTable}
+                                    onClick={() => editor.chain().focus().deleteTable().run()}>
+                                    <Icon name="FiTrash2" size="xs" /> Delete table
+                                </Button>
+                            </div>
+                        );
+                    })(),
+                }}>
                 <Icon name="FiGrid" />
             </Button>
 
@@ -1049,6 +1387,7 @@ const DocumentEditorInner = forwardRef(({
     minHeight  = '500px',
     onFocus    = null,
     onBlur     = null,
+    filePath   = '',
 }, ref) => {
     const { currentTheme } = useTheme();
     const changeTimerRef = useRef(null);
@@ -1101,21 +1440,24 @@ const DocumentEditorInner = forwardRef(({
                 autolink: true,
                 HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer' },
             }),
-            Table.configure({ resizable: true }),
-            TableRow,
-            TableCell,
-            TableHeader,
+            StyledTable.configure({ resizable: true }),
+            StyledTableRow,
+            StyledTableCell,
+            StyledTableHeader,
             TextAlign.configure({ types: ['heading', 'paragraph'] }),
             Underline,
         ],
         content: stripLeadingEmptyParas(content) || '',
         editable: !readOnly,
-        onUpdate: ({ editor: ed }) => {
+        onUpdate: ({ editor: ed, transaction }) => {
             if (!onChange) return;
+            // Critical: TipTap's setEditable() and other state-only operations
+            // dispatch transactions that fire `update` but do NOT change the doc.
+            // Without this guard, every setEditable call (mount + readOnly changes)
+            // would push the editor's normalized HTML into ytext, corrupting it.
+            if (!transaction?.docChanged) return;
             clearTimeout(changeTimerRef.current);
-            changeTimerRef.current = setTimeout(() => {
-                onChange(ed.getHTML());
-            }, 300);
+            changeTimerRef.current = setTimeout(() => onChange(ed.getHTML()), 300);
         },
         onFocus: ({ editor: ed, event }) => onFocus?.(ed, event),
         onBlur:  ({ editor: ed, event }) => onBlur?.(ed, event),
@@ -1131,17 +1473,36 @@ const DocumentEditorInner = forwardRef(({
     useEffect(() => {
         if (!editor) return;
         const normalized = stripLeadingEmptyParas(content) || '';
-        if (lastSetContentRef.current === null) { lastSetContentRef.current = normalized; return; }
+        if (lastSetContentRef.current === null) {
+            lastSetContentRef.current = normalized;
+            return;
+        }
         if (normalized === lastSetContentRef.current) return;
         lastSetContentRef.current = normalized;
-        queueMicrotask(() => { if (!editor.isDestroyed) editor.commands.setContent(normalized, false); });
+        queueMicrotask(() => {
+            if (!editor.isDestroyed) {
+                const { from, to } = editor.state.selection;
+                // TipTap v3: setContent(content, options) — second arg MUST be an object.
+                // Passing `false` is ignored and emitUpdate defaults to true, which would
+                // fire onUpdate → debounced onChange → push editor's normalized HTML back into
+                // ytext, causing content duplication on every server-driven content swap.
+                editor.commands.setContent(normalized, { emitUpdate: false });
+                const maxPos = editor.state.doc.content.size;
+                try {
+                    editor.commands.setTextSelection({
+                        from: Math.min(from, maxPos),
+                        to:   Math.min(to,   maxPos),
+                    });
+                } catch { /* ignore if pos is no longer valid */ }
+            }
+        });
     }, [content, editor]);
 
     useEffect(() => () => clearTimeout(changeTimerRef.current), []);
 
     useImperativeHandle(ref, () => ({
         getHTML:  () => editor?.getHTML() || '',
-        setHTML:  (html) => editor?.commands.setContent(html || '', false),
+        setHTML:  (html) => editor?.commands.setContent(html || '', { emitUpdate: false }),
         getJSON:  () => editor?.getJSON(),
         save:     async () => editor?.getHTML() || '',
         focus:    () => editor?.commands.focus(),
@@ -1231,6 +1592,12 @@ export const Editor = forwardRef(({
     // code props
     filePath     = '',
 
+    // Native YJS collaboration (currently wired for code mode via y-monaco).
+    // When provided, the editor binds Monaco's model directly to the shared
+    // Y.Text — no setValue, no debounced onChange diff bridge.
+    ytext        = null,
+    provider     = null,
+
     ...props
 }, ref) => {
     if (mode === 'code') {
@@ -1244,6 +1611,8 @@ export const Editor = forwardRef(({
                 width={width || '100%'}
                 height={height}
                 minHeight={minHeight || '500px'}
+                ytext={ytext}
+                provider={provider}
             />
         );
     }
@@ -1303,6 +1672,186 @@ Editor.displayName = 'Editor';
 
 export default Editor;
 
+// ── Emoji shortcode → unicode map ──────────────────────────────────────────
+const EMOJI_MAP = {
+  // Faces & emotions
+  smile: '😄', grin: '😁', joy: '😂', rofl: '🤣', blush: '😊',
+  heart_eyes: '😍', kissing_heart: '😘', wink: '😉', stuck_out_tongue: '😛',
+  thinking: '🤔', smirk: '😏', neutral_face: '😐', unamused: '😒',
+  roll_eyes: '🙄', flushed: '😳', weary: '😩', sob: '😭', cry: '😢',
+  angry: '😠', rage: '😡', scream: '😱', skull: '💀', ghost: '👻',
+  sunglasses: '😎', nerd_face: '🤓', sleeping: '😴', mask: '😷',
+  sweat: '😓', sweat_smile: '😅', innocent: '😇', clown_face: '🤡',
+  robot: '🤖', cowboy_hat_face: '🤠', partying_face: '🥳', monocle_face: '🧐',
+  // Hands & gestures
+  wave: '👋', '+1': '👍', thumbsup: '👍', '-1': '👎', thumbsdown: '👎',
+  clap: '👏', raised_hands: '🙌', pray: '🙏', muscle: '💪', v: '✌️',
+  ok_hand: '👌', point_right: '👉', point_left: '👈', point_up: '☝️',
+  point_down: '👇', crossed_fingers: '🤞', handshake: '🤝', writing_hand: '✍️',
+  // Hearts & love
+  heart: '❤️', orange_heart: '🧡', yellow_heart: '💛', green_heart: '💚',
+  blue_heart: '💙', purple_heart: '💜', black_heart: '🖤', broken_heart: '💔',
+  sparkling_heart: '💖', two_hearts: '💕', revolving_hearts: '💞',
+  // Stars, fire & celebration
+  fire: '🔥', star: '⭐', star2: '🌟', sparkles: '✨', zap: '⚡',
+  tada: '🎉', confetti_ball: '🎊', balloon: '🎈', gift: '🎁', trophy: '🏆',
+  // Symbols & status
+  checkmark: '✅', x: '❌', warning: '⚠️', question: '❓', exclamation: '❗',
+  check: '✔️', copyright: '©️', registered: '®️', tm: '™️', recycle: '♻️',
+  '100': '💯', sos: '🆘', new: '🆕', ok: '🆗', up: '🆙', cool: '🆒',
+  // Nature & weather
+  sunny: '☀️', cloud: '☁️', rainbow: '🌈', snowflake: '❄️', umbrella: '☂️',
+  ocean: '🌊', droplet: '💧', seedling: '🌱', rose: '🌹', cherry_blossom: '🌸',
+  sunflower: '🌻', four_leaf_clover: '🍀', maple_leaf: '🍁', mushroom: '🍄',
+  // Animals
+  dog: '🐶', cat: '🐱', bear: '🐻', panda_face: '🐼', fox_face: '🦊',
+  lion: '🦁', unicorn: '🦄', penguin: '🐧', bird: '🐦', frog: '🐸',
+  snake: '🐍', bug: '🐛', bee: '🐝', butterfly: '🦋', fish: '🐟',
+  whale: '🐳', octopus: '🐙', turtle: '🐢', rabbit: '🐰', pig: '🐷',
+  // Food & drink
+  pizza: '🍕', hamburger: '🍔', fries: '🍟', hotdog: '🌭', taco: '🌮',
+  sushi: '🍣', ramen: '🍜', ice_cream: '🍦', cake: '🎂', cookie: '🍪',
+  doughnut: '🍩', candy: '🍬', chocolate_bar: '🍫', apple: '🍎',
+  banana: '🍌', grapes: '🍇', strawberry: '🍓', coffee: '☕', tea: '🍵',
+  beer: '🍺', wine_glass: '🍷', champagne: '🍾',
+  // Tech & objects
+  computer: '💻', iphone: '📱', camera: '📷', email: '📧', mailbox: '📫',
+  bell: '🔔', lock: '🔒', key: '🔑', bulb: '💡', book: '📖', books: '📚',
+  moneybag: '💰', money_with_wings: '💸', pencil: '✏️', memo: '📝',
+  calendar: '📅', pushpin: '📌', link: '🔗', paperclip: '📎', scissors: '✂️',
+  trash: '🗑️', wrench: '🔧', hammer: '🔨', gear: '⚙️', microscope: '🔬',
+  telescope: '🔭', rocket: '🚀', airplane: '✈️', car: '🚗', house: '🏠',
+  earth_americas: '🌎', earth_africa: '🌍', earth_asia: '🌏',
+  globe_with_meridians: '🌐', map: '🗺️',
+  // Music & entertainment
+  musical_note: '🎵', notes: '🎶', microphone: '🎤', headphones: '🎧',
+  guitar: '🎸', tv: '📺', video_game: '🎮', art: '🎨', movie_camera: '🎥',
+};
+
+/**
+ * Preprocess extended markdown syntax that MDXEditor doesn't natively support.
+ * Handles: emoji shortcodes, heading IDs, footnotes, superscript (^text^),
+ * subscript (~text~), definition lists (term\n: def), and math ($$...$$).
+ * Block math ($$...$$) is converted to ```math code fences so MDXEditor can
+ * render them via MathCodeEditor. postprocessMarkdown converts them back on save.
+ */
+function preprocessMarkdown(md) {
+  if (!md) return md;
+
+  // Extract $$...$$ block math first (before any other transform) so that
+  // LaTeX syntax like x^3 + y^3 is never touched by the superscript regex.
+  const mathBlocks = [];
+  md = md.replace(/^\$\$([\s\S]*?)\$\$[ \t]*$/gm, (_, latex) => {
+    const idx = mathBlocks.length;
+    mathBlocks.push(latex.trim());
+    return `\x00MATH${idx}\x00`;
+  });
+
+  // 1. Emoji shortcodes :name: → unicode character
+  md = md.replace(/:([a-z0-9_+\-]+):/g, (match, name) => EMOJI_MAP[name] ?? match);
+
+  // 2. Strip pandoc/kramdown heading IDs {#custom-id}
+  md = md.replace(/^(#{1,6}[^\n]*?)\s*\{#[a-zA-Z0-9_-]+\}/gm, '$1');
+
+  // 3. Footnote definitions [^id]: text → block quote (process before inline refs)
+  md = md.replace(/^\[\^([^\]]+)\]:\s*(.+)$/gm, '> **[^$1]**: $2');
+
+  // 4. Inline footnote references [^id] → superscript
+  md = md.replace(/\[\^([^\]\n]+)\]/g, '<sup>[$1]</sup>');
+
+  // 5. Superscript ^text^ (skip ^^ double-caret)
+  md = md.replace(/(?<!\^)\^([^\^\n]+)\^(?!\^)/g, '<sup>$1</sup>');
+
+  // 6. Subscript ~text~ (skip ~~ used for strikethrough)
+  md = md.replace(/(?<!~)~(?!~)([^~\n]+?)~(?!~)/g, '<sub>$1</sub>');
+
+  // 7. Definition lists: plain term line followed by ": definition" line(s)
+  md = md.replace(
+    /^(?![#>*\-+]|\d+\.|\s)([^\n:][^\n]*)\n((?:[ \t]*: [^\n]+\n?)+)/gm,
+    (_, term, defs) => `**${term.trim()}**\n${defs.replace(/^[ \t]*: /gm, '')}`,
+  );
+
+  // 8. Restore math blocks as ```math code fences (rendered by MathCodeEditor)
+  md = md.replace(/\x00MATH(\d+)\x00/g, (_, idx) =>
+    '```math\n' + mathBlocks[parseInt(idx, 10)] + '\n```'
+  );
+
+  return md;
+}
+
+/**
+ * Reverse ```math code fences back to $$...$$ so the file stores standard
+ * LaTeX block math. Called on every onChange before reaching the caller.
+ */
+function postprocessMarkdown(md) {
+  if (!md) return md;
+  md = md.replace(/^```math\n([\s\S]*?)\n```\s*$/gm,
+    (_, latex) => `$$\n${latex}\n$$`);
+  return md;
+}
+
+/**
+ * Custom code-block editor for language="math".
+ * Renders KaTeX in display mode; click to edit the raw LaTeX.
+ */
+// Realm plugin that makes the source/diff view show $$...$$ instead of
+// the internal ```math code fence representation.
+const mathSourceViewPlugin = realmPlugin({
+    init(realm) {
+        realm.changeWith(markdownSourceEditorValue$, markdownSourceEditorValue$,
+            (_, md) => postprocessMarkdown(md));
+    },
+});
+
+const MathCodeEditor = ({ code, onChange, readOnly }) => {
+    const katexRef = useRef(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [draft, setDraft] = useState(code);
+
+    useEffect(() => { setDraft(code); }, [code]);
+
+    useEffect(() => {
+        if (!isEditing && katexRef.current) {
+            try {
+                katex.render(draft || ' ', katexRef.current, {
+                    displayMode: true,
+                    throwOnError: false,
+                });
+            } catch { /* ignore */ }
+        }
+    }, [draft, isEditing]);
+
+    if (isEditing && !readOnly) {
+        return (
+            <div style={{ padding: '8px 16px' }}>
+                <textarea
+                    value={draft}
+                    autoFocus
+                    rows={Math.max(2, (draft.match(/\n/g) || []).length + 1)}
+                    style={{
+                        fontFamily: 'monospace', fontSize: '13px',
+                        width: '100%', resize: 'vertical', padding: '6px',
+                        boxSizing: 'border-box', background: 'transparent',
+                        color: 'inherit', border: '1px solid var(--border-color, #444)',
+                        borderRadius: '4px',
+                    }}
+                    onChange={e => { setDraft(e.target.value); onChange(e.target.value); }}
+                    onBlur={() => setIsEditing(false)}
+                />
+            </div>
+        );
+    }
+
+    return (
+        <div
+            ref={katexRef}
+            style={{ padding: '12px 16px', cursor: readOnly ? 'default' : 'pointer', textAlign: 'center' }}
+            onClick={readOnly ? undefined : () => setIsEditing(true)}
+            title={readOnly ? undefined : 'Click to edit LaTeX'}
+        />
+    );
+};
+
 const MarkdownEditorInner = forwardRef(({
     className = '',
     onChange = null,
@@ -1335,13 +1884,14 @@ const MarkdownEditorInner = forwardRef(({
 }, ref) => {
     const effectiveTheme = useTheme();
     const editorRef = useRef(null);
-    const effectiveContent = content || '';
+    const effectiveContent = preprocessMarkdown(content || '');
 
     useEffect(() => {
         if (editorRef.current && content !== undefined) {
+            const processed = preprocessMarkdown(content);
             const currentContent = editorRef.current.getMarkdown();
-            if (content !== currentContent) {
-                editorRef.current.setMarkdown(content);
+            if (processed.trim() !== currentContent.trim()) {
+                editorRef.current.setMarkdown(processed);
             }
         }
     }, [content]);
@@ -1359,9 +1909,12 @@ const MarkdownEditorInner = forwardRef(({
         if (marginBottom !== null) styles.marginBottom = marginBottom === 'none' ? '0' : (marginMap[marginBottom] || marginBottom);
         if (justifySelf)           styles.justifySelf  = justifySelf;
         if (width    !== null)     styles.width        = width;
+        if (height   !== null)     styles.height       = height;
         if (minHeight !== null)    styles.minHeight    = minHeight;
+        if (maxWidth !== null)     styles.maxWidth     = maxWidth;
+        if (maxHeight !== null)    styles.maxHeight    = maxHeight;
         return styles;
-    }, [marginTop, marginBottom, justifySelf, width, minHeight, styleProp]);
+    }, [marginTop, marginBottom, justifySelf, width, height, minHeight, maxWidth, maxHeight, styleProp]);
 
     const defaultImageUploadHandler = useCallback(async (file) => {
         return new Promise((resolve, reject) => {
@@ -1387,13 +1940,23 @@ const MarkdownEditorInner = forwardRef(({
             imageAutocompleteSuggestions: [],
         }),
         tablePlugin(),
-        codeBlockPlugin({ defaultCodeBlockLanguage: 'js' }),
+        codeBlockPlugin({
+            defaultCodeBlockLanguage: 'js',
+            codeBlockEditorDescriptors: [{
+                match: (language) => language === 'math',
+                priority: 100,
+                Editor: MathCodeEditor,
+            }],
+        }),
         codeMirrorPlugin({
             codeBlockLanguages: {
+                '': 'Plain Text',
                 js: 'JavaScript', jsx: 'JavaScript (React)', ts: 'TypeScript',
                 tsx: 'TypeScript (React)', html: 'HTML', css: 'CSS',
                 json: 'JSON', md: 'Markdown', txt: 'Plain Text',
-                bash: 'Bash', python: 'Python', sql: 'SQL', yml: 'YAML',
+                bash: 'Bash', sh: 'Shell', python: 'Python', py: 'Python',
+                sql: 'SQL', yml: 'YAML', yaml: 'YAML', ruby: 'Ruby',
+                go: 'Go', rust: 'Rust', c: 'C', cpp: 'C++', java: 'Java',
             },
             autoLoadLanguageSupport: true,
         }),
@@ -1403,7 +1966,9 @@ const MarkdownEditorInner = forwardRef(({
                     <UndoRedo />
                     <Separator />
                     <BoldItalicUnderlineToggles />
+                    <StrikeThroughSupSubToggles />
                     <CodeToggle />
+                    <HighlightToggle />
                     <Separator />
                     <BlockTypeSelect />
                     <Separator />
@@ -1418,6 +1983,7 @@ const MarkdownEditorInner = forwardRef(({
             )),
         })] : []),
         diffSourcePlugin({ viewMode: 'rich-text', diffMarkdown: diffContent || '' }),
+        mathSourceViewPlugin,
     ], [showToolbar, toolbarPosition, customToolbar, imageUploadHandler, defaultImageUploadHandler, diffContent]);
 
     const contentEditableClassName = ['themed-editor-content', contentClassName].filter(Boolean).join(' ');
@@ -1425,7 +1991,9 @@ const MarkdownEditorInner = forwardRef(({
     const combinedClasses = ['themed-editor', `themed-editor-${editorTheme}`, 'mdxeditor', className]
         .filter(Boolean).join(' ');
 
-    const handleChange = useCallback((value) => { onChange?.(value); }, [onChange]);
+    const handleChange = useCallback((value) => {
+        onChange?.(postprocessMarkdown(value));
+    }, [onChange]);
 
     React.useImperativeHandle(ref, () => ({
         getMarkdown:    () => editorRef.current?.getMarkdown(),
@@ -1461,7 +2029,7 @@ const MarkdownEditorInner = forwardRef(({
                 placeholder={placeholder}
                 contentEditableClassName={contentEditableClassName}
                 plugins={plugins}
-                suppressHtmlProcessing={true}
+                suppressHtmlProcessing={false}
             />
         </div>
     );

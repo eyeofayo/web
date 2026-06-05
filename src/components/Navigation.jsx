@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useAuth } from '@contexts/AuthContext';
 import { useTheme } from '@contexts/ThemeContext';
 import { Badge, Button, CircularProgress, Container, FloatingActionButton, Icon, Page, Typography } from './Components';
@@ -84,16 +84,6 @@ export const Navigation = ({
                     badge: 'Admin'
                 });
             }
-
-            // File management
-            items.push({
-                id: 'files',
-                label: 'Files',
-                icon: 'FiFolder',
-                path: '/files',
-                roles: ['USER', 'CREATOR', 'ADMIN', 'OWNER'],
-                requireAuth: true
-            });
         } else {
             items.push({
                 id: 'home-guest',
