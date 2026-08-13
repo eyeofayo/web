@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
+import path from 'node:path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -27,14 +27,20 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@components': path.resolve(__dirname, './src/components'),
-      '@themes': path.resolve(__dirname, './src/themes'),
-      '@contexts': path.resolve(__dirname, './src/contexts'),
-      '@pages': path.resolve(__dirname, './src/pages'),
-      '@styles': path.resolve(__dirname, './src/styles'),
-      '@utils': path.resolve(__dirname, './src/utils'),
-      '@service': path.resolve(__dirname, './src/service')
+      // y-monaco@0.1.6 imports monaco-editor's pre-exports-map deep path.
+      // monaco-editor >=0.52 maps "./*" to "./esm/vs/*.js", so the legacy
+      // specifier resolves to a doubled esm/vs/ path. Rolldown (Vite 8)
+      // enforces the exports map where esbuild did not, so rewrite it to the
+      // supported subpath. Remove once y-monaco ships a fixed import.
+      'monaco-editor/esm/vs/editor/editor.api.js': 'monaco-editor/editor/editor.api.js',
+      '@': path.resolve(import.meta.dirname, './src'),
+      '@components': path.resolve(import.meta.dirname, './src/components'),
+      '@themes': path.resolve(import.meta.dirname, './src/themes'),
+      '@contexts': path.resolve(import.meta.dirname, './src/contexts'),
+      '@pages': path.resolve(import.meta.dirname, './src/pages'),
+      '@styles': path.resolve(import.meta.dirname, './src/styles'),
+      '@utils': path.resolve(import.meta.dirname, './src/utils'),
+      '@service': path.resolve(import.meta.dirname, './src/service')
     }
   }
 });
