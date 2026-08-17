@@ -42,18 +42,21 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     // Simple login
+    // Deliberately does NOT toggle the global isLoading: RouteAccessControl
+    // unmounts the current page while it is true, which would destroy the
+    // login form's state mid-flow (e.g. the 2FA step).
     const login = async (credentials) => {
-        setIsLoading(true);
         try {
             const response = await authService.login(credentials);
+            // Password accepted but a 2FA code is still required — no session yet
+            if (response.requiresTwoFactor) {
+                return response;
+            }
             setUser(response.user || response);
-            showSuccess('Login successful');
             return response;
         } catch (error) {
             showError(error.response?.data?.message || 'Login failed');
             throw error;
-        } finally {
-            setIsLoading(false);
         }
     };
 
