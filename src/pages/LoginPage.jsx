@@ -19,6 +19,8 @@ export const LoginPage = () => {
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [twoFactorStep, setTwoFactorStep] = useState(false);
+  const [twoFactorToken, setTwoFactorToken] = useState('');
   const { login } = useAuth();
   const { error: showError, success: showSuccess } = useNotification();
 
@@ -45,8 +47,13 @@ export const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const result = await login(formData);
-      
+      const result = await login(twoFactorStep ? { ...formData, twoFactorToken: twoFactorToken.trim() } : formData);
+
+      if (result.requiresTwoFactor) {
+        setTwoFactorStep(true);
+        return;
+      }
+
       if (result.success) {
         showSuccess('Login successful! Welcome back.');
         navigate('/'); // Navigate to dashboard after successful login
@@ -60,16 +67,18 @@ export const LoginPage = () => {
     }
   };
 
-  const isFormValid = formData.identifier && formData.password;
+  const isFormValid = twoFactorStep
+    ? twoFactorToken.trim().length >= 6
+    : formData.identifier && formData.password;
 
   return (
     <Page layout="flex" align="center" justify="center">
-        <Card layout="flex-column" padding="xl" align="center" gap="lg" >
+        <Card layout="flex-column" padding="xl" align="center" gap="lg" width="100%" maxWidth="560px">
             {/* Header */}
             <Container layout="flex-column" gap="sm" align="center" padding="none">
-              <Icon name="FaLock" size="lg" color="primary" />
-              <Typography as="h1" size="2xl" weight="bold" color="primary">
-                Sign In
+              <Icon name={twoFactorStep ? 'FaShieldAlt' : 'FaLock'} size="lg" color="primary" />
+              <Typography as="h1" size="2xl" weight="bold" font="secondary" color="primary" style={{ textAlign: 'center' }}>
+                {twoFactorStep ? 'Two-Factor Authentication' : 'Sign In'}
               </Typography>
               <Typography align="center">
                 Welcome back! Please sign in to your account.
@@ -79,7 +88,7 @@ export const LoginPage = () => {
             {/* Login Form */}
               <Container
                 as="form"
-                style={{ width: '80%' }}
+                style={{ width: '92%' }}
                 gap="md"
                 padding="none"
                 onKeyDown={e => {
@@ -89,6 +98,36 @@ export const LoginPage = () => {
                 }}
                 onSubmit={handleSubmit}
               >
+                {twoFactorStep && (
+                  <>
+                    <Typography size="sm" align="center" style={{ display: 'block', textAlign: 'center', width: '100%' }}>
+                      Enter the 6-digit code from your authenticator app, or a backup code.
+                    </Typography>
+                    <Input
+                      type="text"
+                      name="twoFactorToken"
+                      label="Authentication code"
+                      variant="floating"
+                      value={twoFactorToken}
+                      onChange={e => setTwoFactorToken(e.target.value)}
+                      required
+                      width="100%"
+                      maxLength={20}
+                      autoComplete="one-time-code"
+                    />
+                    <Button
+                      type="button"
+                      color="secondary"
+                      width="100%"
+                      onClick={() => { setTwoFactorStep(false); setTwoFactorToken(''); }}
+                      disabled={isLoading}
+                    >
+                      Back to sign in
+                    </Button>
+                  </>
+                )}
+
+                {!twoFactorStep && (
                 <Input
                   type="text"
                   name="identifier"
@@ -100,7 +139,9 @@ export const LoginPage = () => {
                   width="100%"
                   autoComplete="username"
                 />
+                )}
 
+                {!twoFactorStep && (
                 <Input
                   type="password"
                   name="password"
@@ -112,6 +153,7 @@ export const LoginPage = () => {
                   width="100%"
                   autoComplete="current-password"
                 />
+                )}
 
                 <Button
                   type="submit"
