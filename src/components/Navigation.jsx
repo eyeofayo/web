@@ -1,7 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { useAuth } from '@contexts/AuthContext';
 import { useTheme } from '@contexts/ThemeContext';
-import { Badge, Button, CircularProgress, Container, FloatingActionButton, Icon, Page, Typography } from './Components';
+import { Badge, Button, ButtonGroup, CircularProgress, Container, FloatingActionButton, Icon, Page, Typography } from './Components';
 
 // Standardized loading component for consistent UI across all pages
 export const PageLoading = ({ message = "Loading..." }) => {
@@ -259,25 +259,27 @@ export const Navigation = ({
                     </Button>
                 </Container>
             ) : (
-                <Container layout="flex" gap="sm">
-                    <Button
-                        color="primary"
-                        size="sm"
-                        onClick={() => handleNavigation('/login')}
-                        disabled={isNavigating}
-                    >
-                        <Icon name="FiLogIn" size="sm"/>
-                        Sign In
-                    </Button>
-                    <Button
-                        color="secondary"
-                        size="sm"
-                        onClick={() => handleNavigation('/signup')}
-                        disabled={isNavigating}
-                    >
-                        <Icon name="FiUserPlus" size="sm"/>
-                        Sign Up
-                    </Button>
+                <Container layout="flex">
+                    <ButtonGroup spaced selectable={false} justify="start">
+                        <Button
+                            color="primary"
+                            size="sm"
+                            onClick={() => handleNavigation('/login')}
+                            disabled={isNavigating}
+                        >
+                            <Icon name="FiLogIn" size="sm"/>
+                            Sign In
+                        </Button>
+                        <Button
+                            color="secondary"
+                            size="sm"
+                            onClick={() => handleNavigation('/signup')}
+                            disabled={isNavigating}
+                        >
+                            <Icon name="FiUserPlus" size="sm"/>
+                            Sign Up
+                        </Button>
+                    </ButtonGroup>
                 </Container>
             )}
         </Container>

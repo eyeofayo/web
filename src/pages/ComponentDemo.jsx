@@ -23,6 +23,12 @@ import {
     Video,
     Audio,
     Model3D,
+    BACKGROUNDS,
+    BACKGROUND_TONES,
+    BACKGROUND_INTENSITIES,
+    BACKGROUND_SIZES,
+    BACKGROUND_MOTIONS,
+    BACKGROUND_FADES,
 } from '@components/Components';
 
 /**
@@ -63,6 +69,57 @@ const COMMON_GAPS = ['none', 'xs', 'sm', 'md', 'lg', 'xl'];
 const COMMON_PADDING = ['none', 'xs', 'sm', 'md', 'lg', 'xl'];
 const ALIGN_OPTIONS = ['start', 'center', 'end', 'stretch'];
 const JUSTIFY_OPTIONS = ['start', 'center', 'end', 'between', 'around', 'evenly', 'wrap'];
+
+// Decorative background props shared by Page, Container and Card
+const BACKGROUND_DEFAULT_PROPS = {
+    background: null,
+    backgroundTone: 'auto',
+    backgroundIntensity: 'subtle',
+    backgroundSize: 'md',
+    backgroundMotion: null,
+    backgroundFade: 'none'
+};
+
+const BACKGROUND_PROP_CONFIGS = {
+    background: {
+        type: 'select',
+        label: 'Background',
+        group: 'Background',
+        options: [null, ...BACKGROUNDS],
+        optionLabels: { null: 'None' }
+    },
+    backgroundTone: {
+        type: 'select',
+        label: 'Tone (theme color)',
+        group: 'Background',
+        options: BACKGROUND_TONES
+    },
+    backgroundIntensity: {
+        type: 'select',
+        label: 'Intensity',
+        group: 'Background',
+        options: BACKGROUND_INTENSITIES
+    },
+    backgroundSize: {
+        type: 'select',
+        label: 'Pattern Size',
+        group: 'Background',
+        options: BACKGROUND_SIZES
+    },
+    backgroundMotion: {
+        type: 'select',
+        label: 'Motion',
+        group: 'Background',
+        options: [null, ...BACKGROUND_MOTIONS],
+        optionLabels: { null: 'Default' }
+    },
+    backgroundFade: {
+        type: 'select',
+        label: 'Fade',
+        group: 'Background',
+        options: BACKGROUND_FADES
+    }
+};
 
 // Genie configuration helpers - these create the actual genie objects
 // MUST be defined BEFORE COMPONENT_METADATA so they're available when defaultProps are set
@@ -816,18 +873,84 @@ const COMPONENT_METADATA = {
         description: 'Icon component supporting react-icons library'
     },
 
+    Page: {
+        component: Page,
+        defaultProps: {
+            layout: 'flex-column',
+            gap: 'lg',
+            padding: 'lg',
+            align: 'start',
+            justify: 'start',
+            theme: null,
+            backgroundColor: null,
+            ...BACKGROUND_DEFAULT_PROPS
+        },
+        propConfigs: {
+            layout: {
+                type: 'select',
+                label: 'Layout Type',
+                group: 'Layout',
+                options: COMMON_LAYOUTS
+            },
+            align: {
+                type: 'select',
+                label: 'Align Items',
+                group: 'Layout',
+                options: ALIGN_OPTIONS
+            },
+            justify: {
+                type: 'select',
+                label: 'Justify Content',
+                group: 'Layout',
+                options: JUSTIFY_OPTIONS
+            },
+            gap: {
+                type: 'select',
+                label: 'Gap',
+                group: 'Spacing',
+                options: COMMON_GAPS
+            },
+            padding: {
+                type: 'select',
+                label: 'Padding',
+                group: 'Spacing',
+                options: COMMON_PADDING
+            },
+            theme: {
+                type: 'select',
+                label: 'Theme Override',
+                group: 'Appearance',
+                options: THEME_OVERRIDES,
+                optionLabels: THEME_OPTION_LABELS
+            },
+            backgroundColor: {
+                type: 'select',
+                label: 'Background Variant',
+                group: 'Appearance',
+                options: [null, 'surface', 'background', 'primary', 'secondary', 'tertiary'],
+                optionLabels: { null: 'Theme Default' }
+            },
+            ...BACKGROUND_PROP_CONFIGS
+        },
+        description: 'Top-level page wrapper; changes here apply to this demo page itself'
+    },
     Card: {
         component: Card,
         defaultProps: {
             padding: 'lg',
-            layout: 'block',
+            layout: 'flex',
             gap: 'lg',
             columns: 1,
-            align: 'start',
-            justify: 'start',
+            align: 'center',
+            justify: 'center',
             hover: true,
             elevation: 'md',
+            width: '70%',
+            innerWidth: '50%',
+            innerHeight: '',
             backgroundColor: null,
+            ...BACKGROUND_DEFAULT_PROPS,
+            background: 'plus',
             genie: createCardGenieConfig('click'),
             genieTrigger: 'click'
         },
@@ -855,6 +978,18 @@ const COMPONENT_METADATA = {
                 label: 'Height',
                 group: 'Layout',
                 placeholder: 'e.g., fit-content, 200px'
+            },
+            innerWidth: {
+                type: 'text',
+                label: 'Inner Cards Width',
+                group: 'Layout',
+                placeholder: 'e.g., 50%, 160px'
+            },
+            innerHeight: {
+                type: 'text',
+                label: 'Inner Cards Height',
+                group: 'Layout',
+                placeholder: 'e.g., 80px'
             },
             layout: {
                 type: 'select',
@@ -891,9 +1026,10 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Background Variant',
                 group: 'Appearance',
-                options: [null, 'surface', 'background', 'primary', 'secondary', 'tertiary', 'success', 'warning', 'error'],
+                options: [null, 'surface', 'background', 'primary', 'secondary', 'tertiary'],
                 optionLabels: { null: 'Theme Default' }
             },
+            ...BACKGROUND_PROP_CONFIGS,
             genieTrigger: {
                 type: 'select',
                 label: 'Genie Trigger',
@@ -911,6 +1047,7 @@ const COMPONENT_METADATA = {
             align: 'center',
             justify: 'center',
             backgroundColor: null,
+            ...BACKGROUND_DEFAULT_PROPS,
             genie: createContainerGenieConfig('click'),
             genieTrigger: 'click'
         },
@@ -943,9 +1080,10 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Background Variant',
                 group: 'Appearance',
-                options: [null, 'surface', 'background', 'primary', 'secondary', 'tertiary', 'success', 'warning', 'error'],
+                options: [null, 'surface', 'background', 'primary', 'secondary', 'tertiary'],
                 optionLabels: { null: 'Theme Default' }
             },
+            ...BACKGROUND_PROP_CONFIGS,
             genieTrigger: {
                 type: 'select',
                 label: 'Genie Trigger',
@@ -2149,6 +2287,8 @@ const generateJSXPreview = (componentName, props = {}) => {
         onGenieHide, 
         nodes, 
         edges, 
+        innerWidth,
+        innerHeight,
         ...restProps 
     } = props;
     
@@ -2360,6 +2500,8 @@ const ComponentDemoRefactoredNew = () => {
     // State management
     const [selectedComponent, setSelectedComponent] = useState(DEFAULT_COMPONENT);
     const [componentProps, setComponentProps] = useState(() => cloneDefaultPropsForComponent(DEFAULT_COMPONENT));
+    const [pageProps, setPageProps] = useState(() => cloneDefaultPropsForComponent('Page'));
+    const activePageProps = selectedComponent === 'Page' ? componentProps : pageProps;
 
     const jsxPreview = useMemo(
         () => generateJSXPreview(selectedComponent, componentProps),
@@ -2420,8 +2562,11 @@ const ComponentDemoRefactoredNew = () => {
         const metadata = COMPONENT_METADATA[componentName];
         if (!metadata) return;
 
+        // Page props drive the real page, so they outlive the Page section.
+        if (selectedComponent === 'Page') setPageProps(componentProps);
+
         setSelectedComponent(componentName);
-        setComponentProps(cloneDefaultPropsForComponent(componentName));
+        setComponentProps(componentName === 'Page' ? pageProps : cloneDefaultPropsForComponent(componentName));
     };
 
     const handleTreeNodeExpand = useCallback((nodeId, isExpanded) => {
@@ -2699,9 +2844,23 @@ const ComponentDemoRefactoredNew = () => {
             );
         }
 
+        if (selectedComponent === 'Page') {
+            return (
+                <Container layout="flex-column" align="center" gap="xs" padding="none">
+                    <Icon name="FiLayout" size="lg" color="primary" />
+                    <Typography weight="semibold">Page</Typography>
+                    <Typography size="sm" color="muted" align="center">
+                        These props are applied to the page behind this demo.
+                    </Typography>
+                </Container>
+            );
+        }
+
         if (selectedComponent === 'Card') {
             // Extract layout-related props from componentProps
-            const { layout, gap, align, justify, columns, padding, elevation, backgroundColor, children, ...restProps } = effectiveProps;
+            const { layout, gap, align, justify, columns, padding, elevation, backgroundColor, children, width, height, innerWidth, innerHeight, genie, genieTrigger, ...restProps } = effectiveProps;
+            // The genie belongs to the inner cards; the outer card stays a plain surface.
+            const innerSize = { width: innerWidth || undefined, height: innerHeight || undefined, genie, genieTrigger };
             
             return (
                 <ComponentToRender
@@ -2713,39 +2872,27 @@ const ComponentDemoRefactoredNew = () => {
                     padding={padding}
                     elevation={elevation}
                     backgroundColor={backgroundColor}
-                    width="fit-content"
-                    height="fit-content"
+                    width={width || 'fit-content'}
+                    height={height || 'fit-content'}
                     {...restProps}
                 >
-                    <Card padding="md" backgroundColor="primary">
+                    <Card padding="md" backgroundColor="primary" {...innerSize}>
                         <Typography weight="bold" color="white">Primary</Typography>
                     </Card>
                     
-                    <Card padding="md" backgroundColor="secondary">
+                    <Card padding="md" backgroundColor="secondary" {...innerSize}>
                         <Typography weight="bold" color="white">Secondary</Typography>
                     </Card>
 
-                    <Card padding="md" backgroundColor="tertiary">
+                    <Card padding="md" backgroundColor="tertiary" {...innerSize}>
                         <Typography weight="bold" color="white">Tertiary</Typography>
                     </Card>
 
-                    <Card padding="md" backgroundColor="success">
-                        <Typography weight="bold" color="white">Success</Typography>
-                    </Card>
-
-                    <Card padding="md" backgroundColor="warning">
-                        <Typography weight="bold" color="white">Warning</Typography>
-                    </Card>
-
-                    <Card padding="md" backgroundColor="error">
-                        <Typography weight="bold" color="white">Error</Typography>
-                    </Card>
-
-                    <Card padding="md" backgroundColor="surface">
+                    <Card padding="md" backgroundColor="surface" {...innerSize}>
                         <Typography weight="bold">Surface</Typography>
                     </Card>
 
-                    <Card padding="md" backgroundColor="background">
+                    <Card padding="md" backgroundColor="background" {...innerSize}>
                         <Typography weight="bold">Background</Typography>
                     </Card>
                 </ComponentToRender>
@@ -2787,7 +2934,7 @@ const ComponentDemoRefactoredNew = () => {
     const propEntries = metadata?.propConfigs ? Object.entries(metadata.propConfigs) : [];
 
     return (
-        <Page padding="lg" layout="flex-column" gap="lg">
+        <Page {...activePageProps}>
             <ButtonGroup
                 size="sm"
                 spaced

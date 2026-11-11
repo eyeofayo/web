@@ -72,7 +72,7 @@ export const LoginPage = () => {
     : formData.identifier && formData.password;
 
   return (
-    <Page layout="flex" align="center" justify="center">
+    <Page layout="flex" align="center" justify="center" background="dots" backgroundFade="radial">
         <Card layout="flex-column" padding="xl" align="center" gap="lg" width="100%" maxWidth="560px">
             {/* Header */}
             <Container layout="flex-column" gap="sm" align="center" padding="none">

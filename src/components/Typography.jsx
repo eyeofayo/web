@@ -252,6 +252,7 @@ const getColorStyle = (color) => {
         'success': 'var(--success-color)',
         'warning': 'var(--warning-color)',
         'error': 'var(--error-color)',
+        'muted': 'var(--text-muted, color-mix(in srgb, var(--text-color) 65%, transparent))',
         'neutral': 'var(--neutral-color)',
         'info': 'var(--tertiary-color)',
         'header': 'var(--header-text-color, var(--text-color))',
@@ -1247,6 +1248,7 @@ export const Typography = ({
     margin = null, // All margin spacing: 'none', 'xs', 'sm', 'md', 'lg', 'xl'
     padding = null, // All padding spacing: 'none', 'xs', 'sm', 'md', 'lg', 'xl'
     as = null, // Semantic element to render: 'h1'-'h6', 'p', 'label', 'span', etc. (default 'span'; href always renders an 'a')
+    truncate = false, // Keep to one line and end overflowing text with an ellipsis
     href, // URL for links - automatically renders as link with proper styling
     target, // Link target (_blank, _self, etc.)
     rel, // Link relationship (e.g., 'noopener noreferrer' for external links)
@@ -1435,6 +1437,7 @@ export const Typography = ({
         justifyClass,
         getMarginClasses(margin, marginTop, marginBottom),
         paddingClass,
+        truncate ? 'typography-truncate' : '',
         `theme-${typographyTheme}`,
         className
     ].filter(Boolean).join(' ');
