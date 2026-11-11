@@ -98,7 +98,7 @@ export const SignupPage = () => {
         formData.confirmPassword;
 
     return (
-        <Page layout="flex" align="center" justify="center">
+        <Page layout="flex" align="center" justify="center" background="dots" backgroundFade="radial">
                 <Card layout="flex-column" gap="none" align="center">
                         {/* Header */}
                         <Container layout="flex-column" gap="sm" align="center">
