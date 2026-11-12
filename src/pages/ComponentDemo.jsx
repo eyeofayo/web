@@ -49,7 +49,7 @@ const EXTENDED_TEXT_SIZES = [...STANDARD_SIZES, '2xl', '3xl', '4xl'];
 const STATUS_COLORS = ['primary', 'secondary', 'tertiary', 'success', 'warning', 'error'];
 const BADGE_COLORS = ['default', ...STATUS_COLORS];
 const PROGRESS_COLORS = ['default', ...STATUS_COLORS];
-const TREEVIEW_COLORS = ['default', 'primary', 'secondary', 'tertiary', 'background'];
+const TREEVIEW_COLORS = ['default', 'surface', 'background', 'primary', 'secondary', 'tertiary'];
 const THEME_OVERRIDES = [null, 'modern', 'dark', 'minimal', 'vibrant', 'admin', 'pink'];
 const THEME_OPTION_LABELS = {
     null: 'Inherit Theme',
