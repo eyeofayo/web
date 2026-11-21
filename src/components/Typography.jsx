@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { Link, useInRouterContext } from 'react-router-dom';
 import { useTheme } from '@contexts/ThemeContext';
 import { useSpring, useSprings, animated } from '@react-spring/web';
 
@@ -1417,8 +1418,6 @@ export const Typography = ({
 
     // If href is provided, automatically render as a link; otherwise honor
     // the `as` prop so headings and paragraphs are semantic elements.
-    const Component = href ? 'a' : (as || 'span');
-
     // Detect if this is an external link
     const isExternalLink = href && (
         href.startsWith('http://') ||
@@ -1426,13 +1425,17 @@ export const Typography = ({
         href.startsWith('//') ||
         (href.includes('://') && !href.startsWith('mailto:') && !href.startsWith('tel:'))
     );
+    // A link to a page of this app changes page in place inside a router, without reloading the app.
+    const inRouter = useInRouterContext();
+    const routed = Boolean(href && inRouter && href.startsWith('/') && !href.startsWith('//') && !target);
+    const Component = href ? (routed ? Link : 'a') : (as || 'span');
 
     // Auto-set target and rel for external links for security and UX
-    const linkProps = href ? {
+    const linkProps = href ? (routed ? { to: href } : {
         href,
         target: target || (isExternalLink ? '_blank' : undefined),
         rel: rel || (isExternalLink ? 'noopener noreferrer' : undefined)
-    } : {};
+    }) : {};
     
     const hoverHandlers = (animateOn === 'hover') && animation !== 'none' ? {
         onMouseEnter: () => setIsHovering(true),

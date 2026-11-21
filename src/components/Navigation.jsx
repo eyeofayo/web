@@ -1,4 +1,5 @@
 ﻿import React, { useEffect, useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@contexts/AuthContext';
 import { useTheme } from '@contexts/ThemeContext';
 import { Badge, Button, CircularProgress, Container, FloatingActionButton, Icon, Page, Typography } from './Components';
@@ -52,7 +53,7 @@ const getRouteConfig = () => {
 
 const PUBLIC_PAGES = ['/', '/components'];
 
-// The desktop app has no web addresses to load, so it changes page in place.
+// Signing out starts the app afresh; the desktop app has no web addresses to load, so it changes page in place.
 const goTo = (path) => {
     if (window.desktop) window.location.hash = path;
     else window.location.href = path;
@@ -80,7 +81,7 @@ export const Navigation = ({
                            }) => {
     const {user, isLoading, logout, hasRole} = useAuth();
     const {currentTheme, switchTheme, availableThemes, themes} = useTheme();
-    const [isNavigating, setIsNavigating] = useState(false);
+    const navigate = useNavigate();
 
     // Navigation menu items based on authentication and roles
     const getNavigationItems = () => {
@@ -163,14 +164,8 @@ export const Navigation = ({
     const lastMenuId = ['admin', 'settings'].find((id) => navigationItems.some((item) => item.id === id));
     const menuItems = [...navigationItems.filter((item) => item.id !== lastMenuId), ...navigationItems.filter((item) => item.id === lastMenuId)];
 
-    const handleNavigation = (path) => {
-        setIsNavigating(true);
-        // Simulate navigation loading
-        setTimeout(() => {
-            goTo(path);
-            setIsNavigating(false);
-        }, 200);
-    };
+    // Pages change in place, at once: no wait and no reload of the app.
+    const handleNavigation = (path) => navigate(path);
 
     const handleLogout = async () => {
         try {
@@ -244,7 +239,6 @@ export const Navigation = ({
                                 align="left"
                                 width="100%"
                                 onClick={() => handleNavigation(item.path)}
-                                disabled={isNavigating}
                             >
                                 <Icon name={item.icon} size="xs"/>
                                 {item.label}
@@ -292,7 +286,6 @@ export const Navigation = ({
                         width="100%"
                         onClick={handleLogout}
                         color="error"
-                        disabled={isNavigating}
                     >
                         <Icon name="FiLogOut" size="xs"/>
                         Sign Out
@@ -309,9 +302,8 @@ export const Navigation = ({
             size={size}
             position={position}
             draggable={draggable}
-            icon={isNavigating ? 'FiLoader' : 'FiMap'}
+            icon="FiMap"
             theme={theme}
-            disabled={isNavigating}
             genie={{
                 trigger: 'click',
                 content: genieContent,
@@ -341,15 +333,11 @@ export const RouteAccessControl = ({children, path}) => {
     // Redirect logic
     const isPublicPage = PUBLIC_PAGES.includes(path);
     if (!isAuthPage && !isPublicPage && !user) {
-        // Protected page, no user - go to login
-        goTo('/login');
-        return null;
+        return <Navigate to="/login" replace />;
     }
 
     if (isAuthPage && user) {
-        // Auth page, but user is logged in - go to dashboard
-        goTo('/');
-        return null;
+        return <Navigate to="/" replace />;
     }
 
     // Simple role check for admin pages
