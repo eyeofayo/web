@@ -332,3 +332,10 @@
 .floating-action-button {
     animation: fab-bounce-in 0.3s ease-out;
 }
+
+/* The icon keeps the same share of the circle on every screen. */
+.floating-action-button.button.themed-button .themed-icon { width: 24px; height: 24px; font-size: 24px; }
+.floating-action-button.button.themed-button.xs .themed-icon { width: 16px; height: 16px; font-size: 16px; }
+.floating-action-button.button.themed-button.sm .themed-icon { width: 20px; height: 20px; font-size: 20px; }
+.floating-action-button.button.themed-button.lg .themed-icon { width: 30px; height: 30px; font-size: 30px; }
+.floating-action-button.button.themed-button.xl .themed-icon { width: 36px; height: 36px; font-size: 36px; }

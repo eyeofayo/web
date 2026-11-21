@@ -2,6 +2,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
     color: var(--primary-color);
     transition: all var(--transition-fast);
 }
@@ -310,4 +312,16 @@
 
 .themed-icon.justify-self-stretch {
     justify-self: stretch;
+}
+
+/* A brand logo fills its whole square while an outline icon leaves a margin, so a logo is inset to look the same size. */
+.themed-icon.icon-brand {
+    padding: 0.1em;
+}
+
+/* An icon inside a button is sized by the button's own text, so on a wide screen it never outgrows its label. */
+.button.themed-button .themed-icon {
+    font-size: inherit;
+    width: 1.3em;
+    height: 1.3em;
 }

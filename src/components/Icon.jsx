@@ -115,7 +115,7 @@ export const Icon = ({
     };
 
     // Build class names
-    const classes = ['themed-icon', `icon-${color}`, `icon-${effectiveSize}`, hover && 'icon-hover', clickable && 'icon-clickable', getJustifySelfClass(), className].filter(Boolean).join(' ');
+    const classes = ['themed-icon', `icon-${color}`, `icon-${effectiveSize}`, /^Si[A-Z]/.test(name) && 'icon-brand', hover && 'icon-hover', clickable && 'icon-clickable', getJustifySelfClass(), className].filter(Boolean).join(' ');
 
     return (
         <IconComponent
