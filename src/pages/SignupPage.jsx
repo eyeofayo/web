@@ -9,8 +9,7 @@ import {
     Input,
     Button,
     Typography,
-    Icon,
-    Select
+    Icon
 } from '@components/Components';
 
 export const SignupPage = () => {
@@ -28,12 +27,6 @@ export const SignupPage = () => {
     const { signup } = useAuth();
     const { error: showError, success: showSuccess } = useNotification();
 
-    const roleOptions = [
-        { value: 'USER', label: 'User' },
-        { value: 'CREATOR', label: 'Creator' },
-        { value: 'ADMIN', label: 'Admin' },
-        { value: 'OWNER', label: 'Owner' }
-    ];
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -43,12 +36,6 @@ export const SignupPage = () => {
         }));
     };
 
-    const handleRoleChange = (selectedValue) => {
-        setFormData(prev => ({
-            ...prev,
-            roles: selectedValue || []
-        }));
-    };
 
     const validateForm = () => {
         // Check if all required fields are filled
@@ -172,17 +159,6 @@ export const SignupPage = () => {
                                     autoComplete="email"
                                 />
                             </Container>
-                              {/* Role Selection */}
-                            <Select
-                                name="roles"
-                                label="Account Type"
-                                multiSelect={true}
-                                options={roleOptions}
-                                value={formData.roles}
-                                onChange={handleRoleChange}
-                                required
-                                width="75%"
-                            />
 
                             {/* Password Fields */}
                             <Container layout="flex" gap="xs" padding="none">

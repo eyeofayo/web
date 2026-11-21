@@ -2672,6 +2672,8 @@ export const AdminPage = () => {
                             onClick={async () => {
                               try {
                                 const reason = prompt('Enter rejection reason (optional):');
+                                // Cancel keeps the request as it is.
+                                if (reason === null) return;
                                 await userService.rejectRoleRequest(item.id, reason);
                                 showSuccess('Role request rejected');
                                 await loadRoleRequestsData();
