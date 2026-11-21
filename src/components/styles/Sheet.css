@@ -1,0 +1,138 @@
+.sheet {
+    min-height: 0;
+}
+
+.sheet-plate {
+    position: relative;
+    min-height: 160px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: var(--card-radius, var(--border-radius-md));
+    background: var(--surface-color);
+}
+
+.sheet .sheet-tags {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sheet .sheet-tag-on {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.sheet-read {
+    max-width: 70%;
+}
+
+.sheet-grid {
+    min-height: 0;
+    overflow: auto;
+    background: var(--background-color);
+}
+
+.sheet-table {
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: var(--font-family-primary);
+    font-size: var(--font-size-xs);
+    color: var(--text-color);
+}
+
+.sheet-table th,
+.sheet-table td {
+    padding: 4px 10px;
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+}
+
+.sheet-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    min-width: 44px;
+    background: var(--surface-color);
+    color: var(--text-muted, var(--text-color));
+    font-weight: 500;
+    text-align: center;
+    user-select: none;
+}
+
+.sheet-table tbody th {
+    left: 0;
+    top: auto;
+}
+
+.sheet-table .sheet-corner {
+    left: 0;
+    z-index: 2;
+}
+
+.sheet-table .sheet-fill {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    border-right: none;
+    cursor: default;
+}
+
+.sheet-table td {
+    min-width: 76px;
+    cursor: cell;
+}
+
+.sheet-table .sheet-number {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.sheet-table .sheet-bold {
+    font-weight: 600;
+}
+
+.sheet-table .sheet-waiting {
+    color: var(--warning-color);
+    font-style: italic;
+}
+
+.sheet-table .sheet-on {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+}
+
+.sheet-table .sheet-head-on {
+    color: var(--primary-color);
+}
+
+.sheet-table .sheet-heading td {
+    background: var(--surface-color);
+    font-weight: 600;
+}
+
+.sheet-filters {
+    border: 1px solid var(--border-color);
+    border-radius: var(--card-radius, var(--border-radius-md));
+}
+
+.sheet-table:focus {
+    outline: none;
+}
+
+.sheet-table .sheet-typing {
+    padding: 0;
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+}
+
+.sheet-table .sheet-editor,
+.sheet-table .sheet-editor input {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+}

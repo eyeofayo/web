@@ -6,7 +6,7 @@ import path from 'node:path';
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 8083
+    port: 4043
   },
   optimizeDeps: {
     include: ['mammoth'],

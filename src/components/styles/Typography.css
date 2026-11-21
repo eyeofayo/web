@@ -368,16 +368,17 @@ label.typography {
 /* Breakpoints: 480px (small→large phones), 768px (tablet portrait), 1025px (desktop), 1440px (large desktop) */
 
 /* Mobile base styles (< 480px) - Extra compact for small phones */
+/* The three small sizes never go below 11, 12 and 13px, so a phone can be read */
 .typography-size-xxs {
-    font-size: 0.5rem;     /* 8px */
+    font-size: 0.6875rem;  /* 11px */
 }
 
 .typography-size-xs {
-    font-size: 0.5625rem;  /* 9px */
+    font-size: 0.75rem;    /* 12px */
 }
 
 .typography-size-sm {
-    font-size: 0.6875rem;  /* 11px */
+    font-size: 0.8125rem;  /* 13px */
 }
 
 .typography-size-md {
@@ -407,11 +408,11 @@ label.typography {
 /* Large phone adjustments (480px - 767px) - Standard phone size */
 @media (min-width: 480px) {
     .typography-size-xxs {
-        font-size: 0.5625rem;  /* 9px */
+        font-size: 0.6875rem;  /* 11px */
     }
 
     .typography-size-xs {
-        font-size: 0.6875rem;  /* 11px - +22% from small phone */
+        font-size: 0.75rem;    /* 12px */
     }
 
     .typography-size-sm {

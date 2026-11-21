@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useMemo, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ThemeProvider, useTheme } from '@contexts/ThemeContext';
 import Card from './Card';
 import Container from './Container';
@@ -30,6 +30,61 @@ import './styles/Data.css';
  *   - Callbacks available for show/hide events with item context
  *   - Table variant: Genie attaches to the entire row, positioned based on row location
  */
+// The footer of anything shown a page at a time: how many per page on the left, then anything passed in (the table
+// puts its sort choice there), and on the right first, previous, five page numbers, next and last. On a screen as
+// narrow as a phone the page buttons take a line of their own and show three numbers, so nothing runs off the side.
+const NARROW_SCREEN = '(max-width: 560px)';
+export const Pagination = ({ page, pages, onPage, pageSize = null, pageSizes = null, onPageSize = null, size = 'sm', padding = 'xs', disabled = false, children = null }) => {
+    const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && Boolean(window.matchMedia?.(NARROW_SCREEN).matches));
+    useEffect(() => {
+        const media = window.matchMedia?.(NARROW_SCREEN);
+        if (!media) return undefined;
+        const changed = () => setNarrow(media.matches);
+        media.addEventListener('change', changed);
+        return () => media.removeEventListener('change', changed);
+    }, []);
+    const count = Math.min(3, Math.max(1, pages));
+    const first = Math.max(1, Math.min(page - 1, pages - count + 1));
+    const numbers = Array.from({ length: count }, (unused, index) => first + index);
+    const step = (icon, target, off, label) => (
+        <Button size={size} selected={false} onClick={() => onPage(target)} disabled={disabled || off} title={label} aria-label={label}>
+            <Icon name={icon} size="xs" />
+        </Button>
+    );
+
+    return (
+        <Container layout={narrow ? 'flex-column' : 'flex'} align={narrow ? undefined : 'center'} gap={narrow ? 'xs' : undefined} padding={padding} width="100%">
+            <Container layout="flex" padding="none" align="center" gap="xs" flexFill={!narrow}>
+                {pageSizes && (
+                    <Container padding="none">
+                        <Select
+                            size={size}
+                            value={String(pageSize)}
+                            disabled={disabled}
+                            onChange={(chosen) => onPageSize?.(Number(chosen?.target?.value ?? chosen))}
+                            options={pageSizes.map((option) => ({ value: String(option), label: String(option) }))}
+                        />
+                    </Container>
+                )}
+                {children && <Container padding="none">{children}</Container>}
+            </Container>
+            <Container layout="flex" padding="none" justify="end" flexFill={!narrow} width={narrow ? '100%' : null} wrap={false}>
+                <ButtonGroup size={size} spaced wrap={false} justify="end">
+                    {step('FiChevronsLeft', 1, page === 1, 'First page')}
+                    {step('FiChevronLeft', page - 1, page === 1, 'Previous page')}
+                    {numbers.map((number) => (
+                        <Button key={number} size={size} variant="secondary" selected={number === page} disabled={disabled} onClick={() => onPage(number)} aria-label={`Page ${number}`}>
+                            {number}
+                        </Button>
+                    ))}
+                    {step('FiChevronRight', page + 1, page === pages, 'Next page')}
+                    {step('FiChevronsRight', pages, page === pages, 'Last page')}
+                </ButtonGroup>
+            </Container>
+        </Container>
+    );
+};
+
 export const Data = forwardRef(({
     data = [],
     fieldConfig = {},
@@ -47,6 +102,8 @@ export const Data = forwardRef(({
     cardColumns,
     cardGap,
     cardPadding,
+    flat = false, // No border, shadow or padding around the whole component
+    reveal = null, // { id, at }: open the page holding that row and mark it; a new `at` repeats it
     selector = false, // Enable row selection with checkboxes
     onSelectionChange = null, // Optional callback when selection changes: (selectedItems, selectedIds) => {}
     selectedItems = null, // Optional controlled selection - array of selected item IDs or items
@@ -98,40 +155,15 @@ export const Data = forwardRef(({
         const getButtonSize = () => size; // Buttons use main size
         const getInputSize = () => size; // Inputs use main size
 
-        // Get fields to display - use JSON order, not priority-based
-        const getDisplayFields = () => {
-            if (!data.length) return [];
-
-            // Get all unique fields from data in the order they appear in the first item
-            const firstItem = data[0];
-            const fieldsFromFirst = Object.keys(firstItem);
-
-            // Add any additional fields from other items that might not be in the first
-            const allFields = [...new Set([
-                ...fieldsFromFirst,
-                ...data.flatMap(item => Object.keys(item))
-            ])];
-
-            // Filter out excluded fields from display
-            return allFields.filter(field => !exclude.includes(field));
-        };
-
-        // Get all fields for filtering and searching (includes excluded fields)
-        const getAllFields = () => {
-            if (!data.length) return [];
-
-            // Get all unique fields from data in the order they appear in the first item
-            const firstItem = data[0];
-            const fieldsFromFirst = Object.keys(firstItem);
-
-            // Add any additional fields from other items that might not be in the first
-            const allFields = [...new Set([
-                ...fieldsFromFirst,
-                ...data.flatMap(item => Object.keys(item))
-            ])];
-
-            return allFields;
-        };
+        // Every field of the data, in the order the first item gives them and then any the others add. Worked out once
+        // for the data, so a long list is not walked again each time the table is drawn.
+        const allFields = useMemo(() => {
+            const seen = new Set();
+            data.forEach((item) => Object.keys(item).forEach((field) => seen.add(field)));
+            return [...seen];
+        }, [data]);
+        const excluded = exclude.join('\u0000');
+        const displayFields = useMemo(() => allFields.filter((field) => !exclude.includes(field)), [allFields, excluded]); // eslint-disable-line react-hooks/exhaustive-deps
 
         // Helper function to detect timestamp/date fields
         const isTimestampField = (field, data) => {
@@ -172,8 +204,6 @@ export const Data = forwardRef(({
             return timestampRatio >= 0.8;
         };
 
-        const displayFields = getDisplayFields();
-        const allFields = getAllFields();
 
         const getJustifySelfClass = () => {
             if (justifySelf) {
@@ -326,6 +356,35 @@ export const Data = forwardRef(({
             setPage(1);
         }, [globalSearch, columnFilters]);
 
+        // `reveal` ({ id, at }) opens the page that holds that row and marks it for a moment, clearing a search or filter that hides it.
+        const revealUid = React.useId();
+        const revealHandled = useRef(null);
+        const [revealed, setRevealed] = useState(null);
+        React.useEffect(() => {
+            if (!reveal?.id || revealHandled.current === reveal.at) return;
+            const index = filteredData.findIndex((item, i) => String(getItemId(item, i)) === String(reveal.id));
+            if (index < 0) {
+                if (globalSearch || Object.keys(columnFilters).length) {
+                    setGlobalSearch('');
+                    setColumnFilters({});
+                }
+                return;
+            }
+            revealHandled.current = reveal.at;
+            setPage(Math.floor(index / pageSize) + 1);
+            setRevealed(String(reveal.id));
+        }, [reveal?.id, reveal?.at, filteredData, pageSize]);
+        React.useEffect(() => {
+            if (!revealed) return undefined;
+            document.querySelector(`[data-reveal="${CSS.escape(`${revealUid}-${revealed}`)}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            const timer = setTimeout(() => setRevealed(null), 2000);
+            return () => clearTimeout(timer);
+        }, [revealed, page]);
+        const revealProps = (item, rowIndex) => {
+            const id = String(getItemId(item, rowIndex));
+            return { 'data-reveal': `${revealUid}-${id}`, revealedClass: revealed === id ? 'data-item-revealed' : '' };
+        };
+
         // Helper function to check if a value is a complex object/array
         const isComplexValue = (value) => {
             if (value === null || value === undefined) return false;
@@ -417,15 +476,9 @@ export const Data = forwardRef(({
             }
             let componentProps = {...config.props};
 
-            // Remove any size prop from fieldConfig - parent Data component's size prop takes precedence
-            delete componentProps.size;
-
-            // Apply transform if available
             if (config.transform) {
                 const transformedProps = config.transform(value);
                 componentProps = {...componentProps, ...transformedProps};
-                // Also remove size from transformed props
-                delete componentProps.size;
             } else {
                 componentProps.children = hasComplexData ? getPreviewValue(value) : value;
             }
@@ -450,13 +503,13 @@ export const Data = forwardRef(({
                             variant: 'popover'
                         }}
                     >
-                        <Component {...componentProps} size={getTypographySize()} />
+                        <Component size={getTypographySize()} {...componentProps} />
                         <Icon name="FiEye" size={getIconSize()}/>
                     </Container>
                 );
             }
 
-            return <Component {...componentProps} size={getTypographySize()} />;
+            return <Component size={getTypographySize()} {...componentProps} />;
         };
 
         // Handle sort field and direction change
@@ -467,9 +520,9 @@ export const Data = forwardRef(({
                 return;
             }
 
-            const [field, direction] = sortValue.split('-');
-            setSortField(field);
-            setSortDirection(direction || 'asc');
+            const cut = sortValue.lastIndexOf('-');
+            setSortField(sortValue.slice(0, cut));
+            setSortDirection(sortValue.slice(cut + 1) || 'asc');
         };
 
         // Get sort options for select dropdown
@@ -642,7 +695,8 @@ export const Data = forwardRef(({
                 <>
                     <tr
                         ref={rowRef}
-                        className={`table-row ${rowGenieConfig ? 'genie-trigger' : ''}`}
+                        data-reveal={revealProps(item, rowIndex)['data-reveal']}
+                        className={`table-row ${rowGenieConfig ? 'genie-trigger' : ''} ${revealProps(item, rowIndex).revealedClass}`}
                         {...triggerProps}
                     >
                         {selector && (
@@ -718,166 +772,129 @@ export const Data = forwardRef(({
             );
         };
 
+        const itemGenie = (item, rowIndex) => genie ? {
+            ...genie,
+            content: typeof genie.content === 'function' ? genie.content(item, rowIndex) : genie.content,
+            trigger: genie.trigger === 'hover' ? 'click' : genie.trigger || 'click',
+        } : null;
+
+        const itemCheck = (item, rowIndex) => selector && (
+            <Container padding="none" className="data-item-check">
+                <Input
+                    type="checkbox"
+                    checked={isItemSelected(item, rowIndex)}
+                    onChange={(e) => handleItemSelection(item, rowIndex, e.target.checked)}
+                    size={getButtonSize()}
+                />
+            </Container>
+        );
+
+        const emptyItems = (
+            <Container padding="md">
+                <Typography size={getTypographySize()} color="muted">No data available</Typography>
+            </Container>
+        );
+
         const renderCardsVariant = () => {
+            const [titleField, summaryField, ...metaFields] = visibleFields.filter((field) => field !== 'id' && field !== '_id');
+            const DataCard = ({item, index}) => {
+                const rowIndex = index + (page - 1) * pageSize;
+                const cardRef = useRef(null);
+                const chosen = selector && isItemSelected(item, rowIndex);
+                return (
+                    <Card
+                        ref={cardRef}
+                        padding="none"
+                        shadow={false}
+                        hover={false}
+                        data-reveal={revealProps(item, rowIndex)['data-reveal']}
+                        className={`data-card-item ${chosen ? 'data-item-chosen' : ''} ${revealProps(item, rowIndex).revealedClass}`}
+                        genie={itemGenie(item, rowIndex)}
+                        onGenieShow={onGenieShow ? () => onGenieShow(item, rowIndex) : null}
+                        onGenieHide={onGenieHide ? () => onGenieHide(item, rowIndex) : null}
+                    >
+                        <Container layout="flex" gap="sm" align="start" padding="none" className="data-card-head">
+                            {itemCheck(item, rowIndex)}
+                            <Container padding="none" flexFill className="data-card-title">
+                                {titleField && renderFieldValue(item, titleField, cardRef)}
+                            </Container>
+                        </Container>
+                        {summaryField && (
+                            <Container padding="none" className="data-card-summary">
+                                {renderFieldValue(item, summaryField, cardRef)}
+                            </Container>
+                        )}
+                        {metaFields.length > 0 && (
+                            <Container padding="none" className="data-card-facts">
+                                {metaFields.map((field) => (
+                                    <Container key={field} layout="flex" gap="sm" align="center" justify="between" padding="none" className="data-card-fact">
+                                        <Typography as="span" size={getIconSize()} color="muted">{formatFieldName(field)}</Typography>
+                                        <Container padding="none" className="data-card-value">{renderFieldValue(item, field, cardRef)}</Container>
+                                    </Container>
+                                ))}
+                            </Container>
+                        )}
+                    </Card>
+                );
+            };
             return (
-                <Container
-                    layout="grid"
-                    columns="auto"
-                    gap="lg"
-                    className="data-item-container"
-                >
-                    {paginatedFilteredData.length === 0 ? (
-                        <Card padding="lg">
-                            <Typography size={getTypographySize()}>No data available</Typography>
-                        </Card>
-                    ) : (
-                        paginatedFilteredData.map((item, index) => {
-                            const CardComponent = ({item, index}) => {
-                                const rowIndex = index + (page - 1) * pageSize;
-                                const cardRef = useRef(null);
-
-                                // Prepare generic genie configuration if provided
-                                const cardGenieConfig = genie ? {
-                                    ...genie,
-                                    // Pass item data to genie content if it's a function
-                                    content: typeof genie.content === 'function' ? genie.content(item, rowIndex) : genie.content,
-                                    trigger: genie.trigger === 'hover' ? 'click' : genie.trigger || 'click', // Force click/contextmenu only
-                                } : null;
-
-                                return (
-                                    <Card
-                                        ref={cardRef}
-                                        padding="lg"
-                                        className="data-card-item"
-                                        genie={cardGenieConfig}
-                                        onGenieShow={onGenieShow ? () => onGenieShow(item, rowIndex) : null}
-                                        onGenieHide={onGenieHide ? () => onGenieHide(item, rowIndex) : null}
-                                    >
-                                        {selector ? (
-                                            <Container layout="flex" gap="sm" padding="none">
-                                                <div>
-                                                    <Input
-                                                        type="checkbox"
-                                                        checked={isItemSelected(item, rowIndex)}
-                                                        onChange={(e) => handleItemSelection(item, rowIndex, e.target.checked)}
-                                                        size={getButtonSize()}
-                                                    />
-                                                </div>
-                                                <Container layout="flex-column" gap="sm" padding="none" flexFill>
-                                                    {visibleFields.map((field) => (
-                                                        <Container key={field} layout="flex" gap="sm" align="center"
-                                                                   padding="none">
-                                                            <Typography weight="medium" size={getIconSize()}
-                                                                        style={{minWidth: '80px', flex: '0 0 auto'}}>
-                                                                {formatFieldName(field)}:
-                                                            </Typography>
-                                                            <Container padding="none" flexFill>
-                                                                {renderFieldValue(item, field, cardRef)}
-                                                            </Container>
-                                                        </Container>
-                                                    ))}
-                                                </Container>
-                                            </Container>
-                                        ) : (
-                                            <Container layout="flex-column" gap="sm" padding="none">
-                                                {visibleFields.map((field) => (
-                                                    <Container key={field} layout="flex" gap="sm" align="center"
-                                                               padding="none">
-                                                        <Typography weight="medium" size={getIconSize()}
-                                                                    style={{minWidth: '80px', flex: '0 0 auto'}}>
-                                                            {formatFieldName(field)}:
-                                                        </Typography>
-                                                        <Container padding="none" flexFill>
-                                                            {renderFieldValue(item, field, cardRef)}
-                                                        </Container>
-                                                    </Container>
-                                                ))}
-                                            </Container>
-                                        )}
-                                    </Card>
-                                );
-                            };
-
-                            return <CardComponent key={index} item={item} index={index}/>;
-                        })
-                    )}
+                <Container padding="none" className="data-item-container data-card-grid">
+                    {paginatedFilteredData.length === 0 ? emptyItems : paginatedFilteredData.map((item, index) => (
+                        <DataCard key={item.id || index} item={item} index={index}/>
+                    ))}
                 </Container>
             );
         };
+
         const renderListVariant = () => {
+            const [titleField, summaryField, ...metaFields] = visibleFields.filter((field) => field !== 'id' && field !== '_id');
+            const DataRow = ({item, index}) => {
+                const rowIndex = index + (page - 1) * pageSize;
+                const rowRef = useRef(null);
+                const chosen = selector && isItemSelected(item, rowIndex);
+                return (
+                    <Card
+                        ref={rowRef}
+                        padding="none"
+                        bordered={false}
+                        shadow={false}
+                        hover={false}
+                        data-reveal={revealProps(item, rowIndex)['data-reveal']}
+                        className={`data-list-item ${chosen ? 'data-item-chosen' : ''} ${revealProps(item, rowIndex).revealedClass}`}
+                        genie={itemGenie(item, rowIndex)}
+                        onGenieShow={onGenieShow ? () => onGenieShow(item, rowIndex) : null}
+                        onGenieHide={onGenieHide ? () => onGenieHide(item, rowIndex) : null}
+                    >
+                        <Container padding="none" className="data-list-row">
+                            {itemCheck(item, rowIndex)}
+                            <Container padding="none" className="data-list-main">
+                                <Container padding="none" className="data-list-title">
+                                    {titleField && renderFieldValue(item, titleField, rowRef)}
+                                </Container>
+                                {summaryField && (
+                                    <Container padding="none" className="data-list-summary">
+                                        {renderFieldValue(item, summaryField, rowRef)}
+                                    </Container>
+                                )}
+                            </Container>
+                            {metaFields.length > 0 && (
+                                <Container layout="flex" gap="sm" align="center" padding="none" className="data-list-meta">
+                                    {metaFields.map((field) => (
+                                        <Container key={field} padding="none" className="data-list-value" title={formatFieldName(field)}>
+                                            {renderFieldValue(item, field, rowRef)}
+                                        </Container>
+                                    ))}
+                                </Container>
+                            )}
+                        </Container>
+                    </Card>
+                );
+            };
             return (
-                <Container layout="flex-column" gap="sm" padding="none" className="data-item-container">
-                    {paginatedFilteredData.length === 0 ? (
-                        <Card padding="md">
-                            <Typography size={getTypographySize()}>No data available</Typography>
-                        </Card>
-                    ) : (
-                        paginatedFilteredData.map((item, index) => {
-                            const ListItemComponent = ({item, index}) => {
-                                const rowIndex = index + (page - 1) * pageSize;
-                                const listItemRef = useRef(null);
-
-                                // Prepare generic genie configuration if provided
-                                const listItemGenieConfig = genie ? {
-                                    ...genie,
-                                    // Pass item data to genie content if it's a function
-                                    content: typeof genie.content === 'function' ? genie.content(item, rowIndex) : genie.content,
-                                    trigger: genie.trigger === 'hover' ? 'click' : genie.trigger || 'click', // Force click/contextmenu only
-                                } : null;
-
-                                return (
-                                    <Card
-                                        ref={listItemRef}
-                                        padding="md"
-                                        className="data-list-item"
-                                        genie={listItemGenieConfig}
-                                        onGenieShow={onGenieShow ? () => onGenieShow(item, rowIndex) : null}
-                                        onGenieHide={onGenieHide ? () => onGenieHide(item, rowIndex) : null}
-                                    >
-                                        {selector ? (
-                                            <Container layout="flex" gap="md" align="center" padding="none">
-                                                <div>
-                                                    <Input
-                                                        type="checkbox"
-                                                        checked={isItemSelected(item, rowIndex)}
-                                                        onChange={(e) => handleItemSelection(item, rowIndex, e.target.checked)}
-                                                        size={getButtonSize()}
-                                                    />
-                                                </div>
-                                                <Container layout="flex" justify="wrap" gap="lg" align="center"
-                                                           flexFill>
-                                                    {visibleFields.map((field, fieldIndex) => (
-                                                        <Container key={field} layout="flex-column" gap="xs"
-                                                                   padding="none"
-                                                                   flexFill={fieldIndex === 0}>
-                                                            <Typography weight="medium" size={getIconSize()}>
-                                                                {formatFieldName(field)}
-                                                            </Typography>
-                                                            {renderFieldValue(item, field, listItemRef)}
-                                                        </Container>
-                                                    ))}
-                                                </Container>
-                                            </Container>
-                                        ) : (
-                                            <Container layout="flex" justify="wrap" gap="lg" align="center">
-                                                {visibleFields.map((field, fieldIndex) => (
-                                                    <Container key={field} layout="flex-column" gap="xs" padding="none"
-                                                               flexFill={fieldIndex === 0}>
-                                                        <Typography weight="medium" size={getIconSize()}>
-                                                            {formatFieldName(field)}
-                                                        </Typography>
-                                                        {renderFieldValue(item, field, listItemRef)}
-                                                    </Container>
-                                                ))}
-                                            </Container>
-                                        )}
-                                    </Card>
-                                );
-                            };
-
-                            return <ListItemComponent key={index} item={item} index={index}/>;
-                        })
-                    )}
+                <Container padding="none" className="data-item-container data-list">
+                    {paginatedFilteredData.length === 0 ? emptyItems : paginatedFilteredData.map((item, index) => (
+                        <DataRow key={item.id || index} item={item} index={index}/>
+                    ))}
                 </Container>
             );
         };
@@ -950,10 +967,11 @@ export const Data = forwardRef(({
         const dataElement = (
             <Card
                 ref={ref}
-                className={`data-container theme-${dataTheme} ${getJustifySelfClass()} ${className}`}
+                className={`data-container data-view-${currentVariant} ${flat ? 'data-flat' : ''} theme-${dataTheme} ${getJustifySelfClass()} ${className}`}
                 data-theme={dataTheme}
                 data-theme-source={theme ? 'local' : 'inherited'}
                 layout="block"
+                {...(flat ? { bordered: false, shadow: false, padding: 'none', hover: false } : {})}
                 style={getDataStyle()}
                 {...props}
             >
@@ -1099,7 +1117,7 @@ export const Data = forwardRef(({
                             </Button>
                         </Container>
                         <Container layout="flex" justify="wrap" gap="md" padding="none">
-                            {allFields.map(field => {
+                            {allFields.filter((field) => field !== 'id' && field !== '_id').map(field => {
                                 const options = fieldOptions[field] || [];
                                 const hasOptions = options.length > 0;
                                 const isTimestamp = isTimestampField(field, data);
@@ -1168,93 +1186,28 @@ export const Data = forwardRef(({
                 {renderVariant()}
 
                 {/* Table Footer with Pagination and Sort Controls */}
-                <Container layout="flex" padding="xs">
-                    {/* Left Side: Rows per page with entries count as helper text */}
-                    <Container layout="flex" padding="none" flexFill>
+                <Pagination
+                    size={getButtonSize()}
+                    page={page}
+                    pages={totalFilteredPages}
+                    onPage={setPage}
+                    pageSize={pageSize}
+                    pageSizes={[5, 10, 20, 50, 100]}
+                    onPageSize={(chosen) => {
+                        setPageSize(chosen);
+                        setPage(1);
+                    }}
+                >
+                    {sortable && (
                         <Select
                             size={getButtonSize()}
-                            value={pageSize.toString()}
-                            onChange={(e) => {
-                                setPageSize(Number(e.target.value));
-                                setPage(1);
-                            }}
-                            options={[
-                                {value: '5', label: '5'},
-                                {value: '10', label: '10'},
-                                {value: '20', label: '20'},
-                                {value: '50', label: '50'},
-                                {value: '100', label: '100'}
-                            ]}
+                            value={getCurrentSortValue()}
+                            onChange={(chosen) => handleSortChange(chosen?.target?.value ?? chosen)}
+                            options={getSortOptions()}
+                            placeholder="Sort by..."
                         />
-
-                        {/* Center: Sort by selector */}
-                        {sortable && (
-                            <Select
-                                size={getButtonSize()}
-                                value={getCurrentSortValue()}
-                                onChange={(e) => handleSortChange(e.target.value)}
-                                options={getSortOptions()}
-                                placeholder="Sort by..."
-                            />
-                        )}
-                    </Container>
-
-                    {/* Right Side: Pagination Controls */}
-                    <Container layout="flex" padding="none" justify="end" flexFill wrap={false}>
-                        <ButtonGroup size={getButtonSize()} spaced wrap={false} justify="end">
-                            <Button size={getButtonSize()} selected={false} onClick={() => setPage(1)} disabled={page === 1}><Icon
-                                name="FiChevronsLeft" size='xs'/></Button>
-                            <Button size={getButtonSize()} selected={false} onClick={() => setPage(page - 1)}
-                                    disabled={page === 1}><Icon name="FiChevronLeft" size='xs'/></Button>
-
-                            {/* Three page buttons showing current page and adjacent pages */}
-                            {(() => {
-                                // Calculate which three pages to show
-                                let startPage, middlePage, endPage;
-
-                                if (page === 1) {
-                                    // First page: show 1, 2, 3
-                                    startPage = 1;
-                                    middlePage = Math.min(2, totalFilteredPages);
-                                    endPage = Math.min(3, totalFilteredPages);
-                                } else if (page === totalFilteredPages) {
-                                    // Last page: show (last-2), (last-1), last
-                                    startPage = Math.max(1, totalFilteredPages - 2);
-                                    middlePage = Math.max(1, totalFilteredPages - 1);
-                                    endPage = totalFilteredPages;
-                                } else {
-                                    // Middle pages: show (current-1), current, (current+1)
-                                    startPage = page - 1;
-                                    middlePage = page;
-                                    endPage = page + 1;
-                                }
-
-                                const pages = [startPage, middlePage, endPage].filter((p, i, arr) =>
-                                    p > 0 && p <= totalFilteredPages && arr.indexOf(p) === i // Remove duplicates and invalid pages
-                                );
-
-                                return pages.map(pageNum => (
-                                    <Button
-                                        key={pageNum}
-                                        size={getButtonSize()}
-                                        variant="secondary"
-                                        selected={pageNum === page}
-                                        onClick={() => setPage(pageNum)}
-                                    >
-                                        {pageNum}
-                                    </Button>
-                                ));
-                            })()}
-
-                            <Button size={getButtonSize()} selected={false} onClick={() => setPage(page + 1)}
-                                    disabled={page === totalFilteredPages}><Icon name="FiChevronRight"
-                                                                                 size='xs'/></Button>
-                            <Button size={getButtonSize()} selected={false} onClick={() => setPage(totalFilteredPages)}
-                                    disabled={page === totalFilteredPages}><Icon name="FiChevronsRight"
-                                                                                 size='xs'/></Button>
-                        </ButtonGroup>
-                    </Container>
-                </Container>
+                    )}
+                </Pagination>
 
             </Card>
         );

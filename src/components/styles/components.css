@@ -21,6 +21,17 @@
 @import './TreeView.css';
 @import './Editor.css';
 @import './Flow.css';
+@import './Frame.css';
+
+/* One keyboard focus ring for every control that does not draw its own */
+.switch-input:focus-visible + .switch-track,
+.icon-clickable:focus-visible,
+.badge[role="button"]:focus-visible {
+    outline: 2px solid var(--focus-ring-color, var(--primary-color));
+    outline-offset: 2px;
+}
+@import './Slides.css';
+@import './Sheet.css';
 @import './Image.css';
 @import './Scrollbar.css';
 @import './Video.css';

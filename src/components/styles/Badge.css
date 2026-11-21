@@ -17,27 +17,33 @@
 /* Badge Variants using proper theme colors */
 .badge.themed-badge-primary {
     background-color: var(--primary-color);
+    color: var(--primary-contrast-color, var(--text-contrast-color));
 }
 
 .badge.themed-badge-secondary {
     background-color: var(--secondary-color);
+    color: var(--secondary-contrast-color, var(--text-contrast-color));
 }
 
 .badge.themed-badge-success {
     background-color: var(--success-color);
+    color: var(--success-contrast-color, var(--text-contrast-color));
 }
 
 .badge.themed-badge-warning {
     background-color: var(--warning-color);
+    color: var(--warning-contrast-color, var(--text-contrast-color));
 }
 
 .badge.themed-badge-error,
 .badge.themed-badge-danger {
     background-color: var(--error-color);
+    color: var(--error-contrast-color, var(--text-contrast-color));
 }
 
 .badge.themed-badge-tertiary {
     background-color: var(--tertiary-color);
+    color: var(--tertiary-contrast-color, var(--text-contrast-color));
 }
 
 /* Size variations - xs/sm/md/lg/xl scale */

@@ -5,8 +5,6 @@
   position: relative;
   width: 100%;
   background: var(--surface-color);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--border-color);
   overflow: hidden;
 }
 
@@ -16,6 +14,28 @@
 .flow-container.flow-md { height: 500px; }
 .flow-container.flow-lg { height: 600px; }
 .flow-container.flow-xl { height: 800px; }
+
+/* ===== Toolbar ===== */
+.themed-flow .flow-toolbar {
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0 0 0 var(--spacing-sm);
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  padding: 1px;
+}
+
+/* Icon-only buttons: just wide enough for the icon */
+.themed-flow .flow-toolbar .button.themed-button {
+  min-width: 0;
+  padding: 0 10px;
+}
+
+.themed-flow .flow-toolbar .button.themed-button .themed-icon {
+  margin: 0;
+}
 
 .flow-node-preview {
   display: flex;
@@ -68,9 +88,121 @@
 }
 
 /* Node handles */
+/* Connection points sit above the box and have a generous area to grab. Each side has a point to drag from
+   and a point to drop on in the same place; the drop point only takes the pointer while a connector is being drawn. */
 .themed-flow .react-flow__handle {
   background: var(--primary-color);
   border: 2px solid var(--surface-color);
+  z-index: 3;
+  transition: box-shadow 0.15s ease;
+}
+
+.themed-flow .react-flow__node:hover .react-flow__handle,
+.themed-flow .react-flow__node.selected .react-flow__handle {
+  box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+.themed-flow .react-flow__handle::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+}
+
+/* The small bar beside whatever is selected */
+.flow-quickbar {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  padding: 1px;
+}
+
+.flow-quickbar .button.themed-button {
+  min-width: 0;
+  padding: 0 6px;
+}
+
+.flow-quickbar .button.themed-button .themed-icon {
+  margin: 0;
+}
+
+/* A locked box does not offer to be dragged; a collapsed group shows only its title bar */
+.themed-flow .react-flow__node.flow-locked {
+  cursor: default;
+}
+
+/* Collapsing only changes how the group looks; its real size is kept, so opening it puts everything back */
+.themed-flow .react-flow__node-group.flow-collapsed {
+  /* The box keeps its full size and is only clipped to its title bar. Nothing is measured differently, so the
+     steps inside are never squeezed or moved, and the clipped part does not take the pointer. */
+  clip-path: inset(-4px -4px calc(100% - 56px) -4px);
+  border-style: solid;
+}
+
+/* The lower edge of the title bar, since the group's own lower border is clipped away */
+.themed-flow .react-flow__node-group.flow-collapsed::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 52px;
+  border-bottom: 2px solid;
+  border-color: inherit;
+  pointer-events: none;
+}
+
+/* A switch in an edit form lines up with the field boxes beside it, not with their labels */
+.flow-form .flow-form-switch {
+  align-self: end;
+}
+
+/* The button on a group that collapses it or opens it again */
+.themed-flow .flow-group-toggle {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 2;
+}
+
+.themed-flow .flow-group-toggle .button.themed-button {
+  min-width: 0;
+  padding: 0 4px;
+}
+
+.themed-flow .flow-group-toggle .button.themed-button .themed-icon {
+  margin: 0;
+}
+
+/* A step always takes the room its content needs; a size chosen for it is only the least it takes up. */
+.themed-flow .react-flow__node-editable {
+  width: auto !important;
+  height: auto !important;
+}
+.themed-flow .flow-node.flow-node-sized .flow-node-surface {
+  box-sizing: border-box;
+}
+
+/* The group a dragged step would join */
+.themed-flow .react-flow__node.react-flow__node-group.flow-drop-target {
+  border-style: solid;
+  border-color: var(--success-accent-color, var(--success-color));
+  background-color: color-mix(in srgb, var(--success-accent-color, var(--success-color)), transparent 75%);
+}
+
+/* A group has no connection points; its hidden anchor only lets a connector to its border exist */
+.themed-flow .react-flow__handle.flow-group-anchor {
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  min-height: 0;
+  border: none;
+  pointer-events: none !important;
+}
+
+.themed-flow .react-flow__handle.flow-group-anchor::after {
+  content: none;
 }
 
 .themed-flow .react-flow__handle:hover {
@@ -119,24 +251,41 @@
   stroke: var(--background-color);
 }
 
-.themed-flow .react-flow__edge.selected .react-flow__edge-path {
-  stroke: var(--primary-color);
-  stroke-width: 3px;
+/* A connector keeps its own colour, width and dashes; hovering or selecting it adds a glow. */
+.themed-flow .react-flow__edge:hover .react-flow__edge-path {
+  filter: drop-shadow(0 0 2px var(--text-color));
 }
 
-.themed-flow .react-flow__edge:hover .react-flow__edge-path {
-  stroke: var(--tertiary-color);
+.themed-flow .react-flow__edge.selected .react-flow__edge-path {
+  filter: drop-shadow(0 0 3px var(--text-color)) drop-shadow(0 0 1px var(--text-color));
 }
 
 /* Edge labels */
-.themed-flow .react-flow__edge-textbg {
-  fill: var(--surface-color);
+/* A connector's label: may run over several lines, and its background always fits the text */
+.themed-flow .flow-edge-label {
+  position: absolute;
+  padding: 2px 6px;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: center;
+  white-space: pre-line;
+  pointer-events: none;
 }
 
-.themed-flow .react-flow__edge-text {
-  fill: var(--text-color);
-  font-size: 0.75rem;
-  font-weight: 500;
+.themed-flow .flow-edge-label-md {
+  font-size: 12px;
+}
+
+.themed-flow .flow-edge-label-lg {
+  font-size: 15px;
+}
+
+.themed-flow .flow-edge-label-bare {
+  background-color: transparent;
 }
 
 /* Edge markers (arrowheads) */
@@ -160,8 +309,8 @@
 
 /* Make cross pattern more visible */
 .themed-flow .react-flow__background-pattern.cross {
-  stroke-width: 1.5;
-  opacity: 0.5;
+  stroke-width: 1;
+  opacity: 0.6;
 }
 
 /* Controls styling - blend with theme */
@@ -224,6 +373,13 @@
   background: var(--secondary-color);
 }
 
+/* The resize lines along a group's sides still take the pointer but are not drawn, so the group's own border shows */
+.themed-flow .react-flow__resize-control.line,
+.themed-flow .react-flow__resize-control.line:hover {
+  background: transparent;
+  border-color: transparent;
+}
+
 /* Attribution (if not hidden) */
 .themed-flow .react-flow__attribution {
   background: var(--card-background);
@@ -250,8 +406,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 120px;
-  min-height: 48px;
+  min-width: 88px;
+  min-height: 32px;
 }
 
 .flow-node-surface {
@@ -260,13 +416,14 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 16px 20px;
+  padding: 10px 14px;
   color: var(--flow-node-text, var(--text-color));
   font-weight: 600;
   line-height: 1.3;
-  min-width: 100px;
-  min-height: 48px;
-  max-width: 280px;
+  min-width: 72px;
+  min-height: 32px;
+  width: max-content;
+  max-width: 320px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   pointer-events: auto;
   cursor: pointer;
@@ -276,7 +433,7 @@
   position: absolute;
   inset: 0;
   background: var(--flow-node-fill, var(--card-background));
-  border: 2px solid var(--flow-node-border, var(--border-color));
+  border: 2px solid transparent;
   border-radius: var(--border-radius-sm);
   box-shadow: var(--shadow-xs);
   z-index: -1;
@@ -345,44 +502,44 @@
   word-break: normal;
   overflow-wrap: normal;
   hyphens: none;
-  white-space: normal;
+  white-space: pre-line;
   max-width: 100%;
 }
 
 /* Typography size variants */
 .flow-node-surface[data-font-size="xs"] .flow-node-label,
 .flow-node-surface[data-font-size="xs"] .flow-node-input {
-  font-size: 0.75rem;
+  font-size: 0.625rem;
   line-height: 1.2;
 }
 
 .flow-node-surface[data-font-size="sm"] .flow-node-label,
 .flow-node-surface[data-font-size="sm"] .flow-node-input {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   line-height: 1.25;
 }
 
 .flow-node-surface[data-font-size="md"] .flow-node-label,
 .flow-node-surface[data-font-size="md"] .flow-node-input {
-  font-size: 1rem;
+  font-size: 0.8125rem;
   line-height: 1.3;
 }
 
 .flow-node-surface[data-font-size="lg"] .flow-node-label,
 .flow-node-surface[data-font-size="lg"] .flow-node-input {
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
   line-height: 1.35;
 }
 
 .flow-node-surface[data-font-size="xl"] .flow-node-label,
 .flow-node-surface[data-font-size="xl"] .flow-node-input {
-  font-size: 1.25rem;
+  font-size: 1.0625rem;
   line-height: 1.4;
 }
 
 .flow-node-surface[data-font-size="2xl"] .flow-node-label,
 .flow-node-surface[data-font-size="2xl"] .flow-node-input {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   line-height: 1.4;
 }
 
@@ -446,6 +603,8 @@
   text-align: center;
   padding: 2px 4px;
   outline: none;
+  resize: none;
+  display: block;
 }
 
 .flow-node-input:focus {
@@ -453,26 +612,19 @@
 }
 
 .themed-flow .react-flow__node-editable:hover .flow-node-geometry {
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-sm);
 }
 
-.themed-flow .react-flow__node-editable:hover .flow-node-surface {
-  transform: translateY(-2px);
-}
-
+/* A step has no border until it is selected, when its accent colour outlines it */
 .themed-flow .react-flow__node-editable.selected .flow-node-geometry {
-  box-shadow: 0 0 0 3px var(--primary-color);
-}
-
-.themed-flow .react-flow__node-editable.selected .flow-node-surface {
-  transform: translateY(-2px);
+  border-color: var(--flow-node-border, var(--border-color));
 }
 
 .flow-node-surface[data-shape="rectangle"] {
-  min-width: 120px;
-  min-height: 56px;
-  max-width: 300px;
-  padding: 14px 20px;
+  min-width: 72px;
+  min-height: 32px;
+  max-width: 320px;
+  padding: 10px 14px;
 }
 
 .flow-node-surface[data-shape="circle"] {
@@ -518,7 +670,7 @@
 .flow-node-surface[data-shape="cylinder"] .flow-node-geometry {
   --cylinder-curve: 28px;
   border-radius: 100% / calc(var(--cylinder-curve) * 2);
-  border: 2px solid var(--flow-node-border, var(--border-color));
+  border: 2px solid transparent;
   background:
     radial-gradient(
       50% var(--cylinder-curve) at 50% var(--cylinder-curve),
@@ -571,9 +723,8 @@
 }
 
 .themed-flow .react-flow__node-group.selected {
-  border-style: solid;
-  border-width: 3px;
-  box-shadow: 0 0 0 1px var(--primary-color);
+  border-style: dashed;
+  box-shadow: none;
   background-color: color-mix(in srgb, var(--surface-color), transparent 60%);
 }
 
@@ -632,3 +783,193 @@
   background-color: color-mix(in srgb, var(--background-color), transparent 50%);
 }
 
+
+
+
+/* A step in the canvas's own colours would vanish without an outline, so these two keep theirs */
+.flow-node-surface.flow-node-color-surface .flow-node-geometry,
+.flow-node-surface.flow-node-color-background .flow-node-geometry {
+  border-color: var(--border-color);
+}
+
+/* A step's text and a connector's label, written in Markdown and drawn without an editor around them. */
+.flow-node-label .flow-markdown {
+    white-space: normal;
+}
+.flow-markdown > :first-child {
+    margin-top: 0;
+}
+.flow-markdown > :last-child {
+    margin-bottom: 0;
+}
+.flow-markdown p {
+    margin: 0 0 0.35em;
+}
+.flow-markdown h1,
+.flow-markdown h2,
+.flow-markdown h3,
+.flow-markdown h4 {
+    margin: 0 0 0.3em;
+    line-height: 1.2;
+    font-weight: 700;
+}
+.flow-markdown h1 { font-size: 1.35em; }
+.flow-markdown h2 { font-size: 1.2em; }
+.flow-markdown h3,
+.flow-markdown h4 { font-size: 1.05em; }
+.flow-markdown ul,
+.flow-markdown ol {
+    margin: 0 0 0.35em;
+    padding-left: 1.2em;
+    text-align: left;
+    font-weight: normal;
+}
+.flow-markdown li {
+    margin: 0.1em 0;
+}
+.flow-markdown code {
+    font-family: var(--font-family-monospace, monospace);
+    font-size: 0.85em;
+    padding: 0 0.25em;
+    border-radius: 3px;
+    background-color: color-mix(in srgb, currentColor, transparent 88%);
+}
+.flow-markdown pre {
+    margin: 0 0 0.35em;
+    padding: 0.4em 0.5em;
+    border-radius: 4px;
+    text-align: left;
+    white-space: pre;
+    background-color: color-mix(in srgb, currentColor, transparent 92%);
+}
+.flow-markdown pre code {
+    padding: 0;
+    background: none;
+}
+.flow-markdown blockquote {
+    margin: 0 0 0.35em;
+    padding-left: 0.6em;
+    border-left: 2px solid currentColor;
+    opacity: 0.85;
+    text-align: left;
+}
+.flow-markdown table {
+    border-collapse: collapse;
+    margin: 0 auto 0.35em;
+    font-size: 0.9em;
+    font-weight: normal;
+}
+.flow-markdown th,
+.flow-markdown td {
+    border: 1px solid color-mix(in srgb, currentColor, transparent 70%);
+    padding: 0.15em 0.4em;
+}
+.flow-markdown a {
+    color: inherit;
+    text-decoration: underline;
+}
+.flow-markdown hr {
+    border: none;
+    border-top: 1px solid color-mix(in srgb, currentColor, transparent 70%);
+    margin: 0.4em 0;
+}
+
+/* The writing editor: a small box with a short, compact row of tools. */
+.flow-writer .mdxeditor-toolbar {
+    padding: 2px;
+    gap: 2px;
+    min-height: 0;
+    flex-wrap: wrap;
+    overflow: visible;
+    height: auto;
+}
+.flow-writer .mdxeditor-toolbar button {
+    padding: 2px;
+}
+.flow-writer .mdxeditor-toolbar svg {
+    width: 16px;
+    height: 16px;
+}
+.flow-writer [contenteditable] {
+    font-size: 0.75rem !important;
+    line-height: 1.45;
+    padding: 6px 8px;
+}
+.flow-writer [contenteditable] p,
+.flow-writer [contenteditable] li {
+    font-size: inherit !important;
+    margin: 0 0 0.3em;
+}
+.flow-writer [contenteditable] h1 { font-size: 1.3em !important; }
+.flow-writer [contenteditable] h2 { font-size: 1.15em !important; }
+.flow-writer [contenteditable] h3,
+.flow-writer [contenteditable] h4 { font-size: 1.05em !important; }
+
+.flow-writer,
+.flow-writer .mdxeditor {
+    width: 100%;
+    min-width: 0;
+}
+
+/* A step with a table or a code block grows to show it whole. */
+.flow-node-surface:has(table, pre),
+.flow-node-surface[data-shape]:has(table, pre) {
+    max-width: none;
+}
+.flow-markdown table {
+    width: max-content;
+}
+
+/* Small text in the writing editor, smaller still in tables and code, and no scrolling inside it. */
+.flow-writer,
+.flow-writer .mdxeditor {
+    overflow: visible;
+}
+.flow-writer table,
+.flow-writer pre,
+.flow-writer code,
+.flow-writer .cm-editor {
+    font-size: 0.6875rem !important;
+    line-height: 1.4;
+}
+.flow-writer table td,
+.flow-writer table th {
+    padding: 2px 6px !important;
+    min-width: 0 !important;
+}
+.flow-writer table {
+    width: auto !important;
+    min-width: 0 !important;
+}
+.flow-writer [class*="codeMirrorToolbar"],
+.flow-writer [class*="codeMirrorToolbar"] * {
+    font-size: 0.6875rem !important;
+}
+.flow-writer .cm-scroller,
+.flow-writer .mdxeditor-root-contenteditable,
+.flow-writer [class*="rootContentEditableWrapper"] {
+    overflow: visible !important;
+}
+
+/* The editor box is as wide as its content: tables and code keep their natural width, ordinary text wraps at a
+   comfortable line length, and the tools wrap to whatever width that gives instead of setting it. */
+.flow-writer .mdxeditor-toolbar {
+    contain: inline-size;
+}
+.flow-writer [contenteditable] > p,
+.flow-writer [contenteditable] > ul,
+.flow-writer [contenteditable] > ol,
+.flow-writer [contenteditable] > blockquote,
+.flow-writer [contenteditable] > h1,
+.flow-writer [contenteditable] > h2,
+.flow-writer [contenteditable] > h3,
+.flow-writer [contenteditable] > h4 {
+    max-width: 520px;
+}
+.flow-writer [class*="codeMirrorWrapper"],
+.flow-writer .cm-editor,
+.flow-writer .cm-scroller,
+.flow-writer .cm-content {
+    width: max-content !important;
+    min-width: 100%;
+}

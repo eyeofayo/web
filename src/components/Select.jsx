@@ -27,6 +27,8 @@ export const Select = ({
     color = 'primary', // 'primary', 'secondary', 'tertiary'
     size = 'md', // 'xxs', 'xs', 'sm', 'md', 'lg', 'xl'
     multiSelect = false, // Enable multi-select mode with badges
+    menu = true, // false: no dropdown; a multi-select then only shows its badges, which can still be removed
+    onBadgeClick = null, // Multi-select: called with a chosen value when its badge is clicked
     options = [],
     value,
     onChange,
@@ -182,6 +184,7 @@ export const Select = ({
     }, []);
 
     const toggleDropdown = (open) => {
+        if (open && !menu) return;
         if (open) positionDropdown();
         setIsOpen(open);
     };
@@ -325,7 +328,7 @@ export const Select = ({
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
         setFocusedIndex(-1);
-        if (!isOpen) openDropdown();
+        if (!isOpen) toggleDropdown(true);
     };
 
     // Validation function for select
@@ -660,8 +663,10 @@ export const Select = ({
                                     key={selectedValue}
                                     color={badgeVariant}
                                     size={getBadgeSize()}
-                                    className="select-badge"
+                                    className={`select-badge ${onBadgeClick ? 'select-badge-clickable' : ''}`}
                                     theme={selectTheme}
+                                    onClick={onBadgeClick ? (e) => { e.stopPropagation(); onBadgeClick(selectedValue); } : undefined}
+                                    title={onBadgeClick ? `Show ${displayText}` : undefined}
                                 >
                                     {displayText}
                                     <Icon
@@ -689,9 +694,9 @@ export const Select = ({
                     onFocus={handleFocus}
                     onBlur={handleBlur}
                     onKeyDown={handleKeyDown}
-                    placeholder={multiSelect && normalizedValue.length > 0 ? 'Add more...' : placeholder}
+                    placeholder={multiSelect && normalizedValue.length > 0 && menu ? 'Add more...' : placeholder}
                     disabled={disabled}
-                    readOnly={!isOpen}
+                    readOnly={!isOpen || !menu}
                     autoComplete="off"
                     data-theme={selectTheme}
                     data-theme-source={theme ? 'local' : 'inherited'}
@@ -699,9 +704,9 @@ export const Select = ({
                     {...ariaAttributes}
                 />
 
-                <div className={`select-dropdown-arrow ${isOpen ? 'select-dropdown-arrow-open' : ''}`}>
+                {menu && <div className={`select-dropdown-arrow ${isOpen ? 'select-dropdown-arrow-open' : ''}`}>
                     <Icon name="FiChevronDown" size={getDropdownArrowSize()} color={effectiveColor}/>
-                </div>
+                </div>}
 
                 {isOpen && createPortal(
                     <div

@@ -52,6 +52,12 @@ const getRouteConfig = () => {
 
 const PUBLIC_PAGES = ['/', '/components'];
 
+// The desktop app has no web addresses to load, so it changes page in place.
+const goTo = (path) => {
+    if (window.desktop) window.location.hash = path;
+    else window.location.href = path;
+};
+
 /**
  * Navigation - App navigation component with draggable FAB and Genie integration
  *
@@ -153,15 +159,15 @@ export const Navigation = ({
     };
 
     const navigationItems = getNavigationItems();
-    // Admin panel goes last, or Settings when there is no admin panel, or Home when signed out; an odd last button spans both columns
-    const lastMenuId = ['admin', 'settings', 'home-guest'].find((id) => navigationItems.some((item) => item.id === id));
+    // Admin panel goes last, or Settings when there is no admin panel; an odd last button spans both columns
+    const lastMenuId = ['admin', 'settings'].find((id) => navigationItems.some((item) => item.id === id));
     const menuItems = [...navigationItems.filter((item) => item.id !== lastMenuId), ...navigationItems.filter((item) => item.id === lastMenuId)];
 
     const handleNavigation = (path) => {
         setIsNavigating(true);
         // Simulate navigation loading
         setTimeout(() => {
-            window.location.href = path;
+            goTo(path);
             setIsNavigating(false);
         }, 200);
     };
@@ -169,7 +175,7 @@ export const Navigation = ({
     const handleLogout = async () => {
         try {
             await logout();
-            window.location.href = '/login';
+            goTo('/login');
         } catch (error) {
             // Silent error handling
         }
@@ -336,13 +342,13 @@ export const RouteAccessControl = ({children, path}) => {
     const isPublicPage = PUBLIC_PAGES.includes(path);
     if (!isAuthPage && !isPublicPage && !user) {
         // Protected page, no user - go to login
-        window.location.href = '/login';
+        goTo('/login');
         return null;
     }
 
     if (isAuthPage && user) {
         // Auth page, but user is logged in - go to dashboard
-        window.location.href = '/';
+        goTo('/');
         return null;
     }
 

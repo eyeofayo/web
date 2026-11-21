@@ -40,6 +40,19 @@
   --text-color: #0C2F5A;
   --text-contrast-color: #C9DDF8;
 
+  /* Readable colours (4.5:1, WCAG AA), worked out from the colours above */
+  --text-muted: #405E88;
+  --primary-text-color: #285EA6;
+  --secondary-text-color: #8C4829;
+  --tertiary-text-color: #584AB8;
+  --primary-contrast-color: #111111;
+  --secondary-contrast-color: #111111;
+  --tertiary-contrast-color: #111111;
+  --success-contrast-color: #0C2F5A;
+  --warning-contrast-color: #0C2F5A;
+  --error-contrast-color: #111111;
+  --focus-ring-color: #285EA6;
+
   /* Shadow System - Modern theme uses subtle blue-tinted shadows */
   --shadow-color: rgba(59, 131, 246, 0.315);
   --shadow-color-hover: rgba(59, 131, 246, 0.4);

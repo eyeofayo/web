@@ -42,6 +42,19 @@
     --text-color: #C9DDF8;
     --text-contrast-color: #0C2F5A; /* Contrast text color matches surface color */
 
+    /* Readable colours (4.5:1, WCAG AA), worked out from the colours above */
+    --text-muted: #A0B2CA;
+    --primary-text-color: #72AFF9;
+    --secondary-text-color: #E49A81;
+    --tertiary-text-color: #E2ADF2;
+    --primary-contrast-color: #0C2F5A;
+    --secondary-contrast-color: #111111;
+    --tertiary-contrast-color: #0C2F5A;
+    --success-contrast-color: #0C2F5A;
+    --warning-contrast-color: #0C2F5A;
+    --error-contrast-color: #FFFFFF;
+    --focus-ring-color: #72AFF9;
+
     /* Overlay and Backdrop Colors */
     --backdrop-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black for dark theme */
     
