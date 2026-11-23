@@ -21,7 +21,7 @@ export const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [twoFactorStep, setTwoFactorStep] = useState(false);
   const [twoFactorToken, setTwoFactorToken] = useState('');
-  const { login } = useAuth();
+  const { login, resume, continueSession, signOutAway } = useAuth();
   const { error: showError, success: showSuccess } = useNotification();
 
   const handleInputChange = (e) => {
@@ -69,6 +69,43 @@ export const LoginPage = () => {
   const isFormValid = twoFactorStep
     ? twoFactorToken.trim().length >= 6
     : formData.identifier && formData.password;
+
+  if (resume) {
+    const carryOn = async () => {
+      setIsLoading(true);
+      try {
+        navigate(await continueSession());
+      } catch {
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    return (
+      <Page layout="flex" align="center" justify="center" background="dots" backgroundFade="radial">
+        <Card layout="flex-column" padding="xl" align="center" gap="lg" width="100%" maxWidth="560px">
+          <Container layout="flex-column" gap="sm" align="center" padding="none">
+            <Icon name="FaUserCheck" size="lg" color="primary" />
+            <Typography as="h1" size="2xl" weight="bold" font="secondary" color="primary" align="center">
+              Welcome back
+            </Typography>
+            <Typography align="center">
+              You were away for a while. Continue where you left off.
+            </Typography>
+          </Container>
+          <Container layout="flex-column" gap="md" padding="none" width="92%">
+            <Input type="text" name="identifier" label="Username" variant="floating" value={resume.username} readOnly width="100%" autoComplete="username" />
+            <Button color="primary" width="100%" disabled={isLoading} onClick={carryOn}>
+              <Icon name={isLoading ? 'FaSpinner' : 'FaSignInAlt'} />
+              {isLoading ? 'Continuing...' : `Continue as ${resume.username}`}
+            </Button>
+          </Container>
+          <Button color="secondary" size="sm" disabled={isLoading} onClick={signOutAway}>
+            Not you? Sign out
+          </Button>
+        </Card>
+      </Page>
+    );
+  }
 
   return (
     <Page layout="flex" align="center" justify="center" background="dots" backgroundFade="radial">

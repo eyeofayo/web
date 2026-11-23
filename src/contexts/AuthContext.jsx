@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import authService from '../client/auth.client';
+import { isAway, backNow, lastUser, attemptTokenRefresh } from '../client/app.client';
 import { useNotification } from './NotificationContext';
 
 const AuthContext = createContext();
@@ -15,23 +16,102 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    // Set after a long time away: the login page then offers one click to carry on as this person.
+    const [resume, setResume] = useState(null);
     const { error: showError, success: showSuccess } = useNotification();
 
-    // Simple initialization - just check if user is logged in
-    useEffect(() => {
-        const initAuth = async () => {
-            try {
-                const response = await authService.getUserProfile();
-                setUser(response.user || response);
-            } catch (error) {
-                setUser(null);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+    const signedIn = (who) => {
+        backNow();
+        lastUser(who?.username || null);
+        setResume(null);
+        setUser(who);
+    };
 
+    const stepAway = (username) => {
+        const { pathname, search } = window.location;
+        const from = ['/login', '/signup', '/forgot-password'].includes(pathname) ? '/' : pathname + search;
+        setResume((now) => now || { username, from });
+        setUser(null);
+    };
+
+    const initAuth = async () => {
+        const known = lastUser();
+        if (known && isAway()) {
+            stepAway(known);
+            setIsLoading(false);
+            return;
+        }
+        try {
+            const response = await authService.getUserProfile();
+            signedIn(response.user || response);
+        } catch (error) {
+            setUser(null);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
         initAuth();
     }, []);
+
+    useEffect(() => {
+        if (!user) return undefined;
+        const check = () => { if (isAway()) stepAway(user.username); };
+        const timer = setInterval(check, 15000);
+        window.addEventListener('authAway', check);
+        return () => {
+            clearInterval(timer);
+            window.removeEventListener('authAway', check);
+        };
+    }, [user]);
+
+    // Another tab carried on or signed out: this one follows.
+    useEffect(() => {
+        if (!resume) return undefined;
+        const follow = (event) => {
+            if (event.key !== 'auth:away' || event.newValue) return;
+            setResume(null);
+            initAuth();
+        };
+        window.addEventListener('storage', follow);
+        return () => window.removeEventListener('storage', follow);
+    }, [resume]);
+
+    // One click after a long time away: the refresh token is sent, no password.
+    const continueSession = async () => {
+        const from = resume?.from || '/';
+        try {
+            await attemptTokenRefresh();
+            backNow();
+            const response = await authService.getUserProfile();
+            signedIn(response.user || response);
+            return from;
+        } catch (error) {
+            if (error.response) {
+                lastUser(null);
+                backNow();
+                setResume(null);
+                showError('Your session has ended. Please sign in with your password.');
+            } else {
+                showError('We could not reach the server. Check your connection and try again.');
+            }
+            throw error;
+        }
+    };
+
+    const signOutAway = async () => {
+        try {
+            await attemptTokenRefresh();
+            backNow();
+            await authService.logout();
+        } catch (error) {
+            // The session had already ended
+        }
+        lastUser(null);
+        backNow();
+        setResume(null);
+    };
 
     // Clear user state when the refresh interceptor gives up
     // (e.g. refresh token expired or all retries exhausted)
@@ -52,7 +132,7 @@ export const AuthProvider = ({ children }) => {
             if (response.requiresTwoFactor) {
                 return response;
             }
-            setUser(response.user || response);
+            signedIn(response.user || response);
             return response;
         } catch (error) {
             showError(error.response?.data?.message || 'Login failed');
@@ -65,7 +145,7 @@ export const AuthProvider = ({ children }) => {
         setIsLoading(true);
         try {
             const response = await authService.signup(userData);
-            setUser(response.user || response);
+            signedIn(response.user || response);
             showSuccess('Account created successfully');
             return response;
         } catch (error) {
@@ -83,6 +163,8 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
             // Continue with logout even if server call fails
         } finally {
+            lastUser(null);
+            setResume(null);
             setUser(null);
             showSuccess('Logged out successfully');
         }
@@ -105,7 +187,7 @@ export const AuthProvider = ({ children }) => {
         setIsLoading(true);
         try {
             const response = await authService.resetPassword({ token, newPassword });
-            setUser(response.user || response);
+            signedIn(response.user || response);
             showSuccess('Password reset successfully');
             return response;
         } catch (error) {
@@ -124,6 +206,9 @@ export const AuthProvider = ({ children }) => {
     const value = {
         user,
         isLoading,
+        resume,
+        continueSession,
+        signOutAway,
         login,
         signup,
         logout,

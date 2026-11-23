@@ -79,6 +79,8 @@ const api = axios.create({
 // Add request interceptor to include CSRF token
 api.interceptors.request.use(
     async (config) => {
+        config._release?.();
+        config._release = (config.onUploadProgress || config.onDownloadProgress || config.data instanceof FormData || config.timeout === 0 || config.responseType === 'blob') ? holdActive() : null;
         // Include CSRF token for state-changing requests
         const stateChangingMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
         if (stateChangingMethods.includes(config.method?.toUpperCase())) {
@@ -99,12 +101,78 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+// Sign-in is renewed without asking only while the person is here. After IDLE_MS with no input and nothing
+// running, it is not renewed: the app shows the one-click continue page. Being away is kept in localStorage,
+// so every tab agrees and a reload does not undo it.
+const IDLE_MS = 20 * 60 * 1000;
+const ACTIVE_KEY = 'auth:lastActive';
+const AWAY_KEY = 'auth:away';
+const USER_KEY = 'auth:lastUser';
+const AWAY = 'You were away for a while. Continue your session to carry on.';
+const stored = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
+const store = (key, value) => {
+    try { value == null ? localStorage.removeItem(key) : localStorage.setItem(key, value); } catch { /* private window */ }
+};
+const holds = new Set();
+let lastActive = 0;
+let lastNoted = 0;
+
+export const isAway = () => {
+    if (stored(AWAY_KEY)) return true;
+    const seen = Math.max(lastActive, Number(stored(ACTIVE_KEY)) || 0);
+    if (holds.size || !seen || Date.now() - seen < IDLE_MS) return false;
+    store(AWAY_KEY, '1');
+    return true;
+};
+
+export const markActive = () => {
+    const now = Date.now();
+    if (now - lastNoted < 1000) return;
+    lastNoted = now;
+    if (isAway()) return;
+    lastActive = now;
+    store(ACTIVE_KEY, String(now));
+};
+
+// A running process (an upload, a download, a reply being written) counts as being here. Call the function this
+// returns when the process ends.
+export const holdActive = () => {
+    const hold = {};
+    markActive();
+    holds.add(hold);
+    return () => {
+        if (!holds.delete(hold)) return;
+        lastNoted = 0;
+        markActive();
+    };
+};
+
+export const backNow = () => {
+    store(AWAY_KEY, null);
+    lastActive = Date.now();
+    lastNoted = lastActive;
+    store(ACTIVE_KEY, String(lastActive));
+};
+
+export const lastUser = (name) => (name === undefined ? stored(USER_KEY) : store(USER_KEY, name));
+
+if (typeof window !== 'undefined') {
+    ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'].forEach((name) => {
+        window.addEventListener(name, markActive, { passive: true, capture: true });
+    });
+    setInterval(() => {
+        if (!holds.size) return;
+        lastNoted = 0;
+        markActive();
+    }, 30000);
+}
+
 // Deduplicate concurrent token refresh attempts.
 // If multiple requests get a 401 at the same time only one /refresh-token
 // call is made; all others wait for that same promise to resolve.
 let _refreshPromise = null;
 
-const attemptTokenRefresh = () => {
+export const attemptTokenRefresh = () => {
     if (!_refreshPromise) {
         _refreshPromise = axios
             .post(`${API_BASE_URL}/auth/refresh-token`, {}, {
@@ -173,9 +241,13 @@ export const explainError = (error) => {
 
 // Add token refresh interceptor
 api.interceptors.response.use(
-    (response) => response.data,
+    (response) => {
+        response.config?._release?.();
+        return response.data;
+    },
     async (error) => {
         const originalRequest = error.config;
+        originalRequest?._release?.();
 
         // Handle CSRF token errors - refresh token and retry
         if (error.response?.status === 403 &&
@@ -191,6 +263,12 @@ api.interceptors.response.use(
         }
 
         if (error.response?.status === 401 && !originalRequest._retry) {
+            if (isAway()) {
+                window.dispatchEvent(new CustomEvent('authAway'));
+                error.message = AWAY;
+                if (error.response.data && typeof error.response.data === 'object') error.response.data.message = AWAY;
+                throw error;
+            }
             originalRequest._retry = true;
 
             try {
