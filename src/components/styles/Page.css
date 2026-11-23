@@ -393,6 +393,11 @@
     mask-image: var(--bg-fade);
 }
 
+/* A page scrolls its own content, so its background is held to the window and stays behind all of it. */
+.page.has-background::before {
+    position: fixed;
+}
+
 /* ===== Surface: the component's own fill (backgroundColor prop) =====
    What the 'auto' tone draws the pattern in, per fill:
      surface / background (and no fill) -> primary
@@ -566,6 +571,17 @@
     background-repeat: no-repeat;
 }
 
+/* Rays from below the bottom edge; not a repeating tile */
+.bg-rays {
+    --bg-tile-x: 0px;
+    --bg-tile-y: 0px;
+}
+
+.bg-rays::before {
+    background-image: repeating-conic-gradient(from -30deg at 50% 120%, var(--bg-color-soft) 0 4deg, transparent 4deg 12deg);
+    background-repeat: no-repeat;
+}
+
 /* ==========================================================================
    Static patterns drawn from a shape mask, tinted with the tone color
    ========================================================================== */
@@ -704,6 +720,31 @@
     animation: bg-gradient-flow 14s ease-in-out infinite;
 }
 
+/* Glow: two soft lights, one in the tone and one in the next brand color, drifting slowly. */
+.bg-glow {
+    --bg-glow-next: var(--secondary-color);
+    --bg-glow-1: color-mix(in srgb, var(--bg-tone) min(100%, calc(var(--bg-alpha-effective) * 2)), transparent);
+    --bg-glow-2: color-mix(in srgb, var(--bg-glow-next) min(100%, calc(var(--bg-alpha-effective) * 1.4)), transparent);
+}
+
+.bg-glow.bg-tone-secondary { --bg-glow-next: var(--tertiary-color); }
+.bg-glow.bg-tone-tertiary { --bg-glow-next: var(--primary-color); }
+
+@keyframes bg-glow {
+    from { background-position: 0% 0%, 100% 100%; }
+    to { background-position: 35% 25%, 65% 75%; }
+}
+
+.has-background.bg-glow::before {
+    background-image:
+        radial-gradient(closest-side, var(--bg-glow-1), transparent),
+        radial-gradient(closest-side, var(--bg-glow-2), transparent);
+    background-size: 85% 85%, 75% 75%;
+    background-repeat: no-repeat;
+    background-position: 0% 0%, 100% 100%;
+    animation: bg-glow 24s ease-in-out infinite alternate;
+}
+
 .has-background.bg-motion-none::before {
     animation: none;
 }
@@ -711,25 +752,5 @@
 @media (prefers-reduced-motion: reduce) {
     .has-background::before {
         animation: none !important;
-    }
-}
-
-/* A theme may paint its own ambience on the page, still or drifting slowly (theme.gallery.js). */
-.page,
-.themed-page {
-    background-image: var(--page-ambient, none);
-    background-size: var(--page-ambient-size, auto);
-    animation: var(--page-ambient-motion, none);
-}
-
-@keyframes page-ambient-drift {
-    from { background-position: 0% 0%; }
-    to { background-position: 100% 100%; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .page,
-    .themed-page {
-        animation: none;
     }
 }

@@ -13,11 +13,11 @@ import { useGeniePortal } from './Genie';
 
 export const BACKGROUND_PATTERNS = [
     'grid', 'graph', 'dots', 'lines', 'diagonal', 'crosshatch',
-    'checker', 'hex', 'plus', 'waves', 'zigzag', 'rings'
+    'checker', 'hex', 'plus', 'waves', 'zigzag', 'rings', 'rays'
 ];
 
 // Animated by default; pass backgroundMotion="none" for a still version.
-export const BACKGROUND_DYNAMIC = ['aurora', 'gradient'];
+export const BACKGROUND_DYNAMIC = ['aurora', 'gradient', 'glow'];
 
 export const BACKGROUNDS = [...BACKGROUND_PATTERNS, ...BACKGROUND_DYNAMIC];
 export const BACKGROUND_TONES = ['auto', 'primary', 'secondary', 'tertiary', 'neutral', 'text', 'contrast'];
@@ -108,7 +108,7 @@ export const Page = forwardRef(({
     maxHeight = null, // Maximum height
     theme = null, // Optional theme override for this page and its children
     // Decorative background drawn from the theme colors
-    background = null, // 'grid', 'graph', 'dots', 'lines', 'diagonal', 'crosshatch', 'checker', 'hex', 'plus', 'waves', 'zigzag', 'rings', 'aurora', 'gradient'
+    background = null, // 'grid', 'graph', 'dots', 'lines', 'diagonal', 'crosshatch', 'checker', 'hex', 'plus', 'waves', 'zigzag', 'rings', 'rays', 'aurora', 'gradient', 'glow'
     backgroundTone = 'auto', // 'auto' contrasts with backgroundColor; or 'primary', 'secondary', 'tertiary', 'neutral', 'text', 'contrast'
     backgroundIntensity = 'subtle', // 'subtle', 'medium', 'strong'
     backgroundSize = 'md', // 'sm', 'md', 'lg' - scale of the repeating pattern
@@ -214,15 +214,17 @@ export const Page = forwardRef(({
         return `justify-${justify}`;
     };
 
-    const backgroundClass = getBackgroundClass({
-        background, backgroundTone, backgroundIntensity, backgroundSize, backgroundMotion, backgroundFade, backgroundColor
-    });
+    // A theme that names a background gives it to every page in place of the page's own, and 'none' clears them all.
+    const hasFill = backgroundColor && !STATUS_COLORS.includes(backgroundColor);
+    const themed = effectiveTheme.themeBackground(pageTheme);
+    const backgroundClass = getBackgroundClass(themed
+        ? { background: themed, backgroundColor }
+        : { background, backgroundTone, backgroundIntensity, backgroundSize, backgroundMotion, backgroundFade, backgroundColor });
 
     // Pass all props to DOM
     const domProps = props;
 
     // Merge user style
-    const hasFill = backgroundColor && !STATUS_COLORS.includes(backgroundColor);
     const mergedStyle = {
         ...(hasFill && { backgroundColor: `var(--${backgroundColor}-color)` }),
         ...props.style

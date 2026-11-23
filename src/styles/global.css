@@ -133,12 +133,15 @@ body {
 }
 
 /* The wash: backgroundColor="surface-alt" on a Container or Card fills it with the theme's tinted surface. */
+/* A theme may set --page-background: one of Page's background names for every page, or none for clear pages. Left
+   unset, as here, each page keeps its own. */
+:where([class*="theme-"]) {
+  --page-background: initial;
+}
+
 /* A theme's effects never reach a theme nested inside it. */
 [class*="theme-"] {
   --surface-alt-color: var(--surface-accent-color);
-  --page-ambient: none;
-  --page-ambient-size: auto;
-  --page-ambient-motion: none;
   --card-shadow: initial;
   --card-shadow-hover: initial;
   --edge-width: initial;

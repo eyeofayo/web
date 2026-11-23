@@ -42,7 +42,7 @@ export const Card = forwardRef(({
     flexFill = false, // Whether the card should fill available space in flex layouts
     span = null, // Grid item spanning inside a parent grid: 2, 3, or 'full'
     // Decorative background drawn from the theme colors (defined in Page.jsx)
-    background = null, // 'grid', 'graph', 'dots', 'lines', 'diagonal', 'crosshatch', 'checker', 'hex', 'plus', 'waves', 'zigzag', 'rings', 'aurora', 'gradient'
+    background = null, // 'grid', 'graph', 'dots', 'lines', 'diagonal', 'crosshatch', 'checker', 'hex', 'plus', 'waves', 'zigzag', 'rings', 'rays', 'aurora', 'gradient', 'glow'
     backgroundTone = 'auto', // 'auto' contrasts with backgroundColor; or 'primary', 'secondary', 'tertiary', 'neutral', 'text', 'contrast'
     backgroundIntensity = 'subtle', // 'subtle', 'medium', 'strong'
     backgroundSize = 'md', // 'sm', 'md', 'lg' - scale of the repeating pattern

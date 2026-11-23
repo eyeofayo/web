@@ -66,6 +66,21 @@ const themes = {
 
 injectThemes(GALLERY_THEMES);
 
+// The background a theme gives every page: its `--page-background`, the name of one of Page's backgrounds, or 'none'
+// for clear pages. Empty when the theme sets none, and each page keeps its own. Page draws it.
+const backgrounds = new Map();
+const themeBackground = (name) => {
+  if (!backgrounds.has(name)) {
+    const probe = document.createElement('div');
+    probe.className = `theme-${name}`;
+    probe.hidden = true;
+    document.body.appendChild(probe);
+    backgrounds.set(name, getComputedStyle(probe).getPropertyValue('--page-background').trim());
+    probe.remove();
+  }
+  return backgrounds.get(name);
+};
+
 export const ThemeProvider = ({ children, theme: overrideTheme }) => {
   // Check if this is a nested ThemeProvider (override scenario)
   const parentContext = useContext(ThemeContext);
@@ -192,6 +207,7 @@ export const ThemeProvider = ({ children, theme: overrideTheme }) => {
       return;
     }
     injectCustomTheme(themeDoc);
+    backgrounds.delete(customThemeClass(themeDoc));
     localStorage.setItem(CUSTOM_THEME_KEY, JSON.stringify(themeDoc));
     setCustomTheme(themeDoc);
     setGlobalTheme(customThemeClass(themeDoc));
@@ -245,6 +261,7 @@ export const ThemeProvider = ({ children, theme: overrideTheme }) => {
     customTheme,
     availableThemes: Object.keys(allThemes),
     themes: allThemes,
+    themeBackground,
     getThemeInfo: (themeName) => allThemes[themeName] || null,
     isNestedProvider,
     isOverride: !!overrideTheme,

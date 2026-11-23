@@ -81,7 +81,7 @@ export const LoginPage = () => {
       }
     };
     return (
-      <Page layout="flex" align="center" justify="center" background="dots" backgroundFade="radial">
+      <Page layout="flex" align="center" justify="center" background="rings" backgroundFade="radial">
         <Card layout="flex-column" padding="xl" align="center" gap="lg" width="100%" maxWidth="560px">
           <Container layout="flex-column" gap="sm" align="center" padding="none">
             <Icon name="FaUserCheck" size="lg" color="primary" />
@@ -108,7 +108,7 @@ export const LoginPage = () => {
   }
 
   return (
-    <Page layout="flex" align="center" justify="center" background="dots" backgroundFade="radial">
+    <Page layout="flex" align="center" justify="center" background="rings" backgroundFade="radial">
         <Card layout="flex-column" padding="xl" align="center" gap="lg" width="100%" maxWidth="560px">
             {/* Header */}
             <Container layout="flex-column" gap="sm" align="center" padding="none">
