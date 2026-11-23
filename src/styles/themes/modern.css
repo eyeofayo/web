@@ -8,56 +8,58 @@
   /* Enhanced Color System - Modern Theme */
 
   /* Basic Color System */
-  --primary-color: #3F84E5;
-  --primary-accent-color: #98B3E6;
+  --primary-color: #12355B;
+  --primary-accent-color: #1A4A7A;
 
-  --secondary-color: #F45D01;
-  --secondary-accent-color: #FEB485;
+  --secondary-color: #FF570A;
+  --secondary-accent-color: #CC4000;
 
-  --tertiary-color: #8b5cf6; 
-  --tertiary-accent-color: #7c3aed;
+  --tertiary-color: #A5D8FF;
+  --tertiary-accent-color: #70BFFF;
 
-  --neutral-color: #6b7280;
-  --neutral-accent-color: #374151; 
-  
+  --neutral-color: #5A7A95;
+  --neutral-accent-color: #3A5A75;
+
   /* Semantic Colors */
-  --success-color: #10b981;
-  --success-accent-color: #059669;
-    
-  --warning-color: #fbbf24;
-  --warning-accent-color: #f59e0b;
-    
-  --error-color: #ef4444;
-  --error-accent-color: #dc2626;
-  
-  /* Surface and Border Colors */
-  --background-color: #F4F7FD;
-  --surface-color: #FFFFFF;
-  --surface-accent-color: #E2EBFA;
-  --border-color: #D5DDEB;
-  --border-light: #E8EDF5;
-  --control-border-color: #8091AE;
-  --warning-text-color: #8A5A00;
+  --success-color: #1E7A3A;
+  --success-accent-color: #155C2A;
 
-  --text-color: #0C2F5A;
+  --warning-color: #E88500;
+  --warning-accent-color: #C06800;
+
+  --error-color: #CC2200;
+  --error-accent-color: #991800;
+
+  /* Surface and Border Colors */
+  /* Paper with a breath of sky; cards and controls are white on it, one clear step off the page.
+     Sky is kept for what is selected, hovered or tinted, and orange for the one main action. */
+  --background-color: #F5F9FD;
+  --surface-color: #FFFFFF;
+  --surface-accent-color: #E3F1FE;
+  --border-color: #D3DEE9;
+  --border-light: #E6EDF4;
+  --control-border-color: #8296AB;
+
+  --text-color: #12355B;
   --text-contrast-color: #FFFFFF;
 
   /* Readable colours (4.5:1, WCAG AA), worked out from the colours above */
-  --text-muted: #405E88;
-  --primary-text-color: #285EA6;
-  --secondary-text-color: #8C4829;
-  --tertiary-text-color: #584AB8;
-  --primary-contrast-color: #111111;
-  --secondary-contrast-color: #111111;
-  --tertiary-contrast-color: #111111;
-  --success-contrast-color: #0C2F5A;
-  --warning-contrast-color: #0C2F5A;
-  --error-contrast-color: #111111;
-  --focus-ring-color: #285EA6;
+  --text-muted: #4D6680;
+  --primary-text-color: #12355B;
+  --secondary-text-color: #B84D22;
+  --tertiary-text-color: #456E94;
+  --primary-contrast-color: #FFFFFF;
+  --secondary-contrast-color: #0B1F36;
+  --tertiary-contrast-color: #12355B;
+  --success-contrast-color: #FFFFFF;
+  --warning-contrast-color: #12355B;
+  --warning-text-color: #8F5200;
+  --error-contrast-color: #FFFFFF;
+  --focus-ring-color: #12355B;
 
-  /* Shadow System - Modern theme uses subtle blue-tinted shadows */
-  --shadow-color: rgba(12, 47, 90, 0.10);
-  --shadow-color-hover: rgba(12, 47, 90, 0.16);
+  /* Shadow System - Modern theme uses navy-tinted shadows */
+  --shadow-color: rgba(18, 53, 91, 0.10);
+  --shadow-color-hover: rgba(18, 53, 91, 0.16);
   --shadow-sm: 0 1px 2px var(--shadow-color);
   --shadow-md: 0 6px 16px -6px var(--shadow-color-hover);
   --shadow-lg: 0 14px 28px -10px var(--shadow-color-hover);
@@ -65,11 +67,11 @@
   --shadow-2xl: 0 32px 64px -18px var(--shadow-color-hover);
 
   /* Overlay and Backdrop Colors */
-  --backdrop-color: rgba(31, 41, 55, 0.5);
+  --backdrop-color: rgba(18, 53, 91, 0.5);
 
     /* Font System - 7 Font Weights */
   --font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  
+
   /* Primary Font Family (Urbanist - Modern & Elegant) */
   --font-family-primary: 'Urbanist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-family-primary-light: 'Urbanist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -79,7 +81,7 @@
   --font-family-primary-bold: 'Urbanist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-family-primary-extrabold: 'Urbanist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-family-primary-black: 'Urbanist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  
+
   /* Secondary Font Family (Montserrat Alternates - Modern Alternative) */
   --font-family-secondary: 'Montserrat Alternates', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-family-secondary-light: 'Montserrat Alternates', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -89,7 +91,7 @@
   --font-family-secondary-bold: 'Montserrat Alternates', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-family-secondary-extrabold: 'Montserrat Alternates', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-family-secondary-black: 'Montserrat Alternates', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  
+
   /* Monospace Font Family (JetBrains Mono - Code) */
   --font-family-monospace: 'JetBrains Mono', 'Courier New', monospace;
 
@@ -100,33 +102,33 @@
   --font-weight-bold: 700;
   --font-weight-extra-bold: 800;
   --font-weight-black: 900;
-  
-  /* Code Editor Colors - derived from modern palette */
-  --code-background:      #eef2fb;
-  --code-foreground:      #0c2f5a;
-  --code-gutter:          #e2e7f3;
-  --code-line-highlight:  #dde6f7;
-  --code-selection:       #bfdbfe;
-  --code-cursor:          #3f84e5;
-  --code-line-number:     #9ca3af;
-  --code-keyword:         #3f84e5;
-  --code-string:          #7c3aed;
-  --code-number:          #f45d01;
-  --code-comment:         #6b7280;
-  --code-type:            #7c3aed;
-  --code-function:        #1d4ed8;
-  --code-variable:        #374151;
-  --code-operator:        #3f84e5;
+
+  /* Code Editor Colors - derived from navy / orange / sky-blue palette */
+  --code-background:      #f0f8ff;
+  --code-foreground:      #12355b;
+  --code-gutter:          #e0f0ff;
+  --code-line-highlight:  #d0e8ff;
+  --code-selection:       #a5d8ff55;
+  --code-cursor:          #ff570a;
+  --code-line-number:     #5a7a95;
+  --code-keyword:         #12355b;
+  --code-string:          #cc4000;
+  --code-number:          #e88500;
+  --code-comment:         #5a7a95;
+  --code-type:            #1a4a7a;
+  --code-function:        #ff570a;
+  --code-variable:        #12355b;
+  --code-operator:        #ff570a;
 
   /* Border Radius System - Modern theme uses subtle rounded corners */
-  --border-radius: 0.5rem;
-  --card-radius: 1rem;
-  --input-radius: 0.625rem;
-  --button-radius: 0.625rem;
-  --checkbox-radius: 0.3125rem;
+  --border-radius: 0.5rem;        /* 8px */
+  --card-radius: 1rem;            /* 16px */
+  --input-radius: 0.625rem;       /* 10px */
+  --button-radius: 0.625rem;      /* 10px */
+  --checkbox-radius: 0.3125rem;   /* 5px */
   --fab-radius: 50%;              /* Circular */
   --progress-radius: 9999px;      /* Pill shape */
-  --notification-radius: 0.75rem;
+  --notification-radius: 0.75rem; /* 12px */
 
 }
 

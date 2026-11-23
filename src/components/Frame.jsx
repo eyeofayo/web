@@ -84,7 +84,7 @@ export const Frame = ({
     className = '',
     ...props
 }) => {
-    const { currentTheme } = useTheme();
+    const { currentTheme, mode } = useTheme();
     const frame = useRef(null);
     // The colours are read when the theme is put on the page, which is a moment after it is chosen: reading at the
     // choice itself gave the theme before. The page's own body is watched, so the frame follows whatever sets it.
@@ -111,7 +111,7 @@ export const Frame = ({
             watcher.disconnect();
             timers.forEach(clearTimeout);
         };
-    }, [themed, currentTheme]);
+    }, [themed, currentTheme, mode]);
     const page = useMemo(() => sealPage(html, { theme: themed ? appTheme : {}, variables, dressed: dressed && themed, fit }), [html, themed, appTheme, variables, dressed, fit]);
     // What the page reports is taken only from this frame's own page. A page whose height follows the frame's would
     // grow for ever, so the fitting stops after a number of changes.

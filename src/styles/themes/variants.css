@@ -1,0 +1,327 @@
+/* The second variant of each built-in theme: dark for Modern, Minimal, Vibrant and Pink, light for Admin.
+   <body data-mode> (set by ThemeContext) picks which variant is shown. */
+
+/* Modern, dark */
+body[data-mode="dark"] .theme-modern, body[data-mode="dark"].theme-modern {
+    color-scheme: dark;
+    --primary-color: #A5D8FF;
+    --primary-accent-color: #70BFFF;
+    --secondary-color: #FF7A3D;
+    --secondary-accent-color: #FF570A;
+    --tertiary-color: #D4EEFF;
+    --tertiary-accent-color: #A5D8FF;
+    --neutral-color: #7FA6C4;
+    --neutral-accent-color: #7FA6C4;
+    --success-color: #57D07A;
+    --success-accent-color: color-mix(in srgb, #57D07A 80%, #000000);
+    --warning-color: #FFB84D;
+    --warning-accent-color: color-mix(in srgb, #FFB84D 80%, #000000);
+    --error-color: #FF8A80;
+    --error-accent-color: color-mix(in srgb, #FF8A80 80%, #000000);
+    --background-color: #0C2240;
+    --surface-color: #12315A;
+    --surface-accent-color: #1C4777;
+    --border-color: #2C5788;
+    --border-light: color-mix(in srgb, #2C5788 50%, #0C2240);
+    --control-border-color: #667e9b;
+    --text-color: #EAF5FF;
+    --text-contrast-color: #0C2240;
+    --text-muted: #a7b5c5;
+    --primary-text-color: #a5d8ff;
+    --secondary-text-color: #f99c73;
+    --tertiary-text-color: #d4eeff;
+    --success-text-color: #57d07a;
+    --warning-text-color: #ffb84d;
+    --error-text-color: #fc9b94;
+    --primary-contrast-color: #0C2240;
+    --secondary-contrast-color: #0C2240;
+    --tertiary-contrast-color: #0C2240;
+    --success-contrast-color: #0C2240;
+    --warning-contrast-color: #0C2240;
+    --error-contrast-color: #0C2240;
+    --focus-ring-color: #a5d8ff;
+    --backdrop-color: color-mix(in srgb, #0C2240 30%, rgba(0, 0, 0, 0.55));
+
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --shadow-color-hover: rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 6px 16px -6px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 14px 28px -10px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 22px 44px -14px rgba(0, 0, 0, 0.4);
+
+    --code-background: color-mix(in srgb, #0C2240 85%, #000000);
+    --code-foreground: #EAF5FF;
+    --code-gutter: #1C4777;
+    --code-line-number: #a7b5c5;
+    --code-line-highlight: color-mix(in srgb, #A5D8FF 10%, transparent);
+    --code-selection: color-mix(in srgb, #A5D8FF 25%, transparent);
+    --code-cursor: #A5D8FF;
+    --code-keyword: #a5d8ff;
+    --code-string: #57d07a;
+    --code-number: #ffb84d;
+    --code-comment: #a7b5c5;
+    --code-function: #f99c73;
+    --code-variable: #EAF5FF;
+    --code-operator: #d4eeff;
+    --code-type: #a5d8ff;
+}
+
+/* Minimal, dark */
+body[data-mode="dark"] .theme-minimal, body[data-mode="dark"].theme-minimal {
+    color-scheme: dark;
+    --primary-color: #D5D9E0;
+    --primary-accent-color: #FFFFFF;
+    --secondary-color: #9BA3AF;
+    --secondary-accent-color: #C3C9D2;
+    --tertiary-color: #B4BAC5;
+    --tertiary-accent-color: #D5D9E0;
+    --neutral-color: #8B929E;
+    --neutral-accent-color: #8B929E;
+    --success-color: #4CC38A;
+    --success-accent-color: color-mix(in srgb, #4CC38A 80%, #000000);
+    --warning-color: #E5A23A;
+    --warning-accent-color: color-mix(in srgb, #E5A23A 80%, #000000);
+    --error-color: #F38080;
+    --error-accent-color: color-mix(in srgb, #F38080 80%, #000000);
+    --background-color: #15171B;
+    --surface-color: #1E2126;
+    --surface-accent-color: #2A2E35;
+    --border-color: #383D46;
+    --border-light: color-mix(in srgb, #383D46 50%, #15171B);
+    --control-border-color: #696c70;
+    --text-color: #ECEEF1;
+    --text-contrast-color: #15171B;
+    --text-muted: #9a9ca0;
+    --primary-text-color: #d5d9e0;
+    --secondary-text-color: #9ba3af;
+    --tertiary-text-color: #b4bac5;
+    --success-text-color: #4cc38a;
+    --warning-text-color: #e5a23a;
+    --error-text-color: #f38080;
+    --primary-contrast-color: #15171B;
+    --secondary-contrast-color: #15171B;
+    --tertiary-contrast-color: #15171B;
+    --success-contrast-color: #15171B;
+    --warning-contrast-color: #15171B;
+    --error-contrast-color: #15171B;
+    --focus-ring-color: #d5d9e0;
+    --backdrop-color: color-mix(in srgb, #15171B 30%, rgba(0, 0, 0, 0.55));
+
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --shadow-color-hover: rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 6px 16px -6px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 14px 28px -10px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 22px 44px -14px rgba(0, 0, 0, 0.4);
+
+    --code-background: color-mix(in srgb, #15171B 85%, #000000);
+    --code-foreground: #ECEEF1;
+    --code-gutter: #2A2E35;
+    --code-line-number: #9a9ca0;
+    --code-line-highlight: color-mix(in srgb, #D5D9E0 10%, transparent);
+    --code-selection: color-mix(in srgb, #D5D9E0 25%, transparent);
+    --code-cursor: #D5D9E0;
+    --code-keyword: #d5d9e0;
+    --code-string: #4cc38a;
+    --code-number: #e5a23a;
+    --code-comment: #9a9ca0;
+    --code-function: #9ba3af;
+    --code-variable: #ECEEF1;
+    --code-operator: #b4bac5;
+    --code-type: #d5d9e0;
+}
+
+/* Vibrant, dark */
+body[data-mode="dark"] .theme-vibrant, body[data-mode="dark"].theme-vibrant {
+    color-scheme: dark;
+    --primary-color: #C6DB52;
+    --primary-accent-color: #8EA604;
+    --secondary-color: #FF8552;
+    --secondary-accent-color: #FF4E00;
+    --tertiary-color: #FFB83A;
+    --tertiary-accent-color: #EC9F05;
+    --neutral-color: #B9A36A;
+    --neutral-accent-color: #B9A36A;
+    --success-color: #B5CF4A;
+    --success-accent-color: color-mix(in srgb, #B5CF4A 80%, #000000);
+    --warning-color: #FFC24B;
+    --warning-accent-color: color-mix(in srgb, #FFC24B 80%, #000000);
+    --error-color: #FF8A66;
+    --error-accent-color: color-mix(in srgb, #FF8A66 80%, #000000);
+    --background-color: #1F1605;
+    --surface-color: #2F220A;
+    --surface-accent-color: #453312;
+    --border-color: #6B5420;
+    --border-light: color-mix(in srgb, #6B5420 50%, #1F1605);
+    --control-border-color: #7b6d4c;
+    --text-color: #FFEFBE;
+    --text-contrast-color: #1F1605;
+    --text-muted: #ada07b;
+    --primary-text-color: #c6db52;
+    --secondary-text-color: #ff8552;
+    --tertiary-text-color: #ffb83a;
+    --success-text-color: #b5cf4a;
+    --warning-text-color: #ffc24b;
+    --error-text-color: #ff8a66;
+    --primary-contrast-color: #1F1605;
+    --secondary-contrast-color: #1F1605;
+    --tertiary-contrast-color: #1F1605;
+    --success-contrast-color: #1F1605;
+    --warning-contrast-color: #1F1605;
+    --error-contrast-color: #1F1605;
+    --focus-ring-color: #c6db52;
+    --backdrop-color: color-mix(in srgb, #1F1605 30%, rgba(0, 0, 0, 0.55));
+
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --shadow-color-hover: rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 6px 16px -6px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 14px 28px -10px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 22px 44px -14px rgba(0, 0, 0, 0.4);
+
+    --code-background: color-mix(in srgb, #1F1605 85%, #000000);
+    --code-foreground: #FFEFBE;
+    --code-gutter: #453312;
+    --code-line-number: #ada07b;
+    --code-line-highlight: color-mix(in srgb, #C6DB52 10%, transparent);
+    --code-selection: color-mix(in srgb, #C6DB52 25%, transparent);
+    --code-cursor: #C6DB52;
+    --code-keyword: #c6db52;
+    --code-string: #b5cf4a;
+    --code-number: #ffc24b;
+    --code-comment: #ada07b;
+    --code-function: #ff8552;
+    --code-variable: #FFEFBE;
+    --code-operator: #ffb83a;
+    --code-type: #ec9f05;
+}
+
+/* Pink, dark */
+body[data-mode="dark"] .theme-pink, body[data-mode="dark"].theme-pink {
+    color-scheme: dark;
+    --primary-color: #FF86AC;
+    --primary-accent-color: #FF6B93;
+    --secondary-color: #7FCF8D;
+    --secondary-accent-color: #4F9C46;
+    --tertiary-color: #B3A6FF;
+    --tertiary-accent-color: #8E7DF5;
+    --neutral-color: #D3A2B4;
+    --neutral-accent-color: #D3A2B4;
+    --success-color: #6FD09A;
+    --success-accent-color: color-mix(in srgb, #6FD09A 80%, #000000);
+    --warning-color: #FFB969;
+    --warning-accent-color: color-mix(in srgb, #FFB969 80%, #000000);
+    --error-color: #FF9090;
+    --error-accent-color: color-mix(in srgb, #FF9090 80%, #000000);
+    --background-color: #220A16;
+    --surface-color: #341122;
+    --surface-accent-color: #4C1B34;
+    --border-color: #6E2C4C;
+    --border-light: color-mix(in srgb, #6E2C4C 50%, #220A16);
+    --control-border-color: #846473;
+    --text-color: #FFE6EF;
+    --text-contrast-color: #220A16;
+    --text-muted: #ab929d;
+    --primary-text-color: #ff86ac;
+    --secondary-text-color: #7fcf8d;
+    --tertiary-text-color: #b3a6ff;
+    --success-text-color: #6fd09a;
+    --warning-text-color: #ffb969;
+    --error-text-color: #ff9090;
+    --primary-contrast-color: #220A16;
+    --secondary-contrast-color: #220A16;
+    --tertiary-contrast-color: #220A16;
+    --success-contrast-color: #220A16;
+    --warning-contrast-color: #220A16;
+    --error-contrast-color: #220A16;
+    --focus-ring-color: #ff86ac;
+    --backdrop-color: color-mix(in srgb, #220A16 30%, rgba(0, 0, 0, 0.55));
+
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --shadow-color-hover: rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 6px 16px -6px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 14px 28px -10px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 22px 44px -14px rgba(0, 0, 0, 0.4);
+
+    --code-background: color-mix(in srgb, #220A16 85%, #000000);
+    --code-foreground: #FFE6EF;
+    --code-gutter: #4C1B34;
+    --code-line-number: #ab929d;
+    --code-line-highlight: color-mix(in srgb, #FF86AC 10%, transparent);
+    --code-selection: color-mix(in srgb, #FF86AC 25%, transparent);
+    --code-cursor: #FF86AC;
+    --code-keyword: #ff86ac;
+    --code-string: #6fd09a;
+    --code-number: #ffb969;
+    --code-comment: #ab929d;
+    --code-function: #7fcf8d;
+    --code-variable: #FFE6EF;
+    --code-operator: #b3a6ff;
+    --code-type: #9c8af4;
+}
+
+/* Admin, light */
+body[data-mode="light"] .theme-admin, body[data-mode="light"].theme-admin {
+    color-scheme: light;
+    --primary-color: #8A6500;
+    --primary-accent-color: #6B4E00;
+    --secondary-color: #3A3F47;
+    --secondary-accent-color: #1F2328;
+    --tertiary-color: #006D77;
+    --tertiary-accent-color: #00535B;
+    --neutral-color: #62666D;
+    --neutral-accent-color: #62666D;
+    --success-color: #0B7A55;
+    --success-accent-color: color-mix(in srgb, #0B7A55 80%, #000000);
+    --warning-color: #8F5B00;
+    --warning-accent-color: color-mix(in srgb, #8F5B00 80%, #000000);
+    --error-color: #B42F2D;
+    --error-accent-color: color-mix(in srgb, #B42F2D 80%, #000000);
+    --background-color: #F3F3F0;
+    --surface-color: #FFFFFF;
+    --surface-accent-color: #E9E7DF;
+    --border-color: #D3D1C8;
+    --border-light: color-mix(in srgb, #D3D1C8 50%, #F3F3F0);
+    --control-border-color: #87898c;
+    --text-color: #24282E;
+    --text-contrast-color: #FFFFFF;
+    --text-muted: #636669;
+    --primary-text-color: #826004;
+    --secondary-text-color: #3a3f47;
+    --tertiary-text-color: #006d77;
+    --success-text-color: #0d7352;
+    --warning-text-color: #8b5902;
+    --error-text-color: #b42f2d;
+    --primary-contrast-color: #FFFFFF;
+    --secondary-contrast-color: #FFFFFF;
+    --tertiary-contrast-color: #FFFFFF;
+    --success-contrast-color: #FFFFFF;
+    --warning-contrast-color: #FFFFFF;
+    --error-contrast-color: #FFFFFF;
+    --focus-ring-color: #826004;
+    --backdrop-color: color-mix(in srgb, #F3F3F0 30%, rgba(0, 0, 0, 0.55));
+
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --shadow-color-hover: rgba(0, 0, 0, 0.15);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 6px 16px -6px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 14px 28px -10px rgba(0, 0, 0, 0.15);
+    --shadow-xl: 0 22px 44px -14px rgba(0, 0, 0, 0.15);
+
+    --code-background: color-mix(in srgb, #FFFFFF 60%, #ffffff);
+    --code-foreground: #24282E;
+    --code-gutter: #E9E7DF;
+    --code-line-number: #636669;
+    --code-line-highlight: color-mix(in srgb, #8A6500 10%, transparent);
+    --code-selection: color-mix(in srgb, #8A6500 25%, transparent);
+    --code-cursor: #8A6500;
+    --code-keyword: #826004;
+    --code-string: #0d7352;
+    --code-number: #8b5902;
+    --code-comment: #636669;
+    --code-function: #3a3f47;
+    --code-variable: #24282E;
+    --code-operator: #006d77;
+    --code-type: #00535b;
+}

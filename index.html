@@ -14,8 +14,13 @@
     <script>
       // Apply theme class immediately to body to prevent white flash
       (function() {
-        const savedTheme = localStorage.getItem('selectedTheme') || 'modern';
-        document.body.classList.add('theme-' + savedTheme);
+        let theme = localStorage.getItem('selectedTheme') || 'modern';
+        let modes = {};
+        try { modes = JSON.parse(localStorage.getItem('themeModes')) || {}; } catch { modes = {}; }
+        if (theme === 'dark') { theme = 'modern'; modes = { modern: 'dark' }; }
+        document.body.classList.add('theme-' + theme);
+        document.body.dataset.mode = modes[theme] || (theme === 'admin' ? 'dark' : 'light');
+        document.documentElement.style.backgroundColor = localStorage.getItem('themeGround') || '';
       })();
     </script>
     <div id="root"></div>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { useTheme } from '@contexts/ThemeContext';
+import { GALLERY_THEMES } from '@styles/theme.gallery.js';
 import {
     Page,
     Container,
@@ -59,15 +60,15 @@ const PROGRESS_COLORS = ['default', ...STATUS_COLORS];
 const TEXT_COLORS = ['default', ...STATUS_COLORS, 'muted', 'neutral', 'info', 'header', 'contrast'];
 const MEDIA_COLORS = ['default', 'primary', 'secondary', 'tertiary'];
 const TREEVIEW_COLORS = ['default', 'surface', 'background', 'primary', 'secondary', 'tertiary'];
-const THEME_OVERRIDES = [null, 'modern', 'dark', 'minimal', 'vibrant', 'admin', 'pink'];
+const THEME_OVERRIDES = [null, 'modern', 'minimal', 'vibrant', 'admin', 'pink', ...GALLERY_THEMES.map((doc) => doc.slug)];
 const THEME_OPTION_LABELS = {
     null: 'Inherit Theme',
     modern: 'Modern',
-    dark: 'Dark',
     minimal: 'Minimal',
     vibrant: 'Vibrant',
     admin: 'Admin',
-    pink: 'Pink'
+    pink: 'Pink',
+    ...Object.fromEntries(GALLERY_THEMES.map((doc) => [doc.slug, doc.name]))
 };
 const FAB_SIZES = STANDARD_SIZES; // ['xs', 'sm', 'md', 'lg', 'xl']
 const FAB_VARIANTS = STATUS_COLORS;
@@ -3198,7 +3199,7 @@ ${propsFormatted}
 // =============================================================================
 
 const ComponentDemoRefactoredNew = () => {
-    const { currentTheme, switchTheme, availableThemes } = useTheme();
+    const { currentTheme, mode, setMode, switchTheme, availableThemes, themes } = useTheme();
     
     // State management
     const [selectedComponent, setSelectedComponent] = useState(DEFAULT_COMPONENT);
@@ -3897,6 +3898,7 @@ const ComponentDemoRefactoredNew = () => {
                             <Typography color="primary">
                                 Theme Switcher
                             </Typography>
+                            <Switch size="sm" label={`Dark ${themes[currentTheme]?.name || 'theme'}`} checked={mode === 'dark'} onChange={() => setMode(mode === 'dark' ? 'light' : 'dark')} />
                             <Container layout="flex-column" align="stretch" gap="xs">
                                 {availableThemes.map((theme) => (
                                     <Button
@@ -3909,14 +3911,13 @@ const ComponentDemoRefactoredNew = () => {
                                     >
                                         <Icon name={
                                             theme === 'modern' ? 'FiMonitor' :
-                                            theme === 'dark' ? 'FiMoon' :
                                             theme === 'minimal' ? 'FiCircle' :
                                             theme === 'vibrant' ? 'FiSun' :
                                             theme === 'admin' ? 'FiBriefcase' :
                                             theme === 'pink' ? 'FiHeart' :
                                             'FiSettings'
                                         } />
-                                        {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                                        {themes[theme]?.name || theme}
                                         {currentTheme === theme && (
                                             <Badge color="success" size="sm">Active</Badge>
                                         )}

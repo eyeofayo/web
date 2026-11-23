@@ -713,3 +713,23 @@
         animation: none !important;
     }
 }
+
+/* A theme may paint its own ambience on the page, still or drifting slowly (theme.gallery.js). */
+.page,
+.themed-page {
+    background-image: var(--page-ambient, none);
+    background-size: var(--page-ambient-size, auto);
+    animation: var(--page-ambient-motion, none);
+}
+
+@keyframes page-ambient-drift {
+    from { background-position: 0% 0%; }
+    to { background-position: 100% 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page,
+    .themed-page {
+        animation: none;
+    }
+}

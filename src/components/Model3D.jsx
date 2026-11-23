@@ -352,7 +352,7 @@ const LoadingFallback = () => (
 // before getComputedStyle runs). Returns null until the first read succeeds.
 // ---------------------------------------------------------------------------
 const useThemeColors = (mapping) => {
-    const { currentTheme, getThemeVariables } = useTheme();
+    const { currentTheme, mode, getThemeVariables } = useTheme();
     const [values, setValues] = useState(null);
     useEffect(() => {
         const id = requestAnimationFrame(() => {
@@ -365,7 +365,7 @@ const useThemeColors = (mapping) => {
         });
         return () => cancelAnimationFrame(id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentTheme]);
+    }, [currentTheme, mode]);
     return values;
 };
 

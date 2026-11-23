@@ -1,15 +1,26 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { injectCustomTheme, removeCustomTheme, customThemeClass } from '../styles/theme.compiler.js';
+import React, { createContext, useContext, useState, useEffect, useLayoutEffect } from 'react';
+import { injectCustomTheme, removeCustomTheme, customThemeClass, injectThemes, loadThemeFonts } from '../styles/theme.compiler.js';
+import { GALLERY_THEMES } from '../styles/theme.gallery.js';
 
 // Import all themes directly to avoid async loading issues and white flashes
 import '../styles/themes/modern.css';
-import '../styles/themes/dark.css';
 import '../styles/themes/minimal.css';
 import '../styles/themes/vibrant.css';
 import '../styles/themes/admin.css';
 import '../styles/themes/pink.css';
+import '../styles/themes/variants.css';
 
 const ThemeContext = createContext();
+
+const MODES_KEY = 'themeModes';
+const savedModes = () => {
+    try { return JSON.parse(localStorage.getItem(MODES_KEY)) || {}; } catch { return {}; }
+};
+// The Dark theme is now the dark variant of Modern; a person who had chosen it keeps what they saw.
+if (localStorage.getItem('selectedTheme') === 'dark') {
+    localStorage.setItem('selectedTheme', 'modern');
+    localStorage.setItem(MODES_KEY, JSON.stringify({ ...savedModes(), modern: 'dark' }));
+}
 
 const CUSTOM_THEME_KEY = 'customThemeDoc';
 
@@ -33,10 +44,6 @@ const themes = {
     name: 'Modern',
     description: 'Clean and professional design with modern aesthetics'
   },
-  dark: {
-    name: 'Dark',  
-    description: 'Dark mode theme with high contrast and modern feel'
-  },
   minimal: {
     name: 'Minimal',
     description: 'Ultra-clean minimalist design with focus on content'
@@ -47,13 +54,17 @@ const themes = {
   },
   admin: {
     name: 'Admin',
-    description: 'Professional administrative interface design'
+    description: 'Professional administrative interface design',
+    dark: true
   },
   pink: {
     name: 'Pink',
     description: 'Playful and vibrant design with a pink color palette'
-  }
+  },
+  ...Object.fromEntries(GALLERY_THEMES.map(({ slug, name, description, tokens }) => [slug, { name, description, dark: tokens.darkMode }]))
 };
+
+injectThemes(GALLERY_THEMES);
 
 export const ThemeProvider = ({ children, theme: overrideTheme }) => {
   // Check if this is a nested ThemeProvider (override scenario)
@@ -74,13 +85,32 @@ export const ThemeProvider = ({ children, theme: overrideTheme }) => {
     return saved && themes[saved] ? saved : 'modern';
   });
   
+  // Light or dark, remembered for each theme
+  const [modes, setModes] = useState(savedModes);
+
   // Determine the effective current theme
   const currentTheme = isNestedProvider 
-    ? (overrideTheme || parentContext.currentTheme) // Use override or inherit from parent
+    ? ((overrideTheme === 'dark' ? 'modern' : overrideTheme) || parentContext.currentTheme) // Use override or inherit from parent
     : (overrideTheme || globalTheme); // Use override or global theme
   
-  // Store theme preference, update body class, and dispatch change event
+  const ownMode = currentTheme.startsWith('custom-') ? (customTheme?.tokens?.darkMode ? 'dark' : 'light') : (themes[currentTheme]?.dark ? 'dark' : 'light');
+  const mode = isNestedProvider ? parentContext.mode : (modes[currentTheme] || ownMode);
+
   useEffect(() => {
+    loadThemeFonts(GALLERY_THEMES.find((doc) => doc.slug === currentTheme));
+  }, [currentTheme]);
+
+  const setMode = (next) => {
+    if (isNestedProvider) return parentContext.setMode(next);
+    const kept = { ...modes, [currentTheme]: next };
+    localStorage.setItem(MODES_KEY, JSON.stringify(kept));
+    setModes(kept);
+    return undefined;
+  };
+
+  // Store theme preference, update body class, and dispatch change event. A layout effect, so the body already
+  // carries the theme when the components below read their colours from it.
+  useLayoutEffect(() => {
     if (isNestedProvider) return; // Only root provider manages global state
     
     // Store in localStorage (only for global theme changes, not overrides)
@@ -94,18 +124,30 @@ export const ThemeProvider = ({ children, theme: overrideTheme }) => {
       if (cls.startsWith('theme-')) document.body.classList.remove(cls);
     });
     document.body.classList.add(`theme-${currentTheme}`);
+    document.body.dataset.mode = mode;
+    // The next load paints this ground before the theme's own styles arrive.
+    const ground = getComputedStyle(document.body).getPropertyValue('--background-color').trim();
+    document.documentElement.style.backgroundColor = ground;
+    localStorage.setItem('themeGround', ground);
     
     // Dispatch a custom event that components can listen for
     const themeChangeEvent = new CustomEvent('themechange', { 
-      detail: { theme: currentTheme, isOverride: !!overrideTheme } 
+      detail: { theme: currentTheme, mode, isOverride: !!overrideTheme } 
     });
     document.dispatchEvent(themeChangeEvent);
-  }, [currentTheme, isNestedProvider, overrideTheme]);
+  }, [currentTheme, mode, customTheme, isNestedProvider, overrideTheme]);
 
   const switchTheme = (themeName) => {
     // Re-selecting the applied custom theme (e.g. from the nav switcher)
     if (customTheme && themeName === customThemeClass(customTheme)) {
       setGlobalTheme(themeName);
+      return;
+    }
+    if (themeName === 'dark') {
+      const kept = { ...modes, modern: 'dark' };
+      localStorage.setItem(MODES_KEY, JSON.stringify(kept));
+      setModes(kept);
+      setGlobalTheme('modern');
       return;
     }
     if (!themes[themeName]) {
@@ -195,6 +237,8 @@ export const ThemeProvider = ({ children, theme: overrideTheme }) => {
 
   const value = {
     currentTheme,
+    mode,
+    setMode,
     switchTheme,
     applyCustomTheme,
     clearCustomTheme,

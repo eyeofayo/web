@@ -6,7 +6,7 @@
     /* Base visual styling */
     /* A card is barely there: one step off the page, a hairline, no shadow at rest. */
     background-color: var(--surface-color);
-    border: 1px solid var(--border-color);
+    border: var(--edge-width, 1px) solid var(--border-color);
     border-radius: var(--card-radius, var(--border-radius));
     box-shadow: var(--card-shadow, none);
     font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
@@ -463,10 +463,8 @@
 .card.card-radius-xl, .themed-card.card-radius-xl { border-radius: 1.75rem; }
 
 .card.card-flat,
-.themed-card.card-flat,
-.card.card-flat:hover,
-.themed-card.card-flat:hover {
-    box-shadow: none;
+.themed-card.card-flat {
+    box-shadow: var(--card-shadow, none);
 }
 
 /* ===== Card Layout Behavior ===== */

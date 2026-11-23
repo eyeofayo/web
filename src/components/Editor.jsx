@@ -51,8 +51,6 @@ loader.init(); // pre-warm Monaco bundle
 // --code-* CSS custom properties each app theme defines on document.body
 // (ThemeContext sets the .theme-<name> body class which activates those vars).
 // ---------------------------------------------------------------------------
-const MONACO_DARK_BASES = new Set(['dark', 'admin', 'pink']);
-
 const _cssVar = (name) => {
     try { return getComputedStyle(document.body).getPropertyValue(name).trim(); }
     catch { return ''; }
@@ -63,7 +61,7 @@ const _editorColor = (name) => { const v = _cssVar(name); return v || null; };
 const TRANSPARENT = '#00000000';
 
 function buildMonacoTheme(themeName) {
-    const base = MONACO_DARK_BASES.has(themeName) ? 'vs-dark' : 'vs';
+    const base = document.body.dataset.mode === 'dark' ? 'vs-dark' : 'vs';
     const rules = [
         { token: '',                        foreground: _tokenColor('--code-foreground') },
         { token: 'keyword',                 foreground: _tokenColor('--code-keyword'),   fontStyle: 'bold' },
@@ -537,7 +535,7 @@ const CodeEditorInner = forwardRef(({
     ytext      = null,
     provider   = null,
 }, ref) => {
-    const { currentTheme } = useTheme();
+    const { currentTheme, mode } = useTheme();
     const monacoRef    = useRef(null);
     const editorRef    = useRef(null);
     const bindingRef   = useRef(null);
@@ -558,7 +556,7 @@ const CodeEditorInner = forwardRef(({
             }
         });
         return () => cancelAnimationFrame(raf);
-    }, [currentTheme]);
+    }, [currentTheme, mode]);
 
     // Non-collab path: manually sync prop -> editor value.  In the collab
     // path MonacoBinding owns the model and we must NOT setValue() (it

@@ -77,6 +77,29 @@ const FONT_REGISTRY = {
     'inconsolata':           { family: "'Inconsolata', 'Courier New', monospace",                  google: 'Inconsolata:wght@300;400;500;600;700' },
     'courier-prime':         { family: "'Courier Prime', 'Courier New', monospace",                google: 'Courier+Prime:wght@400;700' },
     'victor-mono':           { family: "'Victor Mono', 'Courier New', monospace",                  google: 'Victor+Mono:wght@300;400;500;600;700' },
+
+    // Gallery themes
+    'vt323':                   { family: "'VT323', monospace", google: 'VT323' },
+    'syne':                    { family: "'Syne', sans-serif", google: 'Syne:wght@400;500;600;700;800' },
+    'zen-maru-gothic':         { family: "'Zen Maru Gothic', sans-serif", google: 'Zen+Maru+Gothic:wght@400;500;700' },
+    'shippori-mincho':         { family: "'Shippori Mincho', serif", google: 'Shippori+Mincho:wght@400;500;600;700' },
+    'dm-serif-display':        { family: "'DM Serif Display', serif", google: 'DM+Serif+Display' },
+    'archivo-black':           { family: "'Archivo Black', sans-serif", google: 'Archivo+Black' },
+    'spectral':                { family: "'Spectral', serif", google: 'Spectral:wght@300;400;500;600;700' },
+    'yeseva-one':              { family: "'Yeseva One', serif", google: 'Yeseva+One' },
+    'limelight':               { family: "'Limelight', serif", google: 'Limelight' },
+    'patrick-hand':            { family: "'Patrick Hand', cursive", google: 'Patrick+Hand' },
+    'cabin-sketch':            { family: "'Cabin Sketch', cursive", google: 'Cabin+Sketch:wght@400;700' },
+    'baloo-2':                 { family: "'Baloo 2', sans-serif", google: 'Baloo+2:wght@400;500;600;700' },
+    'shrikhand':               { family: "'Shrikhand', cursive", google: 'Shrikhand' },
+    'chakra-petch':            { family: "'Chakra Petch', sans-serif", google: 'Chakra+Petch:wght@300;400;500;600;700' },
+    'rye':                     { family: "'Rye', serif", google: 'Rye' },
+    'rajdhani':                { family: "'Rajdhani', sans-serif", google: 'Rajdhani:wght@300;400;500;600;700' },
+    'pixelify-sans':           { family: "'Pixelify Sans', sans-serif", google: 'Pixelify+Sans:wght@400;500;600;700' },
+    'silkscreen':              { family: "'Silkscreen', sans-serif", google: 'Silkscreen:wght@400;700' },
+    'special-elite':           { family: "'Special Elite', serif", google: 'Special+Elite' },
+    'gabarito':                { family: "'Gabarito', sans-serif", google: 'Gabarito:wght@400;500;600;700' },
+    'dela-gothic-one':         { family: "'Dela Gothic One', sans-serif", google: 'Dela+Gothic+One' },
 };
 
 export const getFontFamily = (key, fallback = "'Urbanist', sans-serif") =>

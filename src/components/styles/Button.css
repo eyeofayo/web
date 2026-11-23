@@ -8,7 +8,7 @@
     height: var(--control-h-md);
     margin: 0;
     padding: 0 var(--control-px-md);
-    border: 1px solid color-mix(in srgb, var(--button-ink) 38%, var(--surface-color));
+    border: var(--edge-width, 1px) solid color-mix(in srgb, var(--button-ink) 38%, var(--surface-color));
     border-radius: var(--button-radius, var(--border-radius-md));
     font-size: var(--control-text-md);
     font-weight: var(--font-weight-medium);
