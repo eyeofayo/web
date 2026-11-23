@@ -30,15 +30,58 @@ body {
   --spacing-3xl: 3rem;      /* 48px */
   --spacing-4xl: 4rem;      /* 64px */
 
+  /* Type scale: one size per name from a tablet up; a phone takes the smaller headings below.
+     13 meta, 14 interface text, 16 reading text, then 18, 22, 28, 36, 48, 64. Nothing is set under 13px. */
+  --text-xxs: 0.8125rem;
+  --text-xs: 0.875rem;
+  --text-sm: 1rem;
+  --text-md: 1.125rem;
+  --text-lg: 1.375rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.25rem;
+  --text-3xl: 3rem;
+  --text-4xl: 4rem;
+
+  /* Control scale: buttons, inputs and selects of one size share a height, side padding and label size. */
+  --control-h-xxs: 1.5rem;
+  --control-h-xs: 1.875rem;
+  --control-h-sm: 2.125rem;
+  --control-h-md: 2.5rem;
+  --control-h-lg: 2.75rem;
+  --control-h-xl: 3.25rem;
+  --control-px-xxs: 0.5rem;
+  --control-px-xs: 0.625rem;
+  --control-px-sm: 0.75rem;
+  --control-px-md: 1rem;
+  --control-px-lg: 1.25rem;
+  --control-px-xl: 1.5rem;
+  --control-text-xxs: 0.8125rem;
+  --control-text-xs: 0.8125rem;
+  --control-text-sm: 0.875rem;
+  --control-text-md: 0.9375rem;
+  --control-text-lg: 1rem;
+  --control-text-xl: 1.0625rem;
+
+  /* Motion: a hover answers in 150ms and leaves in 120ms, a press in 90ms, all on one curve. */
+  --motion-in: 150ms;
+  --motion-out: 120ms;
+  --motion-press: 90ms;
+  --motion-panel: 200ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Page frame: every page keeps its content on the same two lines. */
+  --page-max-width: 1280px;
+  --page-gutter: clamp(1rem, 4vw, 3rem);
+
   /* Font Sizes */
-  --font-size-xs: 0.8rem;
-  --font-size-sm: 1.0rem;
-  --font-size-base: 1.2rem;
-  --font-size-lg: 1.4rem;
-  --font-size-xl: 1.6rem;
-  --font-size-2xl: 1.8rem;
-  --font-size-3xl: 2.0rem; 
-  --font-size-4xl: 2.2rem;
+  --font-size-xs: var(--text-xxs);
+  --font-size-sm: var(--text-xs);
+  --font-size-base: var(--text-sm);
+  --font-size-lg: var(--text-md);
+  --font-size-xl: var(--text-lg);
+  --font-size-2xl: var(--text-xl);
+  --font-size-3xl: var(--text-2xl);
+  --font-size-4xl: var(--text-3xl);
 
   /* Font Weights */
   --font-weight-light: 300;
@@ -75,9 +118,9 @@ body {
   --z-tip: 2147483600; /* Button helper text, above dropdowns too */
   --z-fab: 100000; /* Floating Action Buttons */
   --z-genie: 999999; /* Genie overlays (highest priority) */  /* Transitions */
-  --transition-fast: 50ms ease;
-  --transition-normal: 100ms ease;
-  --transition-slow: 150ms ease;
+  --transition-fast: var(--motion-out) var(--ease);
+  --transition-normal: var(--motion-in) var(--ease);
+  --transition-slow: var(--motion-panel) var(--ease);
 
   /* Grid System */
   --grid-gap: var(--spacing-lg);
@@ -87,6 +130,31 @@ body {
   --button-height: 2.5rem;
   --input-height: 2.5rem;
   --header-height: 4rem;
+}
+
+/* The wash: backgroundColor="surface-alt" on a Container or Card fills it with the theme's tinted surface. */
+[class*="theme-"] {
+  --surface-alt-color: var(--surface-accent-color);
+}
+
+@media (max-width: 767px) {
+  :root {
+    --text-md: 1.0625rem;
+    --text-lg: 1.1875rem;
+    --text-xl: 1.375rem;
+    --text-2xl: 1.75rem;
+    --text-3xl: 2.125rem;
+    --text-4xl: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-in: 0ms;
+    --motion-out: 0ms;
+    --motion-press: 0ms;
+    --motion-panel: 0ms;
+  }
 }
 
 /* Utility Classes */
@@ -123,6 +191,9 @@ body {
 .gap-md { gap: var(--spacing-md); }
 .gap-lg { gap: var(--spacing-lg); }
 .gap-xl { gap: var(--spacing-xl); }
+.gap-2xl { gap: var(--spacing-2xl); }
+.gap-3xl { gap: var(--spacing-3xl); }
+.gap-4xl { gap: var(--spacing-4xl); }
 
 /* Padding Utilities */
 .pt-80 { padding-top: 80px !important; }

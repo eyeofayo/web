@@ -1,163 +1,223 @@
-/* ===== Genie Container ===== */
+/* A Genie is the app's one floating panel: every popover, menu, dropdown, tooltip and modal is this card,
+   placed beside its trigger. It fades in with a small scale or a 6px rise and leaves faster than it came. */
 .genie-container {
     position: fixed;
-    pointer-events: none;
-    /* Significantly higher z-index to ensure it's above all elements */
-    z-index: 999999;
-    opacity: 0;
-    transform: scale(0.8);
-    transition: all var(--transition-normal);
-    will-change: transform, opacity;
-    /* Force new stacking context and prevent parent interference */
+    z-index: var(--z-genie, 999999);
     isolation: isolate;
-    /* Completely hide when not visible */
-    visibility: hidden;
-    /* Remove focus outline */
     outline: none;
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+    transform: scale(0.98);
+    /* visibility waits for the fade, so a closing panel is seen leaving */
+    transition: opacity var(--motion-out) var(--ease), transform var(--motion-out) var(--ease),
+        visibility 0s linear var(--motion-out);
 }
 
 .genie-container.visible {
     pointer-events: all;
+    visibility: visible;
     opacity: 1;
     transform: scale(1);
-    visibility: visible;
+    transition: opacity var(--motion-panel) var(--ease), transform var(--motion-panel) var(--ease), visibility 0s;
 }
 
-/* ===== Positioning Variants ===== */
-/* Transform origins for proper scaling animation based on position */
-.genie-container.position-top-left {
-    transform-origin: bottom left;
-    /* Make container grow from left to right naturally */
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.genie-container.position-top-right {
-    transform-origin: bottom right;
-    /* Make container grow from right to left */
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-end;
-}
-
-.genie-container.position-bottom-left {
-    transform-origin: top left;
-    /* Make container grow from left to right naturally */
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
+/* ===== Positions: the panel grows out of the corner nearest its trigger ===== */
+.genie-container.position-top-left,
+.genie-container.position-top-right,
+.genie-container.position-bottom-left,
 .genie-container.position-bottom-right {
-    transform-origin: top right;
-    /* Make container grow from right to left */
     display: inline-flex;
     flex-direction: column;
-    align-items: flex-end;
 }
 
-/* ===== Genie Content ===== */
+.genie-container.position-top-left { transform-origin: bottom left; align-items: flex-start; }
+.genie-container.position-top-right { transform-origin: bottom right; align-items: flex-end; }
+.genie-container.position-bottom-left { transform-origin: top left; align-items: flex-start; }
+.genie-container.position-bottom-right { transform-origin: top right; align-items: flex-end; }
+
+/* ===== Animations (animation-scale is the default above) ===== */
+.genie-container.animation-slide-up { transform: translateY(6px); }
+.genie-container.animation-slide-down { transform: translateY(-6px); }
+
+.genie-container.animation-slide-up.visible,
+.genie-container.animation-slide-down.visible {
+    transform: translateY(0);
+}
+
+.genie-container.animation-fade,
+.genie-container.animation-fade.visible {
+    transform: none;
+}
+
+/* ===== The panel: Card gives the white fill and the hairline ===== */
 .genie-content {
-    /* Let Card component handle background, border, shadow, and border-radius theming */
-    /* Ensure content is always above everything including backdrop */
-    z-index: 999999;
-    /* Ensure proper sizing with scrolling as needed */
     box-sizing: border-box;
     width: fit-content;
     overflow: auto;
 }
 
-/* ===== Backdrop ===== */
+.genie-container .genie-content {
+    /* 14px, or the theme's own card radius where that is tighter */
+    border-radius: min(14px, var(--card-radius, 14px));
+    box-shadow: var(--shadow-lg);
+}
+
+.genie-container.genie-flat .genie-content {
+    box-shadow: none;
+}
+
+/* ===== Tooltip: ink panel, paper text ===== */
+.genie-container.variant-tooltip .genie-content {
+    padding: 6px 10px;
+    border-color: transparent;
+    border-radius: var(--border-radius, 8px);
+    background-color: var(--text-color);
+    color: var(--background-color);
+    font-size: var(--text-xxs);
+    line-height: 1.4;
+}
+
+.genie-container.variant-tooltip .genie-content .typography {
+    color: inherit;
+    font-size: inherit;
+}
+
+/* ===== Menu: a tight panel whose stacked buttons read as rows =====
+   Only a button that sits on a line of its own (straight inside a block or a column) is a row. Buttons in a
+   button group or side by side in a row keep their own look, so toolbars and forms inside a menu still work. */
+.genie-container.variant-menu .genie-content:not(.p-none) {
+    padding: 6px;
+}
+
+.genie-container.variant-menu :is(.layout-block, .layout-flex-column) > .button.themed-button:not(.themed-button-variant-solid, .button-round) {
+    width: 100%;
+    height: var(--control-h-sm);
+    padding: 0 var(--control-px-xs);
+    border-color: transparent;
+    border-radius: var(--border-radius, 8px);
+    background-color: transparent;
+    box-shadow: none;
+    font-size: var(--control-text-sm);
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.genie-container.variant-menu :is(.layout-block, .layout-flex-column) > .button.themed-button:not(.themed-button-variant-solid, .button-round) .button-content {
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-start;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .genie-container.variant-menu :is(.layout-block, .layout-flex-column) > .button.themed-button:not(.themed-button-variant-solid, .button-round):hover:not(:disabled) {
+        border-color: transparent;
+        background-color: var(--surface-accent-color);
+        transform: none;
+    }
+}
+
+.genie-container.variant-menu :is(.layout-block, .layout-flex-column) > .button.themed-button:not(.themed-button-variant-solid, .button-round):active:not(:disabled) {
+    background-color: color-mix(in srgb, var(--text-color) 8%, var(--surface-accent-color));
+    transform: none;
+}
+
+.genie-container.variant-menu :is(.layout-block, .layout-flex-column) > .button.themed-button:not(.themed-button-variant-solid, .button-round).selected,
+.genie-container.variant-menu :is(.layout-block, .layout-flex-column) > .button.themed-button:not(.themed-button-variant-solid, .button-round).selected:hover:not(:disabled) {
+    border-color: transparent;
+    background-color: var(--surface-accent-color);
+    color: var(--button-ink);
+}
+
+/* ===== Modal: the same panel over a thin veil ===== */
 .genie-backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--backdrop-color);
-    z-index: 999998;
+    inset: 0;
+    z-index: calc(var(--z-genie, 999999) - 1);
+    /* the theme's backdrop thinned by 30%: ink at 35% in the modern theme */
+    background-color: color-mix(in srgb, var(--backdrop-color) 70%, transparent);
     opacity: 0;
     pointer-events: none;
-    transition: opacity var(--transition-normal);
-    /* Prevent backdrop from interfering with hover events */
+    transition: opacity var(--motion-out) var(--ease);
     -webkit-tap-highlight-color: transparent;
 }
 
 .genie-backdrop.visible {
     opacity: 1;
     pointer-events: all;
+    transition-duration: var(--motion-panel);
 }
 
-/* ===== Animation Variants ===== */
-.genie-container.animation-slide-up {
-    transform: translateY(20px) scale(0.9);
+/* ===== Utility classes ===== */
+.genie-container.justify-self-auto { justify-self: auto; }
+.genie-container.justify-self-start { justify-self: start; }
+.genie-container.justify-self-end { justify-self: end; }
+.genie-container.justify-self-center { justify-self: center; }
+.genie-container.justify-self-stretch { justify-self: stretch; }
+
+/* ===== Toasts (NotificationDisplay) =====
+   A white panel; a 3px bar and the icon carry the status colour. NotificationDisplay.jsx sets a coloured border, a
+   background, an entry animation and the title colour inline, which is why those four are marked !important. */
+.notification-display .card.notification {
+    --toast-tone: var(--primary-color);
+    --toast-ink: var(--primary-text-color, var(--primary-color));
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--notification-radius, 12px);
+    background-color: var(--surface-color) !important;
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: none;
+    animation: toast-in var(--motion-panel) var(--ease) !important;
 }
 
-.genie-container.animation-slide-up.visible {
-    transform: translateY(0) scale(1);
+.notification-display .card.notification-success {
+    --toast-tone: var(--success-color);
+    --toast-ink: var(--success-text-color, var(--success-color));
 }
 
-.genie-container.animation-slide-down {
-    transform: translateY(-20px) scale(0.9);
+.notification-display .card.notification-warning {
+    --toast-tone: var(--warning-color);
+    --toast-ink: var(--warning-text-color, var(--warning-color));
 }
 
-.genie-container.animation-slide-down.visible {
-    transform: translateY(0) scale(1);
+.notification-display .card.notification-error {
+    --toast-tone: var(--error-color);
+    --toast-ink: var(--error-text-color, var(--error-color));
 }
 
-.genie-container.animation-fade {
+.notification-display .card.notification::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: -1px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background-color: var(--toast-tone);
+}
+
+/* the component's own style block lifts a toast under the pointer; a toast stays where it is */
+.notification-display .card.notification:hover {
+    box-shadow: var(--shadow-lg);
     transform: none;
+    transition: none;
 }
 
-.genie-container.animation-fade.visible {
-    transform: none;
+.notification-display .card.notification > .container > .themed-icon {
+    color: var(--toast-ink);
 }
 
-/* ===== Variant Styles ===== */
-.genie-container.variant-tooltip {
-    /* Tooltips are typically smaller and less prominent */
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+.notification-display .card.notification .typography {
+    font-size: var(--text-xs);
+    line-height: 1.4;
 }
 
-.genie-container.variant-popover,
-.genie-container.variant-dropdown,
-.genie-container.variant-menu {
-    /* Menus and popovers need stronger shadows */
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+.notification-display .card.notification h4.typography {
+    color: var(--text-color) !important;
 }
 
-.genie-container.variant-modal {
-    /* Modals can be larger and more prominent */
-    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.2));
-}
-
-.genie-container.variant-notification {
-    /* Notifications may need different positioning or styling */
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
-}
-
-/* ===== Utility Classes ===== */
-.genie-container.justify-self-auto {
-    justify-self: auto;
-}
-
-.genie-container.justify-self-start {
-    justify-self: start;
-}
-
-.genie-container.justify-self-end {
-    justify-self: end;
-}
-
-.genie-container.justify-self-center {
-    justify-self: center;
-}
-
-.genie-container.justify-self-stretch {
-    justify-self: stretch;
-}
-
-.genie-container.genie-flat {
-    filter: none;
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
 }

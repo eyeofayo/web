@@ -61,21 +61,16 @@
     height: var(--disc-size, 160px);
     border-radius: 50%;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: box-shadow 0.3s ease;
+    box-shadow: none;
     transform: rotate(var(--disc-rotation, 0deg));
     cursor: grab;
     pointer-events: auto; /* Disc itself receives pointer events */
     will-change: transform;
 }
 
-.audio:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
 .audio.dragging {
     cursor: grabbing;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    box-shadow: var(--shadow-md);
     transition: none;
 }
 
@@ -167,14 +162,16 @@
     width: 64px !important;
     height: 64px !important;
     padding: 0 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: var(--shadow-md) !important;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
 
-.audio-play-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+@media (hover: hover) and (pointer: fine) {
+    .audio-play-button:hover {
+        transform: scale(1.05);
+        box-shadow: var(--shadow-lg) !important;
+    }
 }
 
 /* Size variants for play button */
@@ -211,7 +208,7 @@
     border-radius: var(--border-radius-md, 8px);
     background: transparent;
     overflow: hidden;
-    transition: opacity 0.3s ease;
+    transition: opacity var(--motion-in) var(--ease);
 }
 
 .audio-waveform-container.loading {
@@ -233,7 +230,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: var(--text-color);
     opacity: 0.6;
     pointer-events: none;

@@ -31,14 +31,16 @@
   --error-accent-color: #dc2626;
   
   /* Surface and Border Colors */
-  --background-color: #C6D8FF;
-  --surface-color: #E2E7F3;
-  --surface-accent-color: #f3f4f6;
-  --border-color: #e5e7eb;
-  --border-light: #f3f4f6;
+  --background-color: #F4F7FD;
+  --surface-color: #FFFFFF;
+  --surface-accent-color: #E2EBFA;
+  --border-color: #D5DDEB;
+  --border-light: #E8EDF5;
+  --control-border-color: #8091AE;
+  --warning-text-color: #8A5A00;
 
   --text-color: #0C2F5A;
-  --text-contrast-color: #C9DDF8;
+  --text-contrast-color: #FFFFFF;
 
   /* Readable colours (4.5:1, WCAG AA), worked out from the colours above */
   --text-muted: #405E88;
@@ -54,13 +56,13 @@
   --focus-ring-color: #285EA6;
 
   /* Shadow System - Modern theme uses subtle blue-tinted shadows */
-  --shadow-color: rgba(59, 131, 246, 0.315);
-  --shadow-color-hover: rgba(59, 131, 246, 0.4);
+  --shadow-color: rgba(12, 47, 90, 0.10);
+  --shadow-color-hover: rgba(12, 47, 90, 0.16);
   --shadow-sm: 0 1px 2px var(--shadow-color);
-  --shadow-md: 0 4px 6px var(--shadow-color);
-  --shadow-lg: 0 10px 15px -3px var(--shadow-color);
-  --shadow-xl: 0 20px 25px -5px var(--shadow-color);
-  --shadow-2xl: 0 25px 50px -12px var(--shadow-color);
+  --shadow-md: 0 6px 16px -6px var(--shadow-color-hover);
+  --shadow-lg: 0 14px 28px -10px var(--shadow-color-hover);
+  --shadow-xl: 0 22px 44px -14px var(--shadow-color-hover);
+  --shadow-2xl: 0 32px 64px -18px var(--shadow-color-hover);
 
   /* Overlay and Backdrop Colors */
   --backdrop-color: rgba(31, 41, 55, 0.5);
@@ -117,14 +119,14 @@
   --code-operator:        #3f84e5;
 
   /* Border Radius System - Modern theme uses subtle rounded corners */
-  --border-radius: 0.375rem;      /* 6px */
-  --card-radius: 0.5rem;          /* 8px */
-  --input-radius: 0.375rem;       /* 6px */
-  --button-radius: 0.375rem;      /* 6px */
-  --checkbox-radius: 0.25rem;     /* 4px */
+  --border-radius: 0.5rem;
+  --card-radius: 1rem;
+  --input-radius: 0.625rem;
+  --button-radius: 0.625rem;
+  --checkbox-radius: 0.3125rem;
   --fab-radius: 50%;              /* Circular */
   --progress-radius: 9999px;      /* Pill shape */
-  --notification-radius: 0.5rem;  /* 8px */
+  --notification-radius: 0.75rem;
 
 }
 

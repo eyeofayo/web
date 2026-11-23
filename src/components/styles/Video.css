@@ -61,7 +61,7 @@
     box-sizing: border-box;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: opacity var(--motion-in) var(--ease), transform var(--motion-in) var(--ease);
 }
 
 .video-player-container:focus-within .video-overlay-controls,
@@ -155,7 +155,7 @@
     border-radius: 50%;
     background: var(--video-accent-color, #ffffff);
     border: none;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-sm);
     cursor: pointer;
 }
 
@@ -165,7 +165,7 @@
     border-radius: 50%;
     background: var(--video-accent-color, #ffffff);
     border: none;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-sm);
     cursor: pointer;
 }
 
@@ -179,12 +179,17 @@
     border-radius: 9999px;
     background: color-mix(in srgb, var(--video-accent-color, #ffffff) 30%, transparent);
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background-color var(--motion-in) var(--ease);
 }
 
-.video-progress-input:hover,
 .video-progress-input:focus-visible {
     background: color-mix(in srgb, var(--video-accent-color, #ffffff) 40%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .video-progress-input:hover {
+        background: color-mix(in srgb, var(--video-accent-color, #ffffff) 40%, transparent);
+    }
 }
 
 .video-progress-input::-webkit-slider-thumb {
@@ -196,7 +201,7 @@
     border-radius: 50%;
     background: var(--video-accent-color, #ffffff);
     border: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--shadow-sm);
     cursor: pointer;
 }
 
@@ -207,7 +212,7 @@
     border-radius: 50%;
     background: var(--video-accent-color, #ffffff);
     border: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--shadow-sm);
     cursor: pointer;
 }
 
@@ -239,8 +244,10 @@
     opacity: 0.8;
 }
 
-.video-control-button-secondary:hover {
-    opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+    .video-control-button-secondary:hover {
+        opacity: 1;
+    }
 }
 
 /* Timecode with bold digits */
@@ -250,7 +257,7 @@
     min-width: 50px;
     text-align: center;
     flex-shrink: 0;
-    font-size: 0.85rem;
+    font-size: 0.8125rem;
 }
 
 /* Separator - hidden by default, shown on extra small screens */
@@ -275,7 +282,7 @@
 
     .video-timecode {
         min-width: 42px;
-        font-size: 0.8rem;
+        font-size: 0.8125rem;
     }
 
     .video-volume-control {
@@ -302,7 +309,7 @@
 
     .video-timecode {
         min-width: 36px;
-        font-size: 0.7rem;
+        font-size: 0.8125rem;
     }
 
     .video-volume-control {
@@ -337,7 +344,7 @@
 
     .video-timecode {
         min-width: 30px;
-        font-size: 0.65rem;
+        font-size: 0.8125rem;
     }
 
     .video-timecode-separator {

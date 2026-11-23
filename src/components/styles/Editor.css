@@ -8,7 +8,7 @@
     border: 1px solid var(--border-color);
     background: transparent;
     overflow-y: auto;
-    transition: all 0.2s ease;
+    transition: background-color var(--motion-out) var(--ease), border-color var(--motion-out) var(--ease), color var(--motion-out) var(--ease), box-shadow var(--motion-out) var(--ease), opacity var(--motion-out) var(--ease), transform var(--motion-out) var(--ease);
 }
 
 /* ===== MDX Editor Theme Integration ===== */
@@ -195,7 +195,7 @@
         color: var(--primary-color);
         text-decoration: none;
         border-bottom: 1px solid transparent;
-        transition: all 0.2s ease;
+        transition: background-color var(--motion-out) var(--ease), border-color var(--motion-out) var(--ease), color var(--motion-out) var(--ease), box-shadow var(--motion-out) var(--ease), opacity var(--motion-out) var(--ease), transform var(--motion-out) var(--ease);
     }
 
     a:hover {
@@ -310,8 +310,10 @@
     border: 1px solid var(--border-color);
 }
 
-.themed-editor [class*="_imageContainer_"]:hover img {
-    border-color: var(--primary-color);
+@media (hover: hover) and (pointer: fine) {
+    .themed-editor [class*="_imageContainer_"]:hover img {
+        border-color: var(--primary-color);
+    }
 }
 
 /* Image upload dialog styling */
@@ -378,7 +380,7 @@
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--button-radius, var(--border-radius-md)) !important;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color var(--motion-out) var(--ease), border-color var(--motion-out) var(--ease), color var(--motion-out) var(--ease), box-shadow var(--motion-out) var(--ease), opacity var(--motion-out) var(--ease), transform var(--motion-out) var(--ease);
     font-size: var(--font-size-sm);
     display: flex;
     align-items: center;
@@ -407,27 +409,29 @@
     height: 16px;
     fill: currentColor;
     stroke: currentColor;
-    transition: all 0.2s ease;
+    transition: background-color var(--motion-out) var(--ease), border-color var(--motion-out) var(--ease), color var(--motion-out) var(--ease), box-shadow var(--motion-out) var(--ease), opacity var(--motion-out) var(--ease), transform var(--motion-out) var(--ease);
 }
 
-.themed-editor .mdxeditor-toolbar button:hover {
-    background: var(--surface-color);
-    border-color: var(--border-color);
-    color: var(--primary-color);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+@media (hover: hover) and (pointer: fine) {
+    .themed-editor .mdxeditor-toolbar button:hover {
+        background: var(--surface-color);
+        border-color: var(--border-color);
+        color: var(--primary-color);
+        transform: translateY(-1px);
+    }
 }
 
-.themed-editor .mdxeditor-toolbar button:hover svg {
-    color: var(--primary-color);
-    transform: scale(1.1);
+@media (hover: hover) and (pointer: fine) {
+    .themed-editor .mdxeditor-toolbar button:hover svg {
+        color: var(--primary-color);
+        transform: scale(1.1);
+    }
 }
 
 .themed-editor .mdxeditor-toolbar button[data-state="on"] {
     background: var(--primary-color);
     color: var(--text-contrast-color);
     border-color: var(--primary-color);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .themed-editor .mdxeditor-toolbar button[data-state="on"] svg {
@@ -441,9 +445,11 @@
     border-color: transparent;
 }
 
-.themed-editor .mdxeditor-toolbar button:disabled:hover {
-    transform: none;
-    box-shadow: none;
+@media (hover: hover) and (pointer: fine) {
+    .themed-editor .mdxeditor-toolbar button:disabled:hover {
+        transform: none;
+        box-shadow: none;
+    }
 }
 
 /* Toolbar separators */
@@ -465,12 +471,14 @@
     border-radius: var(--button-radius, var(--border-radius-md)) !important;
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: var(--font-size-sm);
-    transition: all 0.2s ease;
+    transition: background-color var(--motion-out) var(--ease), border-color var(--motion-out) var(--ease), color var(--motion-out) var(--ease), box-shadow var(--motion-out) var(--ease), opacity var(--motion-out) var(--ease), transform var(--motion-out) var(--ease);
 }
 
-.themed-editor.themed-editor [class*="_selectTrigger_"]:hover {
-    border-color: var(--primary-color);
-    background: var(--surface-accent-color);
+@media (hover: hover) and (pointer: fine) {
+    .themed-editor.themed-editor [class*="_selectTrigger_"]:hover {
+        border-color: var(--primary-color);
+        background: var(--surface-accent-color);
+    }
 }
 
 .themed-editor.themed-editor [class*="_selectTrigger_"][data-state="open"] {
@@ -489,7 +497,6 @@
 
 .themed-editor .mdxeditor-toolbar button:active {
     transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -503,7 +510,7 @@
     display: flex;
     flex-direction: column;
     background: transparent;
-    transition: border-color 0.2s ease;
+    transition: border-color var(--motion-in) var(--ease);
 }
 
 .docx-editor-wrapper:focus-within {
@@ -537,7 +544,7 @@
     min-height: 28px;
     height: 28px;
     padding: 2px 8px;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .docx-editor-toolbar .docx-font-select .select-dropdown {
@@ -545,7 +552,7 @@
 }
 
 .docx-editor-toolbar .docx-font-select .select-option {
-    font-size: 12px;
+    font-size: 13px;
     padding: 4px 8px;
 }
 
@@ -558,7 +565,7 @@
     min-height: 28px;
     height: 28px;
     padding: 2px 6px;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .docx-editor-toolbar .docx-font-size-select .select-dropdown {
@@ -566,7 +573,7 @@
 }
 
 .docx-editor-toolbar .docx-font-size-select .select-option {
-    font-size: 12px;
+    font-size: 13px;
     padding: 4px 8px;
 }
 
@@ -638,7 +645,7 @@
     top: 2px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 9px;
+    font-size: 13px;
     line-height: 1;
     color: var(--text-muted-color, #666);
     pointer-events: none;
@@ -667,7 +674,7 @@
     height: 10px;
     background: var(--primary-color, #3b82f6);
     border-radius: 2px 2px 0 0;
-    transition: opacity 0.1s;
+    transition: opacity var(--motion-in) var(--ease);
 }
 
 /* Downward-pointing triangle (bottom of handle) */
@@ -681,12 +688,14 @@
     border-left:  5px solid transparent;
     border-right: 5px solid transparent;
     border-top:   9px solid var(--primary-color, #3b82f6);
-    transition: opacity 0.1s;
+    transition: opacity var(--motion-in) var(--ease);
 }
 
-.docx-ruler-handle:hover::before,
-.docx-ruler-handle:hover::after {
-    opacity: 0.75;
+@media (hover: hover) and (pointer: fine) {
+    .docx-ruler-handle:hover::before,
+    .docx-ruler-handle:hover::after {
+        opacity: 0.75;
+    }
 }
 
 /* ── Toolbar popups (link input, color pickers) ────────────────────────── */
@@ -699,7 +708,7 @@
     background: var(--surface-color, #fff);
     border: 1px solid var(--border-color, #e0e0e0);
     border-radius: var(--border-radius, 8px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--shadow-md);
     padding: 6px;
     z-index: 50;
     display: flex;
@@ -736,13 +745,15 @@
     cursor: pointer;
     min-width: 26px;
     min-height: 26px;
-    transition: all 0.15s ease;
+    transition: background-color var(--motion-out) var(--ease), border-color var(--motion-out) var(--ease), color var(--motion-out) var(--ease), box-shadow var(--motion-out) var(--ease), opacity var(--motion-out) var(--ease), transform var(--motion-out) var(--ease);
 }
 
-.docx-toolbar-popup button:hover {
-    background: var(--surface-accent-color, #f0f0f0);
-    border-color: var(--primary-color, #3b82f6);
-    color: var(--primary-color, #3b82f6);
+@media (hover: hover) and (pointer: fine) {
+    .docx-toolbar-popup button:hover {
+        background: var(--surface-accent-color, #f0f0f0);
+        border-color: var(--primary-color, #3b82f6);
+        color: var(--primary-color, #3b82f6);
+    }
 }
 
 /* ── Color picker grid ──────────────────────────────────────────────────── */
@@ -761,19 +772,20 @@
     justify-content: center;
     width: 22px;
     height: 22px;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     border: 1px solid var(--border-color, #ddd) !important;
     cursor: pointer;
     padding: 0 !important;
     min-width: 22px !important;
     min-height: 22px !important;
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    transition: transform var(--motion-in) var(--ease), box-shadow var(--motion-in) var(--ease);
 }
 
-.docx-color-swatch:hover {
-    transform: scale(1.2);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    border-color: var(--text-color, #333) !important;
+@media (hover: hover) and (pointer: fine) {
+    .docx-color-swatch:hover {
+        transform: scale(1.2);
+        border-color: var(--text-color, #333) !important;
+    }
 }
 
 .docx-color-reset {
@@ -799,7 +811,7 @@
 
 .docx-color-custom .themed-icon {
     pointer-events: none;
-    color: #fff;
+    color: var(--text-contrast-color, #fff);
     filter: drop-shadow(0 0 1px rgba(0,0,0,0.6));
 }
 
@@ -820,7 +832,7 @@
 }
 
 .docx-spacing-label {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-secondary-color, #666);
     text-transform: uppercase;
@@ -840,26 +852,28 @@
     justify-content: center;
     min-width: 40px;
     padding: 3px 8px;
-    font-size: 12px;
+    font-size: 13px;
     font-family: var(--font-family-primary, sans-serif);
     color: var(--text-color, #333);
     background: var(--background-color, #fff);
     border: 1px solid var(--border-color, #ddd);
     border-radius: var(--border-radius, 6px);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background-color var(--motion-out) var(--ease), border-color var(--motion-out) var(--ease), color var(--motion-out) var(--ease), box-shadow var(--motion-out) var(--ease), opacity var(--motion-out) var(--ease), transform var(--motion-out) var(--ease);
 }
 
-.docx-spacing-option:hover {
-    background: var(--surface-accent-color, #f0f0f0);
-    border-color: var(--primary-color, #3b82f6);
-    color: var(--primary-color, #3b82f6);
+@media (hover: hover) and (pointer: fine) {
+    .docx-spacing-option:hover {
+        background: var(--surface-accent-color, #f0f0f0);
+        border-color: var(--primary-color, #3b82f6);
+        color: var(--primary-color, #3b82f6);
+    }
 }
 
 .docx-spacing-option.active {
     background: var(--primary-color, #3b82f6);
     border-color: var(--primary-color, #3b82f6);
-    color: #fff;
+    color: var(--text-contrast-color, #fff);
     font-weight: 600;
 }
 
@@ -951,7 +965,7 @@
     top: 50%;
     left: 13px;
     transform: translateY(-50%);
-    font-size: 9px;
+    font-size: 13px;
     line-height: 1;
     color: var(--text-muted-color, #666);
     pointer-events: none;
@@ -980,7 +994,7 @@
     height: 8px;
     background: var(--primary-color, #3b82f6);
     border-radius: 2px 0 0 2px;
-    transition: opacity 0.1s;
+    transition: opacity var(--motion-in) var(--ease);
 }
 
 /* Right-pointing triangle */
@@ -994,12 +1008,14 @@
     border-top:    5px solid transparent;
     border-bottom: 5px solid transparent;
     border-left:   9px solid var(--primary-color, #3b82f6);
-    transition: opacity 0.1s;
+    transition: opacity var(--motion-in) var(--ease);
 }
 
-.docx-ruler-vhandle:hover::before,
-.docx-ruler-vhandle:hover::after {
-    opacity: 0.75;
+@media (hover: hover) and (pointer: fine) {
+    .docx-ruler-vhandle:hover::before,
+    .docx-ruler-vhandle:hover::after {
+        opacity: 0.75;
+    }
 }
 
 /* ProseMirror / TipTap content styles */
@@ -1094,7 +1110,7 @@
     font-family: var(--font-family-monospace, monospace);
     background: var(--surface-accent-color, #f0f0f0);
     padding: 0.1em 0.3em;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     font-size: 0.9em;
 }
 
@@ -1104,11 +1120,13 @@
     color: var(--primary-color, #3b82f6);
     text-decoration: underline;
     cursor: pointer;
-    transition: color 0.15s ease;
+    transition: color var(--motion-in) var(--ease);
 }
 
-.docx-editor-content a:hover {
-    color: var(--primary-accent-color, #2563eb);
+@media (hover: hover) and (pointer: fine) {
+    .docx-editor-content a:hover {
+        color: var(--primary-accent-color, #2563eb);
+    }
 }
 
 /* ── Lists ───────────────────────────────────────────────────────────────── */
@@ -1207,7 +1225,7 @@
     width: 10px;
     height: 10px;
     background: var(--primary-color, #3b82f6);
-    border: 1.5px solid #fff;
+    border: 1.5px solid var(--surface-color, #fff);
     border-radius: 2px;
     z-index: 5;
 }
@@ -1267,12 +1285,14 @@
     cursor: col-resize;
     background: var(--primary-color, #3b82f6);
     opacity: 0;
-    transition: opacity 0.15s;
+    transition: opacity var(--motion-in) var(--ease);
 }
 
-.docx-editor-content table:hover .column-resize-handle,
-.docx-editor-content .column-resize-handle:hover {
-    opacity: 0.6;
+@media (hover: hover) and (pointer: fine) {
+    .docx-editor-content table:hover .column-resize-handle,
+    .docx-editor-content .column-resize-handle:hover {
+        opacity: 0.6;
+    }
 }
 
 .tableWrapper {
@@ -1308,7 +1328,7 @@
 
 .code-editor-wrapper {
     border: 1px solid var(--border-color, #e0e0e0);
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     overflow: hidden;
     display: flex;
     flex-direction: column;

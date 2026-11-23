@@ -17,10 +17,10 @@ export const Card = forwardRef(({
     columns = 1, // 1-6 for grid layouts, or 'auto', 'auto-sm', 'auto-lg'
     gap = 'lg', // 'none', 'xs', 'sm', 'md', 'lg', 'xl'
     padding = 'lg', // 'none', 'xs', 'sm', 'md', 'lg', 'xl'
-    hover = true, // true, false - enable/disable hover effects
+    hover = null, // true, false - the pointer effect; left out, a card with an onClick has it and any other does not
     bordered = true, // false removes the outline, for a card that is only a filled surface
     borderColor = null, // Outline color: null (theme default), 'primary', 'secondary', 'tertiary'
-    shadow = true, // false removes the drop shadow, for a flat card
+    shadow = false, // true lifts the card off the page with a soft shadow; a card is flat without it
     borderStrength = 'normal', // 'normal', 'soft' - soft fades the outline so it is less prominent
     borderStyle = 'solid', // Outline style: 'solid', 'dashed', 'dotted'
     radius = null, // Corner rounding: null (theme default), 'sm', 'md', 'lg', 'xl'
@@ -247,11 +247,11 @@ export const Card = forwardRef(({
         return '';
     };
 
-    const hoverClass = hover ? 'themed-card-hover' : '';
+    const hoverClass = (hover ?? Boolean(props.onClick)) ? 'themed-card-hover' : '';
     const borderClass = [
         bordered ? '' : 'card-borderless',
         bordered && ['primary', 'secondary', 'tertiary'].includes(borderColor) ? `card-border-${borderColor}` : '',
-        shadow ? '' : 'card-flat',
+        shadow ? 'card-raised' : 'card-flat',
         bordered && borderStrength === 'soft' ? 'card-border-soft' : '',
         bordered && ['dashed', 'dotted'].includes(borderStyle) ? `card-border-${borderStyle}` : '',
         ['sm', 'md', 'lg', 'xl'].includes(radius) ? `card-radius-${radius}` : ''

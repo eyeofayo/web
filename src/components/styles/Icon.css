@@ -5,55 +5,29 @@
     flex-shrink: 0;
     box-sizing: border-box;
     color: var(--primary-color);
-    transition: all var(--transition-fast);
+    transition: color var(--motion-in) var(--ease), opacity var(--motion-in) var(--ease), transform var(--motion-in) var(--ease);
 }
 
-/* When icon is inside a button, inherit the button's color */
-.button .themed-icon,
-.themed-button .themed-icon {
-    color: inherit;
-}
+/* ===== Colour: the readable ink where the raw colour is too light on white ===== */
+.themed-icon.icon-primary { color: var(--primary-text-color, var(--primary-color)); }
+.themed-icon.icon-secondary { color: var(--secondary-text-color, var(--secondary-color)); }
+.themed-icon.icon-tertiary { color: var(--tertiary-text-color, var(--tertiary-color)); }
+.themed-icon.icon-success { color: var(--success-text-color, var(--success-color)); }
+.themed-icon.icon-warning { color: var(--warning-text-color, var(--warning-color)); }
+.themed-icon.icon-error { color: var(--error-text-color, var(--error-color)); }
+.themed-icon.icon-contrast { color: var(--text-contrast-color); }
+.themed-icon.icon-text { color: var(--text-color); }
 
-/* When button hovers, icon should also have hover effects */
-.button:hover .themed-icon,
-.themed-button:hover .themed-icon {
-    transform: scale(1.10);
-}
+/* ===== Sizes: one value at every screen width ===== */
+.themed-icon.icon-xs { width: 14px; height: 14px; font-size: 14px; }
+.themed-icon.icon-sm { width: 16px; height: 16px; font-size: 16px; }
+.themed-icon.icon-md { width: 20px; height: 20px; font-size: 20px; }
+.themed-icon.icon-lg { width: 24px; height: 24px; font-size: 24px; }
+.themed-icon.icon-xl { width: 32px; height: 32px; font-size: 32px; }
+.themed-icon.icon-2xl { width: 40px; height: 40px; font-size: 40px; }
 
-.themed-icon.icon-primary {
-    color: var(--primary-color);
-}
-
-.themed-icon.icon-secondary {
-    color: var(--secondary-color);
-}
-
-.themed-icon.icon-success {
-    color: var(--success-color);
-}
-
-.themed-icon.icon-warning {
-    color: var(--warning-color);
-}
-
-.themed-icon.icon-error {
-    color: var(--error-color);
-}
-
-.themed-icon.icon-tertiary {
-    color: var(--tertiary-color);
-}
-
-.themed-icon.icon-contrast {
-    color: var(--text-contrast-color);
-}
-
-.themed-icon.icon-text {
-    color: var(--text-color);
-}
-
-
-/* Input container inheritance - icons inside inputs inherit input colors */
+/* Inside a button, an input or a toast row the icon takes its colour from the parent and, in a button, its size
+   from the button's own label (1.15em), so it follows the button's size and never outgrows its text. */
 .button.themed-button .themed-icon,
 .input-icon .themed-icon,
 .input-password-toggle .themed-icon {
@@ -61,257 +35,10 @@
 }
 
 .button.themed-button .themed-icon {
-    margin: 0 var(--spacing-xs);
-}
-
-/* Size variations - Mobile first (small phones) */
-/* Optimized for visibility and FAB usage */
-.themed-icon.icon-xs {
-    width: 14px;
-    height: 14px;
-    font-size: 14px;
-}
-
-.themed-icon.icon-sm {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-}
-
-.themed-icon.icon-md {
-    width: 24px;
-    height: 24px;
-    font-size: 24px;
-}
-
-.themed-icon.icon-lg {
-    width: 32px;
-    height: 32px;
-    font-size: 32px;
-}
-
-.themed-icon.icon-xl {
-    width: 40px;
-    height: 40px;
-    font-size: 40px;
-}
-
-.themed-icon.icon-2xl {
-    width: 48px;
-    height: 48px;
-    font-size: 48px;
-}
-
-/* Large phones (480px - 767px) */
-/* Optimized for visibility and FAB usage */
-@media (min-width: 480px) {
-    .themed-icon.icon-xs {
-        width: 16px;
-        height: 16px;
-        font-size: 16px;
-    }
-
-    .themed-icon.icon-sm {
-        width: 20px;
-        height: 20px;
-        font-size: 20px;
-    }
-
-    .themed-icon.icon-md {
-        width: 26px;
-        height: 26px;
-        font-size: 26px;
-    }
-
-    .themed-icon.icon-lg {
-        width: 34px;
-        height: 34px;
-        font-size: 34px;
-    }
-
-    .themed-icon.icon-xl {
-        width: 42px;
-        height: 42px;
-        font-size: 42px;
-    }
-
-    .themed-icon.icon-2xl {
-        width: 50px;
-        height: 50px;
-        font-size: 50px;
-    }
-}
-
-/* Tablets (768px - 1024px) */
-/* Optimized for visibility and FAB usage */
-@media (min-width: 768px) {
-    .themed-icon.icon-xs {
-        width: 18px;
-        height: 18px;
-        font-size: 18px;
-    }
-
-    .themed-icon.icon-sm {
-        width: 22px;
-        height: 22px;
-        font-size: 22px;
-    }
-
-    .themed-icon.icon-md {
-        width: 30px;
-        height: 30px;
-        font-size: 30px;
-    }
-
-    .themed-icon.icon-lg {
-        width: 40px;
-        height: 40px;
-        font-size: 40px;
-    }
-
-    .themed-icon.icon-xl {
-        width: 48px;
-        height: 48px;
-        font-size: 48px;
-    }
-
-    .themed-icon.icon-2xl {
-        width: 56px;
-        height: 56px;
-        font-size: 56px;
-    }
-}
-
-/* Desktop (1025px - 1439px) */
-/* Optimized for visibility and FAB usage */
-@media (min-width: 1025px) {
-    .themed-icon.icon-xs {
-        width: 18px;
-        height: 18px;
-        font-size: 18px;
-    }
-
-    .themed-icon.icon-sm {
-        width: 24px;
-        height: 24px;
-        font-size: 24px;
-    }
-
-    .themed-icon.icon-md {
-        width: 32px;
-        height: 32px;
-        font-size: 32px;
-    }
-
-    .themed-icon.icon-lg {
-        width: 42px;
-        height: 42px;
-        font-size: 42px;
-    }
-
-    .themed-icon.icon-xl {
-        width: 52px;
-        height: 52px;
-        font-size: 52px;
-    }
-
-    .themed-icon.icon-2xl {
-        width: 64px;
-        height: 64px;
-        font-size: 64px;
-    }
-}
-
-/* Large desktop (≥1440px) */
-/* Optimized for visibility and FAB usage */
-@media (min-width: 1440px) {
-    .themed-icon.icon-xs {
-        width: 20px;
-        height: 20px;
-        font-size: 20px;
-    }
-
-    .themed-icon.icon-sm {
-        width: 26px;
-        height: 26px;
-        font-size: 26px;
-    }
-
-    .themed-icon.icon-md {
-        width: 34px;
-        height: 34px;
-        font-size: 34px;
-    }
-
-    .themed-icon.icon-lg {
-        width: 44px;
-        height: 44px;
-        font-size: 44px;
-    }
-
-    .themed-icon.icon-xl {
-        width: 56px;
-        height: 56px;
-        font-size: 56px;
-    }
-
-    .themed-icon.icon-2xl {
-        width: 70px;
-        height: 70px;
-        font-size: 70px;
-    }
-}
-
-/* Hover effects */
-.themed-icon.icon-hover:hover {
-    color: var(--primary-accent-color);
-    transform: scale(1.1);
-}
-
-.themed-icon.icon-clickable {
-    cursor: pointer;
-}
-
-.themed-icon.icon-clickable:hover {
-    opacity: 0.8;
-}
-
-/* Button inheritance - icons inside buttons inherit button colors */
-.button .themed-icon,
-.themed-button .themed-icon {
-    color: inherit;
-}
-
-.button:hover .themed-icon,
-.themed-button:hover .themed-icon {
-    color: inherit;
-}
-
-/* Special button variants */
-.button.themed-button:hover .themed-icon,
-.button.themed-button.selected .themed-icon {
-    color: inherit;
-}
-
-/* JustifySelf utility classes for Icon components */
-.themed-icon.justify-self-auto {
-    justify-self: auto;
-}
-
-.themed-icon.justify-self-start {
-    justify-self: start;
-}
-
-.themed-icon.justify-self-end {
-    justify-self: end;
-}
-
-.themed-icon.justify-self-center {
-    justify-self: center;
-}
-
-.themed-icon.justify-self-stretch {
-    justify-self: stretch;
+    margin: 0;
+    font-size: inherit;
+    width: 1.15em;
+    height: 1.15em;
 }
 
 /* A brand logo fills its whole square while an outline icon leaves a margin, so a logo is inset to look the same size. */
@@ -319,9 +46,23 @@
     padding: 0.1em;
 }
 
-/* An icon inside a button is sized by the button's own text, so on a wide screen it never outgrows its label. */
-.button.themed-button .themed-icon {
-    font-size: inherit;
-    width: 1.3em;
-    height: 1.3em;
+@media (hover: hover) and (pointer: fine) {
+    .themed-icon.icon-hover:hover {
+        color: var(--primary-accent-color);
+        transform: scale(1.1);
+    }
+
+    .themed-icon.icon-clickable:hover {
+        opacity: 0.8;
+    }
 }
+
+.themed-icon.icon-clickable {
+    cursor: pointer;
+}
+
+.themed-icon.justify-self-auto { justify-self: auto; }
+.themed-icon.justify-self-start { justify-self: start; }
+.themed-icon.justify-self-end { justify-self: end; }
+.themed-icon.justify-self-center { justify-self: center; }
+.themed-icon.justify-self-stretch { justify-self: stretch; }

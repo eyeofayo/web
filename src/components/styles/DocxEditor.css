@@ -5,7 +5,7 @@
 
 .code-editor-wrapper {
     border: 1px solid var(--border-color, #e0e0e0);
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     overflow: hidden;
     display: flex;
     flex-direction: column;

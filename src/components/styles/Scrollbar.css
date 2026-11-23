@@ -1,7 +1,4 @@
-/* Custom Scrollbar Styling */
-/* Uses existing theme color variables for consistent styling */
-
-/* Apply custom scrollbars to specific components with scrollable content */
+/* Thin scrollbars: an ink thumb on a clear track. */
 .table-scroll-wrapper,
 .data-content,
 .page,
@@ -11,22 +8,22 @@
 .themed-editor [class*="_contentEditable_"],
 .themed-editor .mdxeditor-root-contenteditable,
 body {
-    scrollbar-color: transparent transparent;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--text-color) 22%, transparent) transparent;
 }
 
-/* Firefox hover state support */
-.table-scroll-wrapper:hover,
-.data-content:hover,
-.page:hover,
-.card:hover,
-.container:hover,
-.themed-container:hover,
-.themed-editor [class*="_contentEditable_"]:hover {
-    scrollbar-width: auto;
-    scrollbar-color: var(--primary-color) transparent;
+@media (hover: hover) and (pointer: fine) {
+    .table-scroll-wrapper:hover,
+    .data-content:hover,
+    .page:hover,
+    .card:hover,
+    .container:hover,
+    .themed-container:hover,
+    .themed-editor [class*="_contentEditable_"]:hover {
+        scrollbar-color: color-mix(in srgb, var(--text-color) 35%, transparent) transparent;
+    }
 }
 
-/* Webkit scrollbar styling for Chrome, Safari, Edge */
 .table-scroll-wrapper::-webkit-scrollbar,
 .data-content::-webkit-scrollbar,
 .page::-webkit-scrollbar,
@@ -58,9 +55,8 @@ body {
 .themed-container::-webkit-scrollbar-thumb,
 .themed-editor [class*="_contentEditable_"]::-webkit-scrollbar-thumb,
 .themed-editor .mdxeditor-root-contenteditable::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 4px;
-    opacity: 0.3;
+    background: color-mix(in srgb, var(--text-color) 22%, transparent);
+    border-radius: 9999px;
 }
 
 .table-scroll-wrapper::-webkit-scrollbar-thumb:hover,
@@ -71,5 +67,5 @@ body {
 .themed-container::-webkit-scrollbar-thumb:hover,
 .themed-editor [class*="_contentEditable_"]::-webkit-scrollbar-thumb:hover,
 .themed-editor .mdxeditor-root-contenteditable::-webkit-scrollbar-thumb:hover {
-    opacity: 0.7;
+    background: color-mix(in srgb, var(--text-color) 35%, transparent);
 }

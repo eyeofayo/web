@@ -174,21 +174,20 @@
 /* ===== Hoverable containers (`hoverable` prop) ===== */
 .container.container-hoverable, .themed-container.container-hoverable {
     cursor: pointer;
-    border-radius: var(--border-radius-lg);
-    transition: background-color 0.15s ease;
+    border-radius: var(--border-radius);
+    transition: background-color var(--motion-out) var(--ease);
 }
 
-.container.container-hoverable:hover, .themed-container.container-hoverable:hover {
-    background-color: var(--surface-accent-color, var(--surface-color));
-}
+@media (hover: hover) and (pointer: fine) {
+    .container.container-hoverable:hover, .themed-container.container-hoverable:hover {
+        background-color: var(--surface-accent-color, var(--surface-color));
+        transition-duration: var(--motion-in);
+    }
 
-/* A row that already has a fill, such as the selected one, keeps its colour and lightens on hover. */
-.container.container-hoverable.container-filled, .themed-container.container-hoverable.container-filled {
-    transition: background-color 0.15s ease, filter 0.15s ease;
-}
-
-.container.container-hoverable.container-filled:hover, .themed-container.container-hoverable.container-filled:hover {
-    filter: brightness(1.18) saturate(1.1);
+    /* A row that already has a fill, such as the selected one, keeps its colour and lightens on hover. */
+    .container.container-hoverable.container-filled:hover, .themed-container.container-hoverable.container-filled:hover {
+        filter: brightness(1.18) saturate(1.1);
+    }
 }
 
 /* ===== Multi-column System ===== */
@@ -479,16 +478,12 @@
 }
 
 /* Center child elements in centered containers */
-.container.align-center > .button,
 .container.align-center > .input-container,
 .container.align-center > .select-container,
-.container.justify-center > .button,
 .container.justify-center > .input-container,
 .container.justify-center > .select-container,
-.themed-container.align-center > .button,
 .themed-container.align-center > .input-container,
 .themed-container.align-center > .select-container,
-.themed-container.justify-center > .button,
 .themed-container.justify-center > .input-container,
 .themed-container.justify-center > .select-container {
     margin-left: auto;
@@ -553,13 +548,16 @@
 .container.genie-trigger,
 .themed-container.genie-trigger {
     cursor: pointer;
-    transition: background-color var(--transition-fast);
+    transition: background-color var(--motion-out) var(--ease);
 }
 
-.container.genie-trigger:hover,
-.themed-container.genie-trigger:hover {
-    background-color: var(--surface-accent-color);
-    border-radius: var(--border-radius-md);
+@media (hover: hover) and (pointer: fine) {
+    .container.genie-trigger:hover,
+    .themed-container.genie-trigger:hover {
+        background-color: var(--surface-accent-color);
+        border-radius: var(--border-radius);
+        transition-duration: var(--motion-in);
+    }
 }
 
 .container.has-genie-active,
@@ -576,4 +574,14 @@
     position: absolute;
     flex: none;
     grid-area: unset;
+}
+
+/* A column never wraps into a second column: in a box with a set height that pushed its content out sideways. */
+.container.layout-flex-column.flex-wrap, .themed-container.layout-flex-column.flex-wrap {
+    flex-wrap: nowrap;
+}
+
+/* In a column a filling block still counts its own content, so it grows its box and is never squeezed to nothing. */
+.container.layout-flex-column > .flex-fill, .themed-container.layout-flex-column > .flex-fill {
+    flex-basis: auto;
 }

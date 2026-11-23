@@ -1,64 +1,192 @@
-/* Data component styles */
+/* Data: a toolbar (search, filters, columns, view), the items as a table, cards or a list, then the pages.
+   The size prop picks one text size and one cell padding, the same at every screen width. Data's sizes sit one
+   step under Typography's (xs 13px, sm 14px, md 16px), so a table reads as interface text. */
 .data-container {
+    --data-text: var(--text-xs);
+    --data-head-text: var(--text-xxs);
+    --data-cell-py: 0.625rem;
+    --data-cell-px: 0.75rem;
+    --data-gap: var(--spacing-md);
     position: relative;
-    /* Allow genies to escape the container, but constrain main content */
     overflow: visible;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
 }
 
-/* ===== TABLE STRUCTURAL STYLES ===== */
+.data-container.data-size-xxs {
+    --data-text: var(--text-xxs);
+    --data-cell-py: 0.375rem;
+    --data-cell-px: 0.5rem;
+}
 
-.card.data-container {
+.data-container.data-size-xs {
+    --data-text: var(--text-xxs);
+    --data-cell-py: 0.5rem;
+    --data-cell-px: 0.625rem;
+}
+
+.data-container.data-size-md {
+    --data-text: var(--text-sm);
+    --data-head-text: var(--text-xs);
+    --data-cell-py: 0.75rem;
+    --data-cell-px: 1rem;
+}
+
+.data-container.data-size-lg {
+    --data-text: var(--text-md);
+    --data-head-text: var(--text-xs);
+    --data-cell-py: 0.875rem;
+    --data-cell-px: 1.25rem;
+}
+
+.data-container.data-size-xl {
+    --data-text: var(--text-lg);
+    --data-head-text: var(--text-sm);
+    --data-cell-py: 1rem;
+    --data-cell-px: 1.5rem;
+}
+
+.data-container.data-flat {
+    --data-gap: var(--spacing-sm);
+}
+
+.data-flat.card {
     background-color: transparent;
+}
+
+.data-container > .container + .container {
+    margin-top: var(--data-gap);
+}
+
+.data-size-xxs .typography-size-xxs,
+.data-size-xs .typography-size-xs,
+.data-size-sm .typography-size-sm,
+.data-size-md .typography-size-md,
+.data-size-lg .typography-size-lg,
+.data-size-xl .typography-size-xl {
+    font-size: var(--data-text);
+    line-height: var(--line-height-normal);
+    letter-spacing: 0;
+}
+
+/* ===== Toolbar ===== */
+.data-container .container.data-toolbar,
+.data-container .container.data-toolbar-main {
+    gap: var(--spacing-sm) var(--spacing-md);
+}
+
+.data-container .container.data-toolbar > .container.data-toolbar-main {
+    flex: 1 1 26rem;
+}
+
+.data-container .container.data-toolbar-main > .container.data-toolbar-search {
+    flex: 1 1 12rem;
+    max-width: 22rem;
+}
+
+.data-container .container.data-toolbar-actions,
+.data-container .container.data-toolbar-views {
+    flex: 0 0 auto;
+}
+
+.data-toolbar .input,
+.data-toolbar .themed-select,
+.data-filters .input,
+.data-filters .themed-select,
+.data-pagination .input,
+.data-pagination .themed-select {
+    margin: 0;
+}
+
+.data-toolbar .button-group .button.themed-button,
+.data-pagination .button-group .button.themed-button {
+    box-shadow: none;
+}
+
+/* The view in use is the filled one, whichever button was pressed last. */
+.data-toolbar-views .button.themed-button.themed-button-variant-primary,
+.data-toolbar-views .button.themed-button.themed-button-variant-primary:hover:not(:disabled) {
+    background-color: var(--button-tone);
+    border-color: var(--button-tone);
+    color: var(--button-contrast);
+}
+
+.data-toolbar-views .button.themed-button.selected:not(.themed-button-variant-primary) {
+    background-color: var(--surface-color);
+    border-color: color-mix(in srgb, var(--button-ink) 38%, var(--surface-color));
+    color: var(--button-ink);
+}
+
+.data-container .container.data-filters {
+    border: 1px solid var(--border-color);
+    border-radius: var(--input-radius, var(--border-radius));
+}
+
+@media (max-width: 767px) {
+    .data-container .container.data-toolbar-main > .container.data-toolbar-search {
+        flex-basis: 100%;
+        max-width: none;
+    }
+}
+
+/* ===== Table ===== */
+.data-container > .container.data-item-container {
+    padding: 0;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.data-view-table > .container.data-item-container {
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .themed-table {
-    border-collapse: collapse;
-    background-color: transparent;
+    border-collapse: separate;
+    border-spacing: 0;
     table-layout: auto;
     width: 100%;
-    min-width: max-content; /* Ensures table doesn't compress below content needs */
-}
-
-.table-header {
-    background-color: var(--surface-accent-color);
-    border-bottom: 2px solid var(--border-color);
+    min-width: max-content;
+    background-color: transparent;
+    color: var(--text-color);
+    font-size: var(--data-text, var(--text-xs));
+    font-variant-numeric: tabular-nums;
 }
 
 .table-header-cell {
-    padding: var(--spacing-xs);
-    text-align: left;
-    border-right: 1px solid var(--border-color);
-    transition: background-color var(--transition-fast);
+    padding: calc(var(--data-cell-py, 0.625rem) - 0.125rem) var(--data-cell-px, 0.75rem);
+    background-color: var(--background-color);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: var(--data-head-text, var(--text-xxs));
+    font-weight: var(--font-weight-medium);
+    text-align: start;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.table-header-cell:first-child {
+    border-top-left-radius: var(--border-radius);
 }
 
 .table-header-cell:last-child {
-    border-right: none;
+    border-top-right-radius: var(--border-radius);
+}
+
+.themed-table .table-header-cell .typography {
+    color: var(--text-muted);
+    font-size: inherit;
+    font-weight: var(--font-weight-medium);
+    font-family: var(--font-family-medium, var(--font-family));
+    line-height: var(--line-height-normal);
+    letter-spacing: 0;
 }
 
 .table-header-cell.sortable {
     cursor: pointer;
     user-select: none;
-    position: relative;
-}
-
-.table-header-cell:hover {
-    background-color: var(--surface-color);
-}
-
-.table-header-cell.sortable:hover {
-    background-color: var(--surface-color);
-}
-
-.sort-indicator {
-    position: absolute;
-    right: var(--spacing-sm);
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: var(--font-size-xs);
-    color: var(--text-contrast-color);
 }
 
 .table-body {
@@ -66,36 +194,45 @@
 }
 
 .table-row {
-    transition: background-color var(--transition-fast);
+    transition: background-color var(--motion-out) var(--ease);
 }
 
-.table-row:hover {
-    background-color: var(--surface-color);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+.table-row.genie-trigger {
+    cursor: pointer;
 }
 
 .table-cell {
+    padding: 0;
     border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
 }
 
-/* Card and list item trigger states are handled by the Card component's existing Genie integration */
+.table-row:last-child > .table-cell {
+    border-bottom: none;
+}
 
-/* Table filters row */
-.table-filters-row {
+.themed-table .table-cell > .container {
+    padding: var(--data-cell-py, 0.625rem) var(--data-cell-px, 0.75rem);
+    max-width: 36rem;
+    overflow-wrap: break-word;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .table-row:hover {
+        background-color: var(--surface-accent-color);
+        transition-duration: var(--motion-in);
+    }
+}
+
+.table-row.data-item-chosen {
     background-color: var(--surface-accent-color);
-    border-bottom: 1px solid var(--border-color);
 }
 
-.table-filter-cell {
-    padding: var(--spacing-sm);
-    border-right: 1px solid var(--border-color);
+.table-empty .typography {
+    color: var(--text-muted);
 }
 
-.table-filter-cell:last-child {
-    border-right: none;
-}
-
-/* Column selection dropdown styles */
+/* Column picker (shown in a Genie) */
 .column-selection-item {
     display: flex;
     align-items: center;
@@ -104,50 +241,17 @@
 }
 
 .column-selection-checkbox {
-    width: 12px;
-    height: 12px;
     margin: 0;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-sm);
-    background-color: var(--background-color);
     cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.column-selection-checkbox:checked {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
 }
 
 .column-selection-label {
     cursor: pointer;
     user-select: none;
-    font-size: var(--font-size-xs);
     color: var(--text-color);
 }
 
-/* ===== DATA COMPONENT SPECIFIC STYLES ===== */
-.table-scroll-wrapper {
-    overflow: hidden;
-}
-
-/* Controls styling */
-.data-item-container {
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: var(--spacing-md);
-    min-width: 0; /* Allow flex items to shrink below their min-content width */
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.data-controls {
-    background-color: var(--surface-accent-color);
-    border-radius: var(--border-radius-md);
-    border: 1px solid var(--border-color);
-}
-
-/* Cards: a grid of tiles that reflows by width; title, a clamped summary, then labelled facts */
+/* ===== Cards: a grid of tiles that reflows by width; title, a summary, then labelled facts ===== */
 .data-view-list {
     container-type: inline-size;
 }
@@ -155,7 +259,7 @@
 .container.data-card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
-    gap: var(--spacing-sm);
+    gap: var(--spacing-md);
     overflow: visible;
 }
 
@@ -163,36 +267,52 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xs);
-    padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-md);
+    border-radius: var(--card-radius, var(--border-radius));
     background-color: var(--surface-color);
-    transition: border-color var(--transition-fast), background-color var(--transition-fast);
+    box-shadow: none;
+    transition: border-color var(--motion-out) var(--ease), background-color var(--motion-out) var(--ease), box-shadow var(--motion-out) var(--ease);
 }
 
-.data-card-grid .data-card-item:hover {
-    border-color: color-mix(in srgb, var(--primary-color) 45%, var(--border-color));
+/* Only a card that opens something answers the pointer. */
+@media (hover: hover) and (pointer: fine) {
+    .data-card-grid .card.data-card-item.genie-trigger:hover {
+        border-color: color-mix(in srgb, var(--text-color) 34%, var(--surface-color));
+        box-shadow: var(--card-shadow-hover, 0 10px 24px -14px var(--shadow-color-hover));
+        transition-duration: var(--motion-in);
+    }
 }
 
 .data-card-title {
-    font-weight: var(--font-weight-semibold);
     min-width: 0;
+    overflow-wrap: break-word;
+}
+
+.data-card-title .typography.typography-weight-normal {
+    font-weight: var(--font-weight-semibold);
+    font-family: var(--font-family-semibold, var(--font-family));
 }
 
 .container.data-card-summary {
-    color: var(--text-muted, color-mix(in srgb, var(--text-color) 65%, transparent));
-    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    font-size: var(--data-text);
     overflow-wrap: break-word;
+}
+
+.data-card-summary .typography,
+.data-list-summary .typography {
+    color: var(--text-muted);
 }
 
 .container.data-card-facts {
     margin-top: auto;
     width: 100%;
-    padding-top: var(--spacing-xs);
+    padding-top: var(--spacing-sm);
     border-top: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 0.125rem;
 }
 
 .container.data-card-fact {
@@ -207,29 +327,42 @@
     display: flex;
     justify-content: flex-end;
     text-align: right;
+    font-variant-numeric: tabular-nums;
 }
 
-/* List: dense rows on hairlines; title and summary lead, short values trail and drop below on narrow widths */
+.data-item-check {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+/* ===== List: rows on hairlines; title and summary lead, short values trail and drop below when narrow ===== */
 .container.data-list {
     display: flex;
     flex-direction: column;
     overflow: visible;
 }
 
-.data-list .data-list-item {
+.data-list .card.data-list-item {
     width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
     border-radius: 0;
     background-color: transparent;
-    border-bottom: 1px solid var(--border-color);
-    transition: background-color var(--transition-fast);
+    box-shadow: none;
+    transition: background-color var(--motion-out) var(--ease);
 }
 
-.data-list .data-list-item:last-child {
+.data-list .card.data-list-item:last-child {
     border-bottom: none;
 }
 
-.data-list .data-list-item:hover {
-    background-color: var(--surface-color);
+@media (hover: hover) and (pointer: fine) {
+    .data-list .card.data-list-item:hover {
+        background-color: var(--surface-accent-color);
+        box-shadow: none;
+        transition-duration: var(--motion-in);
+    }
 }
 
 .container.data-list-row {
@@ -237,7 +370,7 @@
     grid-template-columns: auto minmax(12rem, 1fr) minmax(0, auto);
     align-items: center;
     column-gap: var(--spacing-sm);
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding: calc(var(--data-cell-py) - 0.125rem) var(--data-cell-px);
 }
 
 .data-list-row > .data-list-main:first-child {
@@ -252,25 +385,30 @@
 }
 
 .container.data-list-title {
-    font-weight: var(--font-weight-medium);
     flex: 0 0 auto;
     min-width: 8rem;
     max-width: 16rem;
     overflow-wrap: break-word;
 }
 
+.data-list-title .typography.typography-weight-normal {
+    font-weight: var(--font-weight-medium);
+    font-family: var(--font-family-medium, var(--font-family));
+}
+
 .container.data-list-summary {
     min-width: 0;
     flex: 1 1 auto;
-    color: var(--text-muted, color-mix(in srgb, var(--text-color) 65%, transparent));
-    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    font-size: var(--data-text);
     overflow-wrap: break-word;
 }
 
 .container.data-list-meta {
     justify-content: flex-end;
     flex-wrap: wrap;
-    row-gap: 2px;
+    row-gap: 0.125rem;
+    font-variant-numeric: tabular-nums;
 }
 
 .data-list-value {
@@ -281,7 +419,7 @@
 @container (max-width: 34rem) {
     .container.data-list-row {
         grid-template-columns: auto minmax(0, 1fr);
-        row-gap: 2px;
+        row-gap: 0.125rem;
     }
 
     .container.data-list-main {
@@ -309,42 +447,25 @@
     }
 }
 
-.data-card-grid .data-item-chosen,
-.data-list .data-item-chosen {
-    background-color: color-mix(in srgb, var(--primary-color) 8%, transparent);
+.data-card-grid .card.data-item-chosen,
+.data-list .card.data-item-chosen {
+    background-color: var(--surface-accent-color);
 }
 
-.data-card-grid .data-item-chosen {
+.data-card-grid .card.data-item-chosen {
     border-color: var(--primary-color);
 }
 
-.data-list .data-item-chosen {
-    box-shadow: inset 2px 0 0 var(--primary-color);
+/* ===== Pagination ===== */
+.data-container > .container.data-pagination {
+    padding: 0;
 }
 
-/* Flat: no frame, no inner padding; for use inside a Genie or another surface */
-.data-flat.card {
-    background-color: transparent;
+.data-pagination .button.themed-button {
+    font-variant-numeric: tabular-nums;
 }
 
-.data-flat .data-item-container {
-    padding: var(--spacing-xs) 0;
-}
-
-.data-flat .data-pagination {
-    background-color: transparent;
-    border: none;
-}
-
-/* Pagination styles */
-.data-pagination {
-    background-color: var(--surface-accent-color);
-    border-radius: var(--border-radius-md);
-    border: 1px solid var(--border-color);
-    margin-top: var(--spacing-md);
-}
-
-/* Ensure data components within grid layouts stretch to fill their grid cell */
+/* ===== Placement ===== */
 .container.layout-grid > .data-container,
 .card.layout-grid > .data-container {
     height: 100%;
@@ -353,36 +474,15 @@
     flex-direction: column;
 }
 
-.container.layout-grid .data-content,
-.card.layout-grid .data-content {
-    flex: 1;
-    min-height: 0;
-}
+.data-container.justify-self-auto { justify-self: auto; }
+.data-container.justify-self-start { justify-self: start; }
+.data-container.justify-self-end { justify-self: end; }
+.data-container.justify-self-center { justify-self: center; }
+.data-container.justify-self-stretch { justify-self: stretch; }
 
-/* JustifySelf utility classes for Data components */
-.data-container.justify-self-auto {
-    justify-self: auto;
-}
-
-.data-container.justify-self-start {
-    justify-self: start;
-}
-
-.data-container.justify-self-end {
-    justify-self: end;
-}
-
-.data-container.justify-self-center {
-    justify-self: center;
-}
-
-.data-container.justify-self-stretch {
-    justify-self: stretch;
-}
-
-/* JSON Preview styling for Genie content */
 .json-preview {
-    font-family: var(--font-mono, monospace);
+    font-family: var(--font-family-monospace, monospace);
+    font-size: var(--text-xxs);
     overflow: auto;
     white-space: pre-wrap;
     word-break: break-word;
@@ -391,6 +491,7 @@
 
 .data-item-revealed,
 .data-card-grid .card.data-item-revealed,
+.data-list .card.data-item-revealed,
 .table-row.data-item-revealed {
     animation: data-reveal 2s ease-out;
 }
@@ -401,5 +502,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .data-item-revealed { animation: none; outline: 2px solid var(--primary-color); }
+    .data-item-revealed,
+    .data-card-grid .card.data-item-revealed,
+    .data-list .card.data-item-revealed,
+    .table-row.data-item-revealed {
+        animation: none;
+        outline: 2px solid var(--primary-color);
+        outline-offset: -2px;
+    }
 }

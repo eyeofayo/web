@@ -7,7 +7,7 @@
     min-height: 160px;
     overflow: hidden;
     border: 1px solid var(--border-color);
-    border-radius: var(--card-radius, var(--border-radius-md));
+    border-radius: var(--card-radius, var(--border-radius));
     background: var(--surface-color);
 }
 
@@ -117,7 +117,7 @@
 
 .sheet-filters {
     border: 1px solid var(--border-color);
-    border-radius: var(--card-radius, var(--border-radius-md));
+    border-radius: var(--card-radius, var(--border-radius));
 }
 
 .sheet-table:focus {

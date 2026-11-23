@@ -7,43 +7,6 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    /* Base scale for mobile */
-    transform: scale(1);
-}
-
-/* ===== Responsive Scaling ===== */
-/* Mobile first - base sizes set in JavaScript */
-
-/* Large phones (480px - 767px) */
-@media (min-width: 480px) {
-    .circular-progress,
-    .themed-circular-progress {
-        transform: scale(1.15);
-    }
-}
-
-/* Tablets (768px - 1024px) */
-@media (min-width: 768px) {
-    .circular-progress,
-    .themed-circular-progress {
-        transform: scale(1.35);
-    }
-}
-
-/* Desktop (1025px - 1439px) */
-@media (min-width: 1025px) {
-    .circular-progress,
-    .themed-circular-progress {
-        transform: scale(1.5);
-    }
-}
-
-/* Large desktop (≥1440px) */
-@media (min-width: 1440px) {
-    .circular-progress,
-    .themed-circular-progress {
-        transform: scale(1.7);
-    }
 }
 
 /* ===== SVG Container ===== */
@@ -53,8 +16,8 @@
 
 /* ===== Track (Background Circle) ===== */
 .circular-progress-track {
-    stroke: var(--surface-accent-color);
-    opacity: 0.3;
+    stroke: var(--surface-accent-color, var(--border-light));
+    opacity: 1;
 }
 
 /* ===== Progress Bar (Animated Circle) ===== */
@@ -313,5 +276,11 @@
     }
     to {
         transform: rotate(270deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .circular-progress .circular-progress-bar {
+        animation-duration: 4s;
     }
 }

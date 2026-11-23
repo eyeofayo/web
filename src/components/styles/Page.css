@@ -18,15 +18,61 @@
     -webkit-overflow-scrolling: touch;
 }
 
-.page-header {
-    width: 100%;
+/* ===== The app's one frame =====
+   A framed page centres its title row and its content in one column, so every page has the same left and right
+   edge. The title row keeps 72px clear at the top right corner of the window for the floating navigation button. */
+.page.page-framed,
+.themed-page.page-framed {
+    display: block;
+    padding: 0;
+}
+
+.page-frame {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+    width: min(100% - 2 * var(--page-gutter, 1.5rem), var(--page-max-width, 1280px));
+    min-height: 100%;
     margin: 0 auto;
-    padding: var(--spacing-lg);
-    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    padding: var(--spacing-xl) 0 var(--spacing-3xl);
+    box-sizing: border-box;
+}
+
+.page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md) var(--spacing-lg);
+    min-height: var(--control-h-lg);
+    padding-inline-end: max(0px, calc(4.5rem - (100vw - min(100vw - 2 * var(--page-gutter, 1.5rem), var(--page-max-width, 1280px))) / 2));
+}
+
+.page-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    min-width: 0;
 }
 
 .page-header h1 {
     margin: 0;
+}
+
+.page-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* The body never shrinks: the page scrolls, so a section is never squeezed under its own content. */
+.page-frame > .page-body {
+    flex: 1 0 auto;
+}
+
+.page-frame > .page-body > * {
+    flex-shrink: 0;
 }
 
 .page-content {
@@ -380,9 +426,9 @@
 .bg-tone-text { --bg-tone: var(--text-color); }
 
 /* ===== Intensity ===== */
-.bg-intensity-subtle { --bg-alpha: 12%; }
+.bg-intensity-subtle { --bg-alpha: 11%; }
 .bg-intensity-medium { --bg-alpha: 22%; }
-.bg-intensity-strong { --bg-alpha: 40%; }
+.bg-intensity-strong { --bg-alpha: 38%; }
 
 /* ===== Pattern scale ===== */
 .bg-size-sm { --bg-size: 16px; }
@@ -648,7 +694,7 @@
    the same pairing as the patterns (surface / background -> primary,
    primary -> secondary, secondary -> tertiary, tertiary -> secondary). */
 .bg-gradient {
-    --bg-gradient-to: color-mix(in srgb, var(--bg-tone) min(100%, calc(var(--bg-alpha-effective) * 4)), transparent);
+    --bg-gradient-to: color-mix(in srgb, var(--bg-tone) min(100%, calc(var(--bg-alpha-effective) * 3)), transparent);
 }
 
 .has-background.bg-gradient::before {

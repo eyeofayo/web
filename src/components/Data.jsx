@@ -53,7 +53,7 @@ export const Pagination = ({ page, pages, onPage, pageSize = null, pageSizes = n
     );
 
     return (
-        <Container layout={narrow ? 'flex-column' : 'flex'} align={narrow ? undefined : 'center'} gap={narrow ? 'xs' : undefined} padding={padding} width="100%">
+        <Container className="data-pagination" layout={narrow ? 'flex-column' : 'flex'} align={narrow ? undefined : 'center'} gap={narrow ? 'xs' : undefined} padding={padding} width="100%">
             <Container layout="flex" padding="none" align="center" gap="xs" flexFill={!narrow}>
                 {pageSizes && (
                     <Container padding="none">
@@ -696,7 +696,7 @@ export const Data = forwardRef(({
                     <tr
                         ref={rowRef}
                         data-reveal={revealProps(item, rowIndex)['data-reveal']}
-                        className={`table-row ${rowGenieConfig ? 'genie-trigger' : ''} ${revealProps(item, rowIndex).revealedClass}`}
+                        className={`table-row ${rowGenieConfig ? 'genie-trigger' : ''} ${selector && isItemSelected(item, rowIndex) ? 'data-item-chosen' : ''} ${revealProps(item, rowIndex).revealedClass}`}
                         {...triggerProps}
                     >
                         {selector && (
@@ -967,7 +967,7 @@ export const Data = forwardRef(({
         const dataElement = (
             <Card
                 ref={ref}
-                className={`data-container data-view-${currentVariant} ${flat ? 'data-flat' : ''} theme-${dataTheme} ${getJustifySelfClass()} ${className}`}
+                className={`data-container data-view-${currentVariant} data-size-${size} ${flat ? 'data-flat' : ''} theme-${dataTheme} ${getJustifySelfClass()} ${className}`}
                 data-theme={dataTheme}
                 data-theme-source={theme ? 'local' : 'inherited'}
                 layout="block"
@@ -976,11 +976,11 @@ export const Data = forwardRef(({
                 {...props}
             >
                 {/* Data Header with Search, Filters, and Controls */}
-                <Container layout="flex" align="center" justify="between" padding="none">
+                <Container className="data-toolbar" layout="flex" align="center" justify="between" padding="none">
                     {/* Left side - Search */}
-                    <Container layout="flex" gap="md" justify="between" align="center" padding="none" flexFill>
+                    <Container className="data-toolbar-main" layout="flex" gap="md" justify="between" align="center" padding="none" flexFill>
                         {/* Global Search */}
-                        <Container justify="start" align="center" padding="none" flexFill>
+                        <Container className="data-toolbar-search" justify="start" align="center" padding="none" flexFill>
                             <Input
                                 placeholder="Search all columns..."
                                 value={globalSearch}
@@ -994,7 +994,7 @@ export const Data = forwardRef(({
 
 
                         {/* Filter Section */}
-                        <Container layout="flex" gap="sm" justify="end" padding="none">
+                        <Container className="data-toolbar-actions" layout="flex" gap="sm" justify="end" padding="none">
                             {/* Column Filters Toggle */}
                             <Button
                                 variant="secondary"
@@ -1073,7 +1073,7 @@ export const Data = forwardRef(({
                     </Container>
 
                     {/* Right side - Variant Switcher */}
-                    <Container layout="flex" gap="sm" align="center" padding="none">
+                    <Container className="data-toolbar-views" layout="flex" gap="sm" align="center" padding="none">
                         <ButtonGroup size={getButtonSize()}>
                             <Button
                                 variant={currentVariant === 'table' ? 'primary' : 'secondary'}
@@ -1105,7 +1105,7 @@ export const Data = forwardRef(({
 
                 {/* Column Filters Row - Shows when enabled */}
                 {showColumnFilters && (
-                    <Container gap="md" padding="md" backgroundColor="surface" marginBottom="sm">
+                    <Container className="data-filters" gap="md" padding="md" backgroundColor="surface" marginBottom="sm">
                         <Container layout="flex" align="center" justify="between" padding="none">
                             <Typography as="h4" weight="semibold" size={getTypographySize()}>Column Filters</Typography>
                             <Button

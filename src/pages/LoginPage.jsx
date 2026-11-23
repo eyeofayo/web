@@ -124,7 +124,9 @@ export const LoginPage = () => {
             {/* Login Form */}
               <Container
                 as="form"
-                style={{ width: '92%' }}
+                layout="flex-column"
+                align="stretch"
+                width="92%"
                 gap="md"
                 padding="none"
                 onKeyDown={e => {

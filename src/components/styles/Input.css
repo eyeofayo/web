@@ -1,640 +1,375 @@
 /* Input component structural styles */
+
+/* A size is one height, side padding and text size from the control scale in global.css. The wrapper takes the
+   same three values as its field so the icons, the floating label and the buttons inside it can be placed. */
+.input,
+.input-field-wrapper {
+    --input-h: var(--control-h-md);
+    --input-px: var(--control-px-md);
+    --input-text: var(--control-text-md);
+}
+
+.input.input-xxs, .input-field-wrapper:has(> .input-xxs) { --input-h: var(--control-h-xxs); --input-px: var(--control-px-xxs); --input-text: var(--control-text-xxs); }
+.input.input-xs, .input-field-wrapper:has(> .input-xs) { --input-h: var(--control-h-xs); --input-px: var(--control-px-xs); --input-text: var(--control-text-xs); }
+.input.input-sm, .input-field-wrapper:has(> .input-sm) { --input-h: var(--control-h-sm); --input-px: var(--control-px-sm); --input-text: var(--control-text-sm); }
+.input.input-md, .input-field-wrapper:has(> .input-md) { --input-h: var(--control-h-md); --input-px: var(--control-px-md); --input-text: var(--control-text-md); }
+.input.input-lg, .input-field-wrapper:has(> .input-lg) { --input-h: var(--control-h-lg); --input-px: var(--control-px-lg); --input-text: var(--control-text-lg); }
+.input.input-xl, .input-field-wrapper:has(> .input-xl) { --input-h: var(--control-h-xl); --input-px: var(--control-px-xl); --input-text: var(--control-text-xl); }
+
+/* A variant or a validation state changes these three colours, never the rules that use them. */
 .input {
-    display: flex;
+    --field-fill: var(--surface-color, var(--background-color));
+    --field-edge: var(--control-border-color, var(--border-color));
+    --field-focus: var(--focus-ring-color, var(--primary-color));
+    display: block;
     width: 100%;
-    height: 2.5rem; /* 40px - default size */
-    margin: var(--spacing-sm) 0;
-    padding: 0 var(--spacing-md);
-    border: 1px solid;
-    border-radius: var(--input-radius);
-    font-size: var(--font-size-sm);
+    min-width: 0;
+    height: var(--input-h);
+    margin: 0;
+    padding: 0 var(--input-px);
+    border: 1px solid var(--field-edge);
+    border-radius: var(--input-radius, var(--border-radius-md));
+    font-size: var(--input-text);
     font-family: var(--font-family, var(--font-family-normal)), sans-serif;
-    background-color: var(--surface-color, var(--background-color));
+    background-color: var(--field-fill);
     color: var(--text-color);
-    transition: all var(--transition-fast);
-    align-items: center;
+    text-overflow: ellipsis;
+    transition: border-color var(--motion-out) var(--ease), background-color var(--motion-out) var(--ease),
+        color var(--motion-out) var(--ease);
 }
 
-/* Override browser autofill background — browsers force their own background-color
-   via an internal UA stylesheet that ignores our CSS. The only reliable cross-browser
-   fix is a large inset box-shadow that paints over the forced colour, and an explicit
-   -webkit-text-fill-color to keep text readable. */
-.input:-webkit-autofill,
-.input:-webkit-autofill:hover,
-.input:-webkit-autofill:focus,
-.input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 1000px var(--surface-color, var(--background-color)) inset !important;
-    box-shadow: 0 0 0 1000px var(--surface-color, var(--background-color)) inset !important;
-    -webkit-text-fill-color: var(--text-color) !important;
-    caret-color: var(--text-color);
-    border-color: var(--border-color);
-    transition: background-color 600000s ease-in-out 0s; /* prevent Chrome's autofill animation */
-}
-
-/* Placeholder text styling */
 .input::placeholder {
-    color: var(--text-color);
+    color: var(--text-muted);
+    opacity: 1;
 }
 
+@media (hover: hover) and (pointer: fine) {
+    .input:not(:disabled, :focus):hover {
+        border-color: color-mix(in srgb, var(--text-color) 55%, var(--field-edge));
+        transition-duration: var(--motion-in);
+    }
+}
+
+/* The transparent outline is what Windows high contrast draws, where a box-shadow is dropped. */
 .input:focus {
-    outline: none;
-    border-color: var(--input-accent-color);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--input-accent-color), transparent 80%);
+    outline: 2px solid transparent;
+    border-color: var(--field-focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--field-focus) 18%, transparent);
+    transition: none;
 }
 
-.input:disabled {
-    opacity: 0.6;
+.input:disabled,
+.input.input-disabled {
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
-/* Accent color configuration */
-.input,
-.input-container,
-.input-field-wrapper,
-.input-help-text,
-.checkbox-wrapper,
-.input-floating-container,
-.themed-checkbox {
-    --input-accent-color: var(--primary-color);
+/* A browser paints its own autofill colour over background-color; an inset shadow in the field's fill covers it. */
+.input:-webkit-autofill {
+    box-shadow: 0 0 0 1000px var(--surface-color, var(--background-color)) inset !important;
+    -webkit-text-fill-color: var(--text-color) !important;
+    caret-color: var(--text-color);
+    transition: background-color 600000s ease-in-out 0s;
 }
 
+.input:-webkit-autofill:focus {
+    box-shadow: 0 0 0 1000px var(--surface-color, var(--background-color)) inset,
+        0 0 0 3px color-mix(in srgb, var(--field-focus) 18%, transparent) !important;
+}
+
+/* Under 16px a phone browser zooms the page when a field is focused. */
+@media (max-width: 767px) {
+    .input.input-md,
+    .input.input-lg,
+    .input.input-xl {
+        font-size: max(16px, var(--input-text));
+    }
+}
+
+/* One line of a textarea is as tall as an input of its size; it starts at two lines. */
+.input.textarea {
+    height: auto;
+    min-height: calc(var(--input-h) + 1.5em);
+    padding: max(0.125rem, calc((var(--input-h) - 1.5em - 2px) / 2)) var(--input-px);
+    line-height: 1.5;
+    resize: vertical;
+}
+
+/* ===== Colour (color prop): the fill of a ticked checkbox and of a slider ===== */
 .input-color-primary {
     --input-accent-color: var(--primary-color);
+    --input-accent-contrast: var(--primary-contrast-color, var(--text-contrast-color));
 }
 
 .input-color-secondary {
     --input-accent-color: var(--secondary-color);
+    --input-accent-contrast: var(--secondary-contrast-color, var(--text-contrast-color));
 }
 
 .input-color-tertiary {
     --input-accent-color: var(--tertiary-color);
+    --input-accent-contrast: var(--tertiary-contrast-color, var(--text-contrast-color));
 }
 
-.input-container {
-    display: block;
-    position: relative;
-    border-radius: var(--input-radius, var(--border-radius-md));
-}
-
-.input-field-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-/* ===== Responsive Size System ===== */
-/* Matches Button component sizing exactly for visual consistency */
-/* Breakpoints: 480px (small→large phones), 768px (tablet portrait), 1025px (desktop), 1440px (large desktop) */
-
-/* Mobile base styles (< 480px) - Extra compact for small phones */
-.input.input-xxs {
-    height: 1.125rem;
-    padding: 0 0.3125rem;
-    font-size: 0.5625rem;
-}
-
-.input.input-xs {
-    height: 1.25rem;        /* 20px */
-    padding: 0 0.375rem;    /* 6px */
-    font-size: 0.625rem;    /* 10px */
-}
-
-.input.input-sm {
-    height: 1.5rem;         /* 24px */
-    padding: 0 0.5rem;      /* 8px */
-    font-size: 0.6875rem;   /* 11px */
-}
-
-.input.input-md {
-    height: 1.875rem;       /* 30px */
-    padding: 0 0.625rem;    /* 10px */
-    font-size: 0.75rem;     /* 12px */
-}
-
-.input.input-lg {
-    height: 2rem;           /* 32px */
-    padding: 0 0.75rem;     /* 12px */
-    font-size: 0.8125rem;   /* 13px */
-}
-
-.input.input-xl {
-    height: 2.25rem;        /* 36px */
-    padding: 0 0.875rem;    /* 14px */
-    font-size: 0.875rem;    /* 14px */
-}
-
-/* Large phone adjustments (480px - 767px) - Slightly larger for standard phones */
-@media (min-width: 480px) {
-    .input.input-xxs {
-        height: 1.25rem;
-        padding: 0 0.375rem;
-        font-size: 0.625rem;
-    }
-
-    .input.input-xs {
-        height: 1.5rem;         /* 24px */
-        padding: 0 0.5rem;      /* 8px */
-        font-size: 0.6875rem;   /* 11px */
-    }
-
-    .input.input-sm {
-        height: 1.75rem;        /* 28px */
-        padding: 0 0.625rem;    /* 10px */
-        font-size: 0.75rem;     /* 12px */
-    }
-
-    .input.input-md {
-        height: 2rem;           /* 32px */
-        padding: 0 0.75rem;     /* 12px */
-        font-size: 0.8125rem;   /* 13px */
-    }
-
-    .input.input-lg {
-        height: 2.25rem;        /* 36px */
-        padding: 0 0.875rem;    /* 14px */
-        font-size: 0.875rem;    /* 14px */
-    }
-
-    .input.input-xl {
-        height: 2.5rem;         /* 40px */
-        padding: 0 1rem;        /* 16px */
-        font-size: 0.9375rem;   /* 15px */
-    }
-}
-
-/* Tablet adjustments (768px - 1024px) - Moderately sized for comfortable interaction */
-@media (min-width: 768px) {
-    .input.input-xxs {
-        height: 1.5rem;
-        padding: 0 0.5rem;
-        font-size: 0.6875rem;
-    }
-
-    .input.input-xs {
-        height: 1.75rem;        /* 28px */
-        padding: 0 0.75rem;     /* 12px */
-        font-size: 0.75rem;     /* 12px */
-    }
-
-    .input.input-sm {
-        height: 2rem;           /* 32px */
-        padding: 0 0.875rem;    /* 14px */
-        font-size: 0.8125rem;   /* 13px */
-    }
-
-    .input.input-md {
-        height: 2.25rem;        /* 36px */
-        padding: 0 1rem;        /* 16px */
-        font-size: 0.875rem;    /* 14px */
-    }
-
-    .input.input-lg {
-        height: 2.5rem;         /* 40px */
-        padding: 0 1.125rem;    /* 18px */
-        font-size: 0.9375rem;   /* 15px */
-    }
-
-    .input.input-xl {
-        height: 2.875rem;       /* 46px */
-        padding: 0 1.375rem;    /* 22px */
-        font-size: 1rem;        /* 16px */
-    }
-}
-
-/* Desktop adjustments (1025px - 1439px) - Spacious for optimal desktop experience */
-@media (min-width: 1025px) {
-    .input.input-xxs {
-        height: 1.625rem;
-        padding: 0 0.625rem;
-        font-size: 0.75rem;
-    }
-
-    .input.input-xs {
-        height: 2rem;           /* 32px */
-        padding: 0 0.875rem;    /* 14px */
-        font-size: 0.8125rem;   /* 13px */
-    }
-
-    .input.input-sm {
-        height: 2.25rem;        /* 36px */
-        padding: 0 1rem;        /* 16px */
-        font-size: 0.875rem;    /* 14px */
-    }
-
-    .input.input-md {
-        height: 2.5rem;         /* 40px */
-        padding: 0 1.125rem;    /* 18px */
-        font-size: 0.9375rem;   /* 15px */
-    }
-
-    .input.input-lg {
-        height: 2.75rem;        /* 44px */
-        padding: 0 1.375rem;    /* 22px */
-        font-size: 1rem;        /* 16px */
-    }
-
-    .input.input-xl {
-        height: 3.125rem;       /* 50px */
-        font-size: 1.0625rem;   /* 17px */
-        padding: 0 1.625rem;    /* 26px */
-    }
-}
-
-/* Large desktop adjustments (>= 1440px) - Extra spacious for large monitors */
-@media (min-width: 1440px) {
-    .input.input-xxs {
-        height: 1.75rem;
-        padding: 0 0.75rem;
-        font-size: 0.8125rem;
-    }
-
-    .input.input-xs {
-        height: 2.125rem;       /* 34px */
-        padding: 0 1rem;        /* 16px */
-        font-size: 0.875rem;    /* 14px */
-    }
-
-    .input.input-sm {
-        height: 2.375rem;       /* 38px */
-        padding: 0 1.125rem;    /* 18px */
-        font-size: 0.9375rem;   /* 15px */
-    }
-
-    .input.input-md {
-        height: 2.75rem;        /* 44px */
-        padding: 0 1.25rem;     /* 20px */
-        font-size: 1rem;        /* 16px */
-    }
-
-    .input.input-lg {
-        height: 3rem;           /* 48px */
-        padding: 0 1.5rem;      /* 24px */
-        font-size: 1.0625rem;   /* 17px */
-    }
-
-    .input.input-xl {
-        height: 3.5rem;         /* 56px */
-        font-size: 1.125rem;    /* 18px */
-        padding: 0 1.875rem;    /* 30px */
-    }
-}
-
-/* Textarea-specific styles */
-.input.textarea {
-    height: auto;
-    min-height: 3rem; /* Minimum height for textareas */
-    padding: var(--spacing-sm) var(--spacing-md);
-    resize: vertical;
-    align-items: flex-start;
-    line-height: 1.5;
-}
-
-.input.textarea.input-xxs {
-    min-height: 1.75rem;
-    padding: var(--spacing-xs) var(--spacing-xs);
-}
-
-.input.textarea.input-xs {
-    min-height: 2rem;
-    padding: var(--spacing-xs) var(--spacing-xs);
-}
-
-.input.textarea.input-sm {
-    min-height: 2.5rem;
-    padding: var(--spacing-xs) var(--spacing-sm);
-}
-
-.input.textarea.input-md {
-    min-height: 3rem;
-    padding: var(--spacing-sm) var(--spacing-md);
-}
-
-.input.textarea.input-lg {
-    min-height: 4rem;
-    padding: var(--spacing-md) var(--spacing-lg);
-}
-
-.input.textarea.input-xl {
-    min-height: 5rem;
-    padding: var(--spacing-md) var(--spacing-lg);
-}
-
-/* Flex fill styles */
-.input.input-flex-fill {
-    flex: 1;
-}
-
-.input-container.input-container-flex-fill {
-    flex: 1;
-}
-
-.input.themed-input-default {
-    background-color: var(--surface-color);
-    border: 1px solid color-mix(in srgb, var(--input-accent-color), transparent 40%);
-}
-
+/* ===== Variants ===== */
 .input.themed-input-outline {
-    background-color: var(--surface-color);
-    border: 1px solid var(--input-accent-color);
+    --field-fill: transparent;
 }
 
 .input.themed-input-filled {
-    background-color: color-mix(in srgb, var(--input-accent-color), transparent 60%);
-    border: 1px solid transparent;
+    --field-fill: var(--surface-accent-color, var(--background-color));
 }
 
 .input.themed-input-underline {
-    border: none;
-    border-bottom: 2px solid color-mix(in srgb, var(--input-accent-color), transparent 35%);
-    border-radius: 0;
-    padding-left: var(--spacing-sm);
-    padding-right: var(--spacing-sm);
-    background-image: linear-gradient(var(--input-accent-color), var(--input-accent-color));
-    background-repeat: no-repeat;
-    background-position: left bottom;
-    background-size: 0% 2px;
-    transition: background-size var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
-}
-.input.themed-input-underline.input-focused {
-    border-bottom-color: var(--input-accent-color);
-    background-size: 100% 2px;
-    box-shadow: none;
+    --field-fill: transparent;
+    --input-px: var(--spacing-sm);
+    border-width: 0 0 1px;
+    border-radius: var(--input-radius, var(--border-radius-md)) var(--input-radius, var(--border-radius-md)) 0 0;
 }
 
-.input.themed-input-floating {
-    background-color: var(--surface-color, var(--background-color));
-    border: 1px solid color-mix(in srgb, var(--input-accent-color), transparent 40%);
+.input-field-wrapper:has(> .themed-input-underline) {
+    --input-px: var(--spacing-sm);
 }
 
-.input-floating-container {
+.input.themed-input-underline:focus {
+    box-shadow: 0 1px 0 0 var(--field-focus);
+}
+
+/* Fill override (backgroundColor prop) */
+.input.themed-input.input-bg-background { --field-fill: var(--background-color); }
+.input.themed-input.input-bg-surface { --field-fill: var(--surface-color, var(--background-color)); }
+.input.themed-input.input-bg-transparent { --field-fill: transparent; }
+
+.input.themed-input.input-text-inherit {
+    font-size: inherit;
+    line-height: inherit;
+}
+
+/* ===== Validation states ===== */
+.input.input-success {
+    --field-edge: var(--success-color);
+    --field-focus: var(--success-color);
+}
+
+.input.input-warning {
+    --field-edge: var(--warning-color);
+    --field-focus: var(--warning-color);
+}
+
+.input.input-error {
+    --field-edge: var(--error-color);
+    --field-focus: var(--error-color);
+}
+
+/* ===== Container, label and help text ===== */
+.input-container {
+    display: block;
     position: relative;
-    background-color: transparent;
-    border-radius: var(--input-radius, var(--border-radius-md));
 }
 
-.input-floating-label {
-    color: var(--text-color);
-    position: absolute;
-    left: var(--spacing-md);
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-normal);
-    pointer-events: none;
-    transition: all var(--transition-fast);
-    background: transparent !important;
-    padding: 0;
-    border-radius: 0;
+.input-container.flex-fill {
+    flex: 1 1 0;
+    min-width: 0;
 }
 
-.input-floating-label.floating {
-    top: 0;
-    left: var(--spacing-sm);
-    font-size: var(--font-size-xs);
-    transform: translateY(-50%);
-    color: var(--input-accent-color);
-    background: var(--floating-label-bg) !important;
-    padding: 0 var(--spacing-xs);
-    border-radius: var(--border-radius-sm);
-}
-
-/* Set floating label background to match input field background for each variant */
-.input-floating-container.variant-floating {
-    --floating-label-bg: var(--surface-color, var(--background-color));
-}
-
-.input-floating-container.variant-outline {
-    --floating-label-bg: var(--background-color);
-}
-
-.input-floating-container.variant-filled {
-    --floating-label-bg: var(--surface-accent-color, rgba(0, 0, 0, 0.04));
-}
-
-.input-floating-container.variant-underline {
-    --floating-label-bg: var(--background-color);
-}
-
-.input-floating-container.variant-default {
-    --floating-label-bg: var(--surface-color, var(--background-color));
-}
-
-/* Fix floating label overlap with left icon */
-.input-field-wrapper.has-icon-left .input-floating-label {
-    left: 2.5rem;
-}
-
-.input-field-wrapper.has-icon-left .input-floating-label.floating {
-    left: 0.5rem;
-}
-
-.input-field-wrapper.has-icon-left .input {
-    padding-left: 2.5rem;
-}
-
-.input-field-wrapper.has-icon-right .input {
-    padding-right: 2.5rem;
-}
-
-/* When password toggle is present with right icon, adjust padding */
-.input-field-wrapper.has-icon-right .input-password-toggle {
-    right: 2.5rem;
-}
-
-/* When password toggle is present without right icon, use default position */
-.input-field-wrapper:not(.has-icon-right) .input-password-toggle {
-    right: var(--spacing-md);
-}
-
-/* Adjust input padding when password toggle is present */
-.input-field-wrapper .input-password-toggle ~ .input,
-.input-field-wrapper .input:has(~ .input-password-toggle) {
-    padding-right: 2.5rem;
-}
-
-/* Override when both right icon and password toggle are present */
-.input-field-wrapper.has-icon-right .input:has(~ .input-password-toggle),
-.input-field-wrapper.has-icon-right .input-password-toggle ~ .input {
-    padding-right: 4.5rem;
-}
-
-.input-icon {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+.input-container.input-file {
     display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    font-size: var(--font-size-base);
-    color: var(--primary-color);
-    pointer-events: none;
-}
-
-.input-icon-left {
-    left: var(--spacing-md);
-}
-
-.input-icon-right {
-    right: var(--spacing-md);
-}
-
-.input-password-toggle {
-    position: absolute;
-    right: var(--spacing-md);
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: var(--font-size-base);
-    color: var(--primary-color);
-    padding: var(--spacing-xs);
-    border-radius: var(--border-radius-sm);
-    transition: all var(--transition-fast);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-}
-
-/* Override Icon component's default margin within input containers */
-.input-icon .themed-icon,
-.input-password-toggle .themed-icon,
-.input-action-button .themed-icon {
-    margin: 0;
-}
-
-.input-password-toggle:hover {
-    background-color: var(--surface-accent-color, rgba(0, 0, 0, 0.05));
-}
-
-/* Default variant already uses the default background, so no need to override */
-
-.input.input-focused {
-    border-color: var(--input-accent-color);
-}
-
-.input.input-focused::placeholder {
-    color: var(--input-accent-color);
-}
-
-.input.input-error,
-.input-field-wrapper.input-error .input,
-.themed-input.input-error {
-    border-color: var(--error-color) !important;
-    background-color: color-mix(in srgb, var(--error-accent-color), transparent 85%);
-}
-
-.input-field-wrapper.input-error .input::placeholder,
-.input-field-wrapper.input-error .input-floating-label.floating {
-    color: var(--error-color) !important;
-}
-
-.input.input-error:focus,
-.input-field-wrapper.input-error .input:focus,
-.themed-input.input-error:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--error-accent-color, rgba(239, 68, 68, 0.15)), transparent 50%) !important;
-}
-
-
-.input.input-success,
-.input-field-wrapper.input-success .input,
-.themed-input.input-success {
-    border-color: var(--success-color) !important;
-    background-color: color-mix(in srgb, var(--success-accent-color), transparent 85%);
-}
-
-.input-field-wrapper.input-success .input::placeholder,
-.input-field-wrapper.input-success .input-floating-label.floating {
-    color: var(--success-color) !important;
-}
-
-.input.input-success:focus,
-.input-field-wrapper.input-success .input:focus,
-.themed-input.input-success:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--success-accent-color, rgba(16, 185, 129, 0.15)), transparent 50%) !important;
-}
-
-.input.input-disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    gap: var(--spacing-sm);
+    min-width: 0;
 }
 
 .input-label {
     display: block;
-    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--text-xxs);
     font-weight: var(--font-weight-medium);
     font-family: var(--font-family-medium, var(--font-family)), sans-serif;
+    line-height: 1.4;
     color: var(--text-color);
 }
 
-.input-help-text {
-    display: block;
-    font-size: var(--font-size-xs);
-    font-family: var(--font-family, var(--font-family-normal)), sans-serif;
-    line-height: var(--line-height-normal);
-    border-radius: var(--input-radius);
-    background-color: transparent;
-}
-
-.input-error-text {
-    color: var(--error-color) !important;
-    font-weight: var(--font-weight-medium);
-}
-
-.input-help-text-success {
-    color: var(--success-color) !important;
-    font-weight: var(--font-weight-medium);
-}
-
-.input-help-text-warning {
-    color: var(--warning-color) !important;
-    font-weight: var(--font-weight-medium);
-}
-
-.input-help-text-error {
-    color: var(--error-color) !important;
-    font-weight: var(--font-weight-medium);
-}
-
-/* Help text size variants */
-.help-text-xs {
-    font-size: 0.625rem;
-    padding: 0;
-}
-
-.help-text-sm {
-    font-size: 0.625rem;
-    padding: 0;
-}
-
-.help-text-md {
-    font-size: 0.75rem;
-    padding: 0;
-}
-
-.help-text-lg {
-    font-size: var(--font-size-sm);
-    padding: 0;
-}
-
-.help-text-xl {
-    font-size: var(--font-size-base);
-    padding: 0;
-}
-
 .input-required {
-    color: var(--error-color);
-    margin-left: var(--spacing-xs);
+    margin-left: 0.125rem;
+    color: var(--error-text-color, var(--error-color));
 }
 
-/* Checkbox variant styles for Input component */
+.input-help-text,
+.checkbox-wrapper .checkbox-help-text {
+    display: block;
+    margin-top: var(--spacing-xs);
+    font-size: var(--text-xxs);
+    font-family: var(--font-family, var(--font-family-normal)), sans-serif;
+    line-height: 1.4;
+    color: var(--text-muted);
+}
 
+.input-help-text-success,
+.checkbox-wrapper .checkbox-help-text-success {
+    color: var(--success-text-color, var(--success-color));
+    font-weight: var(--font-weight-medium);
+}
+
+.input-help-text-warning,
+.checkbox-wrapper .checkbox-help-text-warning {
+    color: var(--warning-text-color, var(--warning-color));
+    font-weight: var(--font-weight-medium);
+}
+
+.input-help-text-error,
+.checkbox-wrapper .checkbox-help-text-error {
+    color: var(--error-text-color, var(--error-color));
+    font-weight: var(--font-weight-medium);
+}
+
+/* ===== Icons and buttons inside a field ===== */
+.input-field-wrapper {
+    --input-icon: calc(var(--input-text) + 0.125rem);
+    --input-toggle: min(1.75rem, calc(var(--input-h) - 0.25rem));
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    top: calc(var(--input-h) / 2);
+    display: flex;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: color var(--motion-out) var(--ease);
+}
+
+.input-icon-left {
+    left: var(--input-px);
+}
+
+.input-icon-right {
+    right: var(--input-px);
+}
+
+.input-field-wrapper.input-focused .input-icon {
+    color: var(--text-color);
+}
+
+.input-field-wrapper .input-icon .themed-icon,
+.input-field-wrapper .input-password-toggle .themed-icon {
+    width: var(--input-icon);
+    height: var(--input-icon);
+    margin: 0;
+    font-size: var(--input-icon);
+}
+
+.input-field-wrapper.has-icon-left .input {
+    padding-left: calc(var(--input-px) + var(--input-icon) + var(--spacing-sm));
+}
+
+.input-field-wrapper.has-icon-right .input {
+    padding-right: calc(var(--input-px) + var(--input-icon) + var(--spacing-sm));
+}
+
+.input-password-toggle {
+    position: absolute;
+    top: calc(var(--input-h) / 2);
+    right: max(0.125rem, calc(var(--input-px) - 0.375rem));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--input-toggle);
+    height: var(--input-toggle);
+    padding: 0;
+    border: none;
+    border-radius: var(--border-radius, var(--border-radius-md));
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: background-color var(--motion-out) var(--ease), color var(--motion-out) var(--ease);
+}
+
+.input-password-toggle:focus-visible {
+    outline: 2px solid var(--focus-ring-color, var(--primary-color));
+    outline-offset: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .input-password-toggle:hover {
+        background-color: color-mix(in srgb, var(--text-color) 8%, transparent);
+        color: var(--text-color);
+        transition-duration: var(--motion-in);
+    }
+}
+
+.input-field-wrapper .input:has(~ .input-password-toggle) {
+    padding-right: calc(var(--input-px) + var(--input-toggle));
+}
+
+.input-field-wrapper.has-icon-right .input-password-toggle {
+    right: calc(var(--input-px) + var(--input-icon) + var(--spacing-xs));
+}
+
+.input-field-wrapper.has-icon-right .input:has(~ .input-password-toggle) {
+    padding-right: calc(var(--input-px) + var(--input-icon) + var(--input-toggle) + var(--spacing-sm));
+}
+
+.input-field-wrapper.has-dictation {
+    --input-dictation: max(0.125rem, calc((var(--input-h) - var(--control-h-xxs)) / 2));
+}
+
+.input-field-wrapper.has-dictation .input.themed-input {
+    padding-right: calc(var(--control-h-xxs) + var(--input-dictation) + var(--spacing-xs));
+}
+
+.input-dictation {
+    position: absolute;
+    top: var(--input-dictation);
+    right: var(--input-dictation);
+    display: flex;
+}
+
+/* ===== Floating label ===== */
+.input-floating-container.variant-floating {
+    --floating-label-bg: var(--surface-color, var(--background-color));
+}
+
+.input.input-bg-background ~ .input-floating-label {
+    --floating-label-bg: var(--background-color);
+}
+
+.input-floating-label {
+    position: absolute;
+    top: 0;
+    left: calc(var(--input-px) - var(--spacing-xs));
+    max-width: calc(100% - 2 * var(--input-px) + 2 * var(--spacing-xs));
+    height: var(--input-h);
+    padding: 0 var(--spacing-xs);
+    overflow: hidden;
+    font-size: var(--input-text);
+    line-height: var(--input-h);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: transform var(--motion-in) var(--ease), color var(--motion-in) var(--ease);
+}
+
+.input-field-wrapper.has-icon-left .input-floating-label {
+    left: calc(var(--input-px) + var(--input-icon) + var(--spacing-xs));
+}
+
+/* A floated label is centred on the field's top edge; a band of the field's own fill hides the edge and the
+   focus ring behind its words. */
+.input-floating-label.floating {
+    transform: translateY(-50%);
+    font-size: var(--text-xxs);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-color);
+    background: linear-gradient(var(--floating-label-bg), var(--floating-label-bg)) center / 100% 6px no-repeat;
+}
+
+/* ===== Checkbox ===== */
 .checkbox-wrapper .checkbox-input-wrapper {
     display: flex;
     align-items: center;
@@ -642,177 +377,134 @@
 }
 
 .checkbox-wrapper .themed-checkbox {
-    width: 1rem;
-    height: 1rem;
-    border: 1px solid var(--border-color);
-    background-color: var(--background-color);
-    border-radius: var(--border-radius-sm);
-    transition: all var(--transition-fast);
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    display: grid;
+    place-content: center;
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0;
+    border: 1px solid var(--control-border-color, var(--border-color));
+    border-radius: var(--checkbox-radius, var(--border-radius-sm));
+    background-color: var(--surface-color, var(--background-color));
     cursor: pointer;
-    accent-color: var(--input-accent-color);
+    transition: background-color var(--motion-out) var(--ease), border-color var(--motion-out) var(--ease);
 }
 
-.checkbox-wrapper .themed-checkbox:checked {
-    background-color: var(--input-accent-color);
-    border-color: var(--input-accent-color);
-    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z'/%3e%3c/svg%3e");
-    background-size: 100% 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    accent-color: var(--input-accent-color);
+.checkbox-wrapper .themed-checkbox::before {
+    content: '';
+    width: 0.75rem;
+    height: 0.75rem;
+    background-color: var(--input-accent-contrast, var(--text-contrast-color));
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.5 5 9l4.5-5.5'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.5 5 9l4.5-5.5'/%3E%3C/svg%3E") center / contain no-repeat;
+    opacity: 0;
+    transition: opacity var(--motion-in) var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .checkbox-wrapper .themed-checkbox:not(:disabled, :checked, :indeterminate):hover {
+        border-color: color-mix(in srgb, var(--text-color) 55%, var(--control-border-color, var(--border-color)));
+        transition-duration: var(--motion-in);
+    }
+}
+
+.checkbox-wrapper .themed-checkbox:focus-visible {
+    outline: 2px solid var(--focus-ring-color, var(--primary-color));
+    outline-offset: 2px;
+    border-color: var(--focus-ring-color, var(--primary-color));
+}
+
+.checkbox-wrapper .themed-checkbox:checked,
+.checkbox-wrapper .themed-checkbox:indeterminate {
+    border-color: var(--input-accent-color, var(--primary-color));
+    background-color: var(--input-accent-color, var(--primary-color));
+}
+
+.checkbox-wrapper .themed-checkbox:checked::before {
+    opacity: 1;
+}
+
+.checkbox-wrapper .themed-checkbox:indeterminate::before {
+    width: 0.625rem;
+    height: 0.125rem;
+    border-radius: 1px;
+    -webkit-mask: none;
+    mask: none;
+    opacity: 1;
+}
+
+.checkbox-wrapper .themed-checkbox:disabled,
+.checkbox-wrapper .themed-checkbox:disabled + .checkbox-label {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .checkbox-wrapper .checkbox-label {
-    color: inherit;
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    color: var(--text-color);
     cursor: pointer;
 }
 
 .checkbox-wrapper .checkbox-help-text {
-    display: block;
-    margin-top: var(--spacing-xs);
-    font-size: var(--font-size-xs);
-    font-family: var(--font-family, var(--font-family-normal)), sans-serif;
-    line-height: var(--line-height-normal);
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding-left: calc(1.125rem + var(--spacing-sm));
 }
 
-.checkbox-wrapper .checkbox-help-text-default {
-    color: var(--text-muted);
+/* On touch screens the tick box and the password button can be tapped across 44px, without looking any bigger */
+@media (pointer: coarse) {
+    .checkbox-wrapper .themed-checkbox::after,
+    .input-password-toggle::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 44px;
+        height: 44px;
+        transform: translate(-50%, -50%);
+    }
 }
 
-.checkbox-wrapper .checkbox-help-text-success {
-    color: var(--success-color) !important;
-    font-weight: var(--font-weight-medium);
-}
-
-.checkbox-wrapper .checkbox-help-text-warning {
-    color: var(--warning-color) !important;
-    font-weight: var(--font-weight-medium);
-}
-
-.checkbox-wrapper .checkbox-help-text-error {
-    color: var(--error-color) !important;
-    font-weight: var(--font-weight-medium);
-}
-
-/* Checkbox help text size variants */
-.checkbox-wrapper .checkbox-help-text.help-text-xs {
-    font-size: 0.625rem;
-    padding: var(--spacing-xs) var(--spacing-xs);
-}
-
-.checkbox-wrapper .checkbox-help-text.help-text-sm {
-    font-size: 0.625rem;
-    padding: var(--spacing-xs) var(--spacing-sm);
-}
-
-.checkbox-wrapper .checkbox-help-text.help-text-md {
-    font-size: 0.75rem;
-    padding: var(--spacing-xs) var(--spacing-md);
-}
-
-.checkbox-wrapper .checkbox-help-text.help-text-lg {
-    font-size: var(--font-size-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
-}
-
-.checkbox-wrapper .checkbox-help-text.help-text-xl {
-    font-size: var(--font-size-base);
-    padding: var(--spacing-sm) var(--spacing-lg);
-}
-
-/* When input has value, use default background color regardless of variant */
-.input.input-has-value.themed-input-default {
-    background-color: var(--background-color);
-}
-
-.input.input-has-value.themed-input-outline {
-    background-color: var(--background-color);
-}
-
-.input.input-has-value.themed-input-filled {
-    background-color: var(--background-color);
-}
-
-.input.input-has-value.themed-input-underline {
-    background-color: var(--background-color);
-}
-
-.input.input-has-value.themed-input-floating {
-    background-color: var(--background-color);
-}
-
-/* Search input styling */
+/* ===== Search ===== */
 .input[type="search"] {
-    /* Remove default search input styling */
     -webkit-appearance: none;
-    -moz-appearance: none;
     appearance: none;
 }
 
-/* Style the search input clear button (webkit browsers) */
 .input[type="search"]::-webkit-search-cancel-button {
     -webkit-appearance: none;
     appearance: none;
-    height: 16px;
-    width: 16px;
-    cursor: pointer;
+    width: 1rem;
+    height: 1rem;
     margin-left: var(--spacing-xs);
-    background-color: transparent;
-    background-image: none;
-    border: none;
-    position: relative;
+    background-color: var(--text-muted);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E") center / 0.875rem no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E") center / 0.875rem no-repeat;
+    cursor: pointer;
 }
 
-.input[type="search"]::-webkit-search-cancel-button {
-    background: var(--input-accent-color);
-    -webkit-mask: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3e%3cpath d='M18 6L6 18M6 6l12 12' stroke='currentColor' stroke-width='2' stroke-linecap='round'/%3e%3c/svg%3e") no-repeat center;
-    -webkit-mask-size: 12px 12px;
-    mask: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3e%3cpath d='M18 6L6 18M6 6l12 12' stroke='currentColor' stroke-width='2' stroke-linecap='round'/%3e%3c/svg%3e") no-repeat center;
-    mask-size: 12px 12px;
+@media (hover: hover) and (pointer: fine) {
+    .input[type="search"]::-webkit-search-cancel-button:hover {
+        background-color: var(--text-color);
+    }
 }
 
-.input[type="search"]::-webkit-search-cancel-button:hover {
-    background: color-mix(in srgb, var(--input-accent-color), transparent 20%);
-}
-
-/* Ensure search input with icons has proper spacing for the clear button */
-.input-field-wrapper.has-icon-right .input[type="search"] {
-    padding-right: calc(var(--spacing-xl) + var(--spacing-lg)); /* Extra space for both icon and clear button */
-}
-
-.input-field-wrapper:not(.has-icon-right) .input[type="search"] {
-    padding-right: var(--spacing-lg); /* Space for clear button only */
-}
-
-/* ===== DATE INPUT SPECIFIC STYLES ===== */
-
-/* Webkit date picker button styling */
+/* ===== Date and time ===== */
+/* The browser's own picker button stays, invisible, under the calendar icon, so a click there opens the picker. */
 .input[type="date"]::-webkit-calendar-picker-indicator,
 .input[type="datetime-local"]::-webkit-calendar-picker-indicator,
 .input[type="time"]::-webkit-calendar-picker-indicator,
 .input[type="month"]::-webkit-calendar-picker-indicator,
 .input[type="week"]::-webkit-calendar-picker-indicator {
-    opacity: 0; /* Hide the default picker, we use our custom icon */
     position: absolute;
-    right: var(--spacing-sm);
-    width: 16px;
-    height: 16px;
+    right: var(--input-px);
+    width: var(--input-icon, 1rem);
+    height: var(--input-icon, 1rem);
+    opacity: 0;
     cursor: pointer;
 }
-
-/* Firefox date input styling */
-.input[type="date"]::-moz-calendar-picker-indicator,
-.input[type="datetime-local"]::-moz-calendar-picker-indicator,
-.input[type="time"]::-moz-calendar-picker-indicator {
-    opacity: 0; /* Hide default, use our custom icon */
-    position: absolute;
-    right: var(--spacing-sm);
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-}
-
 
 input[type="date"]:in-range::-webkit-datetime-edit-year-field,
 input[type="date"]:in-range::-webkit-datetime-edit-month-field,
@@ -821,111 +513,70 @@ input[type="date"]:in-range::-webkit-datetime-edit-text {
     display: none;
 }
 
-/* ===== RANGE INPUT SPECIFIC STYLES ===== */
-
+/* ===== Range ===== */
 .input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
+    height: auto;
     padding: 0;
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
+    border: none;
+    border-radius: var(--border-radius-full);
+    background: transparent;
     cursor: pointer;
-    height: auto !important;
 }
 
 .input[type="range"]:focus {
-    outline: none;
-    border: none !important;
-    box-shadow: none !important;
+    box-shadow: none;
 }
 
-/* Track styles */
+.input[type="range"]:focus-visible {
+    outline: 2px solid var(--field-focus);
+    outline-offset: 4px;
+}
+
 .input[type="range"]::-webkit-slider-runnable-track {
-    height: 4px;
-    background: color-mix(in srgb, var(--input-accent-color), transparent 75%);
-    border-radius: 999px;
+    height: 0.25rem;
+    border-radius: var(--border-radius-full);
+    background: color-mix(in srgb, var(--input-accent-color, var(--primary-color)) 25%, transparent);
 }
 
 .input[type="range"]::-moz-range-track {
-    height: 4px;
-    background: color-mix(in srgb, var(--input-accent-color), transparent 75%);
-    border-radius: 999px;
+    height: 0.25rem;
+    border-radius: var(--border-radius-full);
+    background: color-mix(in srgb, var(--input-accent-color, var(--primary-color)) 25%, transparent);
 }
 
-/* Thumb styles */
 .input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--input-accent-color);
+    width: 1rem;
+    height: 1rem;
+    margin-top: -0.375rem;
     border: 2px solid var(--surface-color, var(--background-color));
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    margin-top: -6px;
+    border-radius: 50%;
+    background: var(--input-accent-color, var(--primary-color));
     cursor: grab;
 }
 
 .input[type="range"]::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--input-accent-color);
+    width: 1rem;
+    height: 1rem;
     border: 2px solid var(--surface-color, var(--background-color));
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    background: var(--input-accent-color, var(--primary-color));
     cursor: grab;
 }
 
-.input[type="range"]:active::-webkit-slider-thumb,
+.input[type="range"]:active::-webkit-slider-thumb {
+    cursor: grabbing;
+}
+
 .input[type="range"]:active::-moz-range-thumb {
     cursor: grabbing;
 }
 
 /* JustifySelf utility classes for Input components */
-.input-container.justify-self-auto {
-    justify-self: auto;
-}
-
-.input-container.justify-self-start {
-    justify-self: start;
-}
-
-.input-container.justify-self-end {
-    justify-self: end;
-}
-
-.input-container.justify-self-center {
-    justify-self: center;
-}
-
-.input-container.justify-self-stretch {
-    justify-self: stretch;
-}
-
-.input.themed-input.input-text-inherit {
-    font-size: inherit;
-    line-height: inherit;
-}
-
-.input-container.input-file {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    min-width: 0;
-}
-
-.input-field-wrapper.has-dictation {
-    position: relative;
-}
-
-.input-field-wrapper.has-dictation .input.themed-input {
-    padding-right: 2.25rem;
-}
-
-.input-dictation {
-    position: absolute;
-    top: 0.25rem;
-    right: 0.25rem;
-    display: flex;
-}
+.input-container.justify-self-auto { justify-self: auto; }
+.input-container.justify-self-start { justify-self: start; }
+.input-container.justify-self-end { justify-self: end; }
+.input-container.justify-self-center { justify-self: center; }
+.input-container.justify-self-stretch { justify-self: stretch; }

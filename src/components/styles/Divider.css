@@ -42,14 +42,14 @@
 /* ===== Thickness ===== */
 
 /* Horizontal thickness */
-.divider:not(.divider-vertical).divider-xs .divider-line { height: 0.5px; }
+.divider:not(.divider-vertical).divider-xs .divider-line { height: 1px; }
 .divider:not(.divider-vertical).divider-sm .divider-line { height: 1px; }
 .divider:not(.divider-vertical).divider-md .divider-line { height: 2px; }
 .divider:not(.divider-vertical).divider-lg .divider-line { height: 3px; }
 .divider:not(.divider-vertical).divider-xl .divider-line { height: 4px; }
 
 /* Vertical thickness */
-.divider.divider-vertical.divider-xs .divider-line { width: 0.5px; }
+.divider.divider-vertical.divider-xs .divider-line { width: 1px; }
 .divider.divider-vertical.divider-sm .divider-line { width: 1px; }
 .divider.divider-vertical.divider-md .divider-line { width: 2px; }
 .divider.divider-vertical.divider-lg .divider-line { width: 3px; }
@@ -62,27 +62,27 @@
 }
 
 .divider.divider-color-primary .divider-line {
-    background-color: var(--primary-color);
+    background-color: color-mix(in srgb, var(--primary-color) 60%, transparent);
 }
 
 .divider.divider-color-secondary .divider-line {
-    background-color: var(--secondary-color);
+    background-color: color-mix(in srgb, var(--secondary-color) 60%, transparent);
 }
 
 .divider.divider-color-tertiary .divider-line {
-    background-color: var(--tertiary-color);
+    background-color: color-mix(in srgb, var(--tertiary-color) 60%, transparent);
 }
 
 .divider.divider-color-success .divider-line {
-    background-color: var(--success-color);
+    background-color: color-mix(in srgb, var(--success-color) 60%, transparent);
 }
 
 .divider.divider-color-warning .divider-line {
-    background-color: var(--warning-color);
+    background-color: color-mix(in srgb, var(--warning-color) 60%, transparent);
 }
 
 .divider.divider-color-error .divider-line {
-    background-color: var(--error-color);
+    background-color: color-mix(in srgb, var(--error-color) 60%, transparent);
 }
 
 .divider.divider-color-surface .divider-line {
@@ -136,17 +136,17 @@
 
 /* Dashed/dotted color overrides */
 .divider.divider-dashed.divider-color-primary .divider-line,
-.divider.divider-dotted.divider-color-primary .divider-line { border-color: var(--primary-color); }
+.divider.divider-dotted.divider-color-primary .divider-line { border-color: color-mix(in srgb, var(--primary-color) 60%, transparent); }
 .divider.divider-dashed.divider-color-secondary .divider-line,
-.divider.divider-dotted.divider-color-secondary .divider-line { border-color: var(--secondary-color); }
+.divider.divider-dotted.divider-color-secondary .divider-line { border-color: color-mix(in srgb, var(--secondary-color) 60%, transparent); }
 .divider.divider-dashed.divider-color-tertiary .divider-line,
-.divider.divider-dotted.divider-color-tertiary .divider-line { border-color: var(--tertiary-color); }
+.divider.divider-dotted.divider-color-tertiary .divider-line { border-color: color-mix(in srgb, var(--tertiary-color) 60%, transparent); }
 .divider.divider-dashed.divider-color-success .divider-line,
-.divider.divider-dotted.divider-color-success .divider-line { border-color: var(--success-color); }
+.divider.divider-dotted.divider-color-success .divider-line { border-color: color-mix(in srgb, var(--success-color) 60%, transparent); }
 .divider.divider-dashed.divider-color-warning .divider-line,
-.divider.divider-dotted.divider-color-warning .divider-line { border-color: var(--warning-color); }
+.divider.divider-dotted.divider-color-warning .divider-line { border-color: color-mix(in srgb, var(--warning-color) 60%, transparent); }
 .divider.divider-dashed.divider-color-error .divider-line,
-.divider.divider-dotted.divider-color-error .divider-line { border-color: var(--error-color); }
+.divider.divider-dotted.divider-color-error .divider-line { border-color: color-mix(in srgb, var(--error-color) 60%, transparent); }
 .divider.divider-dashed.divider-color-surface .divider-line,
 .divider.divider-dotted.divider-color-surface .divider-line { border-color: var(--surface-accent-color); }
 
@@ -168,7 +168,7 @@
     background: linear-gradient(
         90deg,
         transparent 0%,
-        rgba(255, 255, 255, 0.3) 50%,
+        color-mix(in srgb, var(--surface-color) 60%, transparent) 50%,
         transparent 100%
     );
     animation: divider-shimmer 2.5s ease-in-out infinite;
@@ -209,7 +209,7 @@
 
 /* Expand — the line grows from center on mount */
 .divider.divider-animated-expand .divider-line {
-    animation: divider-expand 0.5s ease-out forwards;
+    animation: divider-expand var(--motion-panel) var(--ease) forwards;
     transform-origin: center;
 }
 
@@ -229,8 +229,8 @@
 
 .divider-label {
     flex-shrink: 0;
-    font-size: var(--font-size-xs);
-    color: var(--text-secondary-color);
+    font-size: var(--text-xxs);
+    color: var(--text-muted);
     white-space: nowrap;
     padding: 0 var(--spacing-xs);
 }
@@ -243,3 +243,16 @@
 .divider.divider-margin-md { margin-top: var(--spacing-md); margin-bottom: var(--spacing-md); }
 .divider.divider-margin-lg { margin-top: var(--spacing-lg); margin-bottom: var(--spacing-lg); }
 .divider.divider-margin-xl { margin-top: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+
+@media (prefers-reduced-motion: reduce) {
+    .divider.divider-animated-shimmer .divider-line::after,
+    .divider.divider-animated-pulse .divider-line,
+    .divider.divider-animated-gradient .divider-line,
+    .divider.divider-animated-expand .divider-line {
+        animation: none;
+    }
+
+    .divider.divider-animated-expand .divider-line {
+        transform: none;
+    }
+}

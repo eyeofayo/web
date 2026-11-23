@@ -423,8 +423,15 @@ export const FloatingActionButton = forwardRef(({
             if (parentElement) {
                 resizeObserver.observe(parentElement);
             }
+            // The first measure can run before the page has its width, which left the button at the top left.
+            const frame = requestAnimationFrame(handleResize);
+            const settled = setTimeout(handleResize, 300);
+            window.addEventListener('resize', handleResize);
 
             return () => {
+                cancelAnimationFrame(frame);
+                clearTimeout(settled);
+                window.removeEventListener('resize', handleResize);
                 if (parentElement) {
                     resizeObserver.unobserve(parentElement);
                 }
@@ -544,7 +551,7 @@ export const FloatingActionButton = forwardRef(({
                         left: `${dragPosition.x}px`,
                         top: `${dragPosition.y}px`,
                         transform: 'none',
-                        transition: isDragging ? 'none' : isSnapping ? 'left 0.3s ease-out, top 0.3s ease-out' : 'all 0.3s ease'
+                        transition: isDragging ? 'none' : isSnapping ? 'left 0.3s ease-out, top 0.3s ease-out' : 'none'
                     }
                     : getPositionStyles()
             }

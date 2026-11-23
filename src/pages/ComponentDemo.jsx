@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { useTheme } from '@contexts/ThemeContext';
 import {
     Page,
@@ -15,6 +15,8 @@ import {
     ProgressBar,
     CircularProgress,
     Icon,
+    Divider,
+    Genie,
     Data,
     TreeView,
     Editor,
@@ -23,6 +25,10 @@ import {
     Video,
     Audio,
     Model3D,
+    PdfViewer,
+    Frame,
+    Slides,
+    Sheet,
     BACKGROUNDS,
     BACKGROUND_TONES,
     BACKGROUND_INTENSITIES,
@@ -45,10 +51,13 @@ import {
 // =============================================================================
 
 const STANDARD_SIZES = ['xs', 'sm', 'md', 'lg', 'xl'];
-const EXTENDED_TEXT_SIZES = [...STANDARD_SIZES, '2xl', '3xl', '4xl'];
+const SMALL_SIZES = ['xxs', ...STANDARD_SIZES];
+const EXTENDED_TEXT_SIZES = [...SMALL_SIZES, '2xl', '3xl', '4xl'];
 const STATUS_COLORS = ['primary', 'secondary', 'tertiary', 'success', 'warning', 'error'];
 const BADGE_COLORS = ['default', ...STATUS_COLORS];
 const PROGRESS_COLORS = ['default', ...STATUS_COLORS];
+const TEXT_COLORS = ['default', ...STATUS_COLORS, 'muted', 'neutral', 'info', 'header', 'contrast'];
+const MEDIA_COLORS = ['default', 'primary', 'secondary', 'tertiary'];
 const TREEVIEW_COLORS = ['default', 'surface', 'background', 'primary', 'secondary', 'tertiary'];
 const THEME_OVERRIDES = [null, 'modern', 'dark', 'minimal', 'vibrant', 'admin', 'pink'];
 const THEME_OPTION_LABELS = {
@@ -62,13 +71,46 @@ const THEME_OPTION_LABELS = {
 };
 const FAB_SIZES = STANDARD_SIZES; // ['xs', 'sm', 'md', 'lg', 'xl']
 const FAB_VARIANTS = STATUS_COLORS;
-const FAB_POSITIONS = ['top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right'];
+const FAB_POSITIONS = ['top-left', 'top', 'top-right', 'left', 'right', 'bottom-left', 'bottom', 'bottom-right'];
 const FAB_PARENT_TYPES = ['auto', 'page', 'card', 'container'];
 const COMMON_LAYOUTS = ['block', 'flex', 'flex-column', 'grid', 'multicolumn', 'positioned'];
 const COMMON_GAPS = ['none', 'xs', 'sm', 'md', 'lg', 'xl'];
+const LAYOUT_GAPS = [...COMMON_GAPS, '2xl', '3xl', '4xl'];
 const COMMON_PADDING = ['none', 'xs', 'sm', 'md', 'lg', 'xl'];
-const ALIGN_OPTIONS = ['start', 'center', 'end', 'stretch'];
-const JUSTIFY_OPTIONS = ['start', 'center', 'end', 'between', 'around', 'evenly', 'wrap'];
+const COLUMN_OPTIONS = [1, 2, 3, 4, 5, 6, 'auto', 'auto-sm', 'auto-lg'];
+const ALIGN_OPTIONS = ['start', 'center', 'end', 'stretch', 'baseline'];
+const FLEX_JUSTIFY_OPTIONS = ['start', 'center', 'end', 'between', 'around', 'evenly'];
+const JUSTIFY_OPTIONS = [...FLEX_JUSTIFY_OPTIONS, 'wrap'];
+const FILL_COLORS = [null, 'surface', 'surface-alt', 'background', 'primary', 'secondary', 'tertiary'];
+const GENIE_TRIGGERS = ['click', 'hover', 'contextmenu'];
+
+// A two-page PDF built in the browser, so the PdfViewer demo needs no file
+const createSamplePdf = () => {
+    const pageTexts = ['Sample document, page 1', 'Sample document, page 2'];
+    const objects = [
+        '<< /Type /Catalog /Pages 2 0 R >>',
+        `<< /Type /Pages /Kids [${pageTexts.map((_, index) => `${4 + index * 2} 0 R`).join(' ')}] /Count ${pageTexts.length} >>`,
+        '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'
+    ];
+    pageTexts.forEach((text, index) => {
+        const stream = `BT /F1 24 Tf 72 700 Td (${text}) Tj ET`;
+        objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${5 + index * 2} 0 R >>`);
+        objects.push(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+    });
+    let body = '%PDF-1.4\n';
+    const offsets = objects.map((object, index) => {
+        const at = body.length;
+        body += `${index + 1} 0 obj\n${object}\nendobj\n`;
+        return at;
+    });
+    const xref = body.length;
+    body += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.map((at) => `${String(at).padStart(10, '0')} 00000 n \n`).join('')}trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    return new Blob([body], { type: 'application/pdf' });
+};
+
+const SAMPLE_FRAME_HTML = '<style>body{font-family:var(--app-font,sans-serif);color:var(--app-text);background:var(--app-background);padding:16px}</style><h2>Sample page</h2><p>This page runs in a sealed frame with no network access.</p><button id="count">Clicked 0 times</button><script>var n=0;document.getElementById("count").onclick=function(){n++;this.textContent="Clicked "+n+" times"}</script>';
+
+const SAMPLE_SHEET_CSV = 'Item,Category,Quantity,Unit price\nNotebook,Stationery,120,2.5\nDesk lamp,Lighting,15,24\nOffice chair,Furniture,8,89.99\nStapler,Stationery,40,6.75\nMonitor stand,Furniture,22,31.5';
 
 // Decorative background props shared by Page, Container and Card
 const BACKGROUND_DEFAULT_PROPS = {
@@ -220,6 +262,7 @@ const COMPONENT_METADATA = {
             weight: 'bold',
             color: 'default',
             font: 'primary',
+            align: null,
             theme: null,
             animation: 'blur',
             animateOn: 'mount',
@@ -235,11 +278,52 @@ const COMPONENT_METADATA = {
                 showCursor: true,
                 typingSpeed: 50,
                 deletingSpeed: 30,
-                borderColor: null,
+                maxIterations: 10,
+                showBorder: false,
+                cursorCharacter: '|',
+                reserveSpace: true,
+                borderColor: 'primary',
             }
         },
         propConfigs: {
             children: { type: 'text', label: 'Text Content', group: 'Content' },
+            as: {
+                type: 'select',
+                label: 'Element',
+                group: 'Content',
+                options: ['p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'label']
+            },
+            align: {
+                type: 'select',
+                label: 'Text Align',
+                group: 'Appearance',
+                options: [null, 'left', 'center', 'right'],
+                optionLabels: { null: 'Inherit' }
+            },
+            href: { type: 'text', label: 'Link URL (renders a link)', group: 'Content', placeholder: 'e.g., https://example.com or /home' },
+            target: {
+                type: 'select',
+                label: 'Link Target',
+                group: 'Content',
+                options: [null, '_blank', '_self'],
+                optionLabels: { null: 'Automatic' }
+            },
+            truncate: { type: 'boolean', label: 'Truncate (one line, needs a width)', group: 'Appearance' },
+            width: { type: 'text', label: 'Width', group: 'Appearance', placeholder: 'e.g., 160px' },
+            margin: {
+                type: 'select',
+                label: 'Margin',
+                group: 'Spacing',
+                options: [null, ...COMMON_GAPS],
+                optionLabels: { null: 'Default' }
+            },
+            padding: {
+                type: 'select',
+                label: 'Padding',
+                group: 'Spacing',
+                options: [null, ...COMMON_PADDING],
+                optionLabels: { null: 'Default' }
+            },
             size: {
                 type: 'select',
                 label: 'Size',
@@ -256,7 +340,7 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Color',
                 group: 'Appearance',
-                options: ['default', 'primary', 'secondary', 'tertiary', 'success', 'warning', 'error']
+                options: TEXT_COLORS
             },
             font: {
                 type: 'select',
@@ -308,7 +392,7 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Split By',
                 group: 'Animation Config',
-                options: ['chars', 'words'],
+                options: ['characters', 'words'],
                 applyTo: ['blur', 'fade', 'slide']
             },
             'animationConfig.direction': {
@@ -342,6 +426,32 @@ const COMPONENT_METADATA = {
                 label: 'Show Cursor',
                 group: 'Animation Config',
                 applyTo: ['typewriter']
+            },
+            'animationConfig.cursorCharacter': {
+                type: 'text',
+                label: 'Cursor Character',
+                group: 'Animation Config',
+                applyTo: ['typewriter']
+            },
+            'animationConfig.reserveSpace': {
+                type: 'boolean',
+                label: 'Reserve Space',
+                group: 'Animation Config',
+                applyTo: ['typewriter']
+            },
+            'animationConfig.maxIterations': {
+                type: 'number',
+                label: 'Max Iterations',
+                group: 'Animation Config',
+                min: 1,
+                max: 50,
+                applyTo: ['decrypt']
+            },
+            'animationConfig.showBorder': {
+                type: 'boolean',
+                label: 'Show Border',
+                group: 'Animation Config',
+                applyTo: ['gradient']
             },
             'animationConfig.typingSpeed': {
                 type: 'number',
@@ -485,6 +595,9 @@ const COMPONENT_METADATA = {
             color: 'primary',
             variant: null,
             size: 'md',
+            align: 'center',
+            flat: false,
+            round: false,
             disabled: false,
             selected: false,
             icon: '',
@@ -495,6 +608,7 @@ const COMPONENT_METADATA = {
         },
         propConfigs: {
             children: { type: 'text', label: 'Button Text', group: 'Content' },
+            title: { type: 'text', label: 'Helper Text (shown on hover)', group: 'Content' },
             icon: {
                 type: 'text',
                 label: 'Icon Name (Demo Only)',
@@ -524,8 +638,17 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Size',
                 group: 'Size',
-                options: STANDARD_SIZES
+                options: SMALL_SIZES
             },
+            width: { type: 'text', label: 'Width', group: 'Size', placeholder: 'e.g., 200px, 100%' },
+            align: {
+                type: 'select',
+                label: 'Content Alignment (needs a width)',
+                group: 'Appearance',
+                options: ['start', 'center', 'end']
+            },
+            flat: { type: 'boolean', label: 'Flat (no hover lift)', group: 'Appearance' },
+            round: { type: 'boolean', label: 'Round (for a single icon)', group: 'Appearance' },
             theme: {
                 type: 'select',
                 label: 'Theme Override',
@@ -563,6 +686,13 @@ const COMPONENT_METADATA = {
             iconPosition: 'left',
             multiline: false,
             rows: 3,
+            checked: false,
+            indeterminate: false,
+            validate: false,
+            minLength: null,
+            maxLength: null,
+            dictation: false,
+            width: null,
             theme: null
         },
         propConfigs: {
@@ -570,8 +700,12 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Input Type',
                 group: 'Basic',
-                options: ['text', 'password', 'email', 'search', 'checkbox', 'range']
+                options: ['text', 'password', 'email', 'search', 'date', 'file', 'checkbox', 'range']
             },
+            checked: { type: 'boolean', label: 'Checked (checkbox type)', group: 'Basic' },
+            indeterminate: { type: 'boolean', label: 'Indeterminate (checkbox type)', group: 'Basic' },
+            dictation: { type: 'boolean', label: 'Dictation Button', group: 'Basic' },
+            width: { type: 'text', label: 'Width', group: 'Size', placeholder: 'e.g., 240px, 100%' },
             variant: {
                 type: 'select',
                 label: 'Variant',
@@ -588,7 +722,7 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Size',
                 group: 'Size',
-                options: STANDARD_SIZES
+                options: SMALL_SIZES
             },
             placeholder: { type: 'text', label: 'Placeholder', group: 'Content' },
             label: { type: 'text', label: 'Label', group: 'Content' },
@@ -602,6 +736,9 @@ const COMPONENT_METADATA = {
             },
             disabled: { type: 'boolean', label: 'Disabled', group: 'State' },
             required: { type: 'boolean', label: 'Required', group: 'State' },
+            validate: { type: 'boolean', label: 'Validate (checks on blur)', group: 'State' },
+            minLength: { type: 'number', label: 'Min Length (with Validate)', group: 'State', min: 0, max: 100 },
+            maxLength: { type: 'number', label: 'Max Length (with Validate)', group: 'State', min: 0, max: 100 },
             validationState: {
                 type: 'select',
                 label: 'Validation State',
@@ -638,8 +775,12 @@ const COMPONENT_METADATA = {
             placeholder: 'Search options...',
             label: 'Select Label',
             disabled: false,
+            required: false,
+            validate: false,
+            menu: true,
             validationState: 'default',
             helpText: '',
+            width: null,
             theme: null
         },
         propConfigs: {
@@ -659,13 +800,17 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Size',
                 group: 'Size',
-                options: STANDARD_SIZES
+                options: SMALL_SIZES
             },
+            width: { type: 'text', label: 'Width', group: 'Size', placeholder: 'e.g., 240px, 100%' },
             multiSelect: { type: 'boolean', label: 'Multi-Select Mode', group: 'Basic' },
+            menu: { type: 'boolean', label: 'Dropdown Menu', group: 'Basic' },
             label: { type: 'text', label: 'Label', group: 'Content' },
             placeholder: { type: 'text', label: 'Placeholder', group: 'Content' },
             helpText: { type: 'text', label: 'Help Text', group: 'Content' },
             disabled: { type: 'boolean', label: 'Disabled', group: 'State' },
+            required: { type: 'boolean', label: 'Required', group: 'State' },
+            validate: { type: 'boolean', label: 'Validate (checks on blur)', group: 'State' },
             validationState: {
                 type: 'select',
                 label: 'Validation State',
@@ -733,8 +878,9 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Size',
                 group: 'Size',
-                options: STANDARD_SIZES
+                options: SMALL_SIZES
             },
+            width: { type: 'text', label: 'Width', group: 'Size', placeholder: 'e.g., 120px' },
             theme: {
                 type: 'select',
                 label: 'Theme Override',
@@ -753,8 +899,8 @@ const COMPONENT_METADATA = {
             max: 100,
             size: 'md',
             showPercentage: true,
-            showLabel: false,
-            label: '',
+            showLabel: true,
+            label: 'Storage used',
             animated: false,
             striped: false,
             color: 'default',
@@ -775,9 +921,10 @@ const COMPONENT_METADATA = {
                 group: 'Appearance',
                 options: PROGRESS_COLORS
             },
-            showPercentage: { type: 'boolean', label: 'Show Percentage', group: 'Display' },
-            showLabel: { type: 'boolean', label: 'Show Label', group: 'Display' },
+            showPercentage: { type: 'boolean', label: 'Show Percentage (needs a label row)', group: 'Display' },
+            showLabel: { type: 'boolean', label: 'Show Label Row', group: 'Display' },
             label: { type: 'text', label: 'Label Text', group: 'Content' },
+            width: { type: 'text', label: 'Width', group: 'Size', placeholder: 'e.g., 320px, 100%' },
             animated: { type: 'boolean', label: 'Animated', group: 'Appearance' },
             striped: { type: 'boolean', label: 'Striped Pattern', group: 'Appearance' },
             theme: {
@@ -797,6 +944,7 @@ const COMPONENT_METADATA = {
             size: 'md',
             color: 'primary',
             speed: 'default',
+            strokeWidth: null,
             theme: null
         },
         propConfigs: {
@@ -806,6 +954,7 @@ const COMPONENT_METADATA = {
                 group: 'Size',
                 options: STANDARD_SIZES
             },
+            strokeWidth: { type: 'number', label: 'Stroke Width (0 = size default)', group: 'Size', min: 0, max: 12, step: 0.5 },
             color: {
                 type: 'select',
                 label: 'Color',
@@ -858,8 +1007,10 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Color',
                 group: 'Appearance',
-                options: ['primary', 'secondary', 'tertiary', 'success', 'warning', 'error', 'text']
+                options: ['primary', 'secondary', 'tertiary', 'success', 'warning', 'error', 'text', 'contrast']
             },
+            width: { type: 'text', label: 'Width', group: 'Size', placeholder: 'e.g., 48px' },
+            height: { type: 'text', label: 'Height', group: 'Size', placeholder: 'e.g., 48px' },
             hover: { type: 'boolean', label: 'Hover Effect', group: 'Behavior' },
             clickable: { type: 'boolean', label: 'Clickable Style', group: 'Behavior' },
             theme: {
@@ -873,6 +1024,68 @@ const COMPONENT_METADATA = {
         description: 'Icon component supporting react-icons library'
     },
 
+    Divider: {
+        component: Divider,
+        defaultProps: {
+            orientation: 'horizontal',
+            color: 'default',
+            size: 'sm',
+            variant: 'solid',
+            animated: null,
+            label: 'Section',
+            margin: 'none',
+            theme: null
+        },
+        propConfigs: {
+            orientation: {
+                type: 'select',
+                label: 'Orientation',
+                group: 'Layout',
+                options: ['horizontal', 'vertical']
+            },
+            label: { type: 'text', label: 'Label', group: 'Content' },
+            color: {
+                type: 'select',
+                label: 'Color',
+                group: 'Appearance',
+                options: ['default', ...STATUS_COLORS, 'surface']
+            },
+            size: {
+                type: 'select',
+                label: 'Thickness',
+                group: 'Size',
+                options: STANDARD_SIZES
+            },
+            variant: {
+                type: 'select',
+                label: 'Line Style',
+                group: 'Appearance',
+                options: ['solid', 'dashed', 'dotted']
+            },
+            animated: {
+                type: 'select',
+                label: 'Animation',
+                group: 'Appearance',
+                options: [null, 'shimmer', 'pulse', 'gradient', 'expand'],
+                optionLabels: { null: 'None' }
+            },
+            margin: {
+                type: 'select',
+                label: 'Margin',
+                group: 'Spacing',
+                options: COMMON_GAPS
+            },
+            theme: {
+                type: 'select',
+                label: 'Theme Override',
+                group: 'Appearance',
+                options: THEME_OVERRIDES,
+                optionLabels: THEME_OPTION_LABELS
+            }
+        },
+        description: 'Visual separator with optional label, line styles and animation'
+    },
+
     Page: {
         component: Page,
         defaultProps: {
@@ -881,16 +1094,33 @@ const COMPONENT_METADATA = {
             padding: 'lg',
             align: 'start',
             justify: 'start',
+            columns: 1,
+            title: '',
+            lead: '',
+            frame: false,
+            actions: false,
+            brand: false,
             theme: null,
             backgroundColor: null,
             ...BACKGROUND_DEFAULT_PROPS
         },
         propConfigs: {
+            title: { type: 'text', label: 'Page Title (frames the page)', group: 'Content' },
+            lead: { type: 'text', label: 'Lead (needs a title or frame)', group: 'Content', placeholder: 'One line under the title' },
+            frame: { type: 'boolean', label: 'Frame (one 1280px column)', group: 'Layout' },
+            actions: { type: 'boolean', label: 'Sample Actions', group: 'Content' },
+            brand: { type: 'boolean', label: 'Sample Brand (frames the page)', group: 'Content' },
             layout: {
                 type: 'select',
                 label: 'Layout Type',
                 group: 'Layout',
-                options: COMMON_LAYOUTS
+                options: [...COMMON_LAYOUTS, 'flex-wrap']
+            },
+            columns: {
+                type: 'select',
+                label: 'Columns (grid and multicolumn)',
+                group: 'Layout',
+                options: COLUMN_OPTIONS
             },
             align: {
                 type: 'select',
@@ -902,13 +1132,13 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Justify Content',
                 group: 'Layout',
-                options: JUSTIFY_OPTIONS
+                options: FLEX_JUSTIFY_OPTIONS
             },
             gap: {
                 type: 'select',
                 label: 'Gap',
                 group: 'Spacing',
-                options: COMMON_GAPS
+                options: LAYOUT_GAPS
             },
             padding: {
                 type: 'select',
@@ -927,7 +1157,7 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Background Variant',
                 group: 'Appearance',
-                options: [null, 'surface', 'background', 'primary', 'secondary', 'tertiary'],
+                options: FILL_COLORS,
                 optionLabels: { null: 'Theme Default' }
             },
             ...BACKGROUND_PROP_CONFIGS
@@ -943,8 +1173,15 @@ const COMPONENT_METADATA = {
             columns: 1,
             align: 'center',
             justify: 'center',
-            hover: true,
-            elevation: 'md',
+            hover: null,
+            shadow: false,
+            bordered: true,
+            borderColor: null,
+            borderStrength: 'normal',
+            borderStyle: 'solid',
+            radius: null,
+            wrap: true,
+            theme: null,
             width: '70%',
             innerWidth: '50%',
             innerHeight: '',
@@ -961,11 +1198,41 @@ const COMPONENT_METADATA = {
                 group: 'Spacing',
                 options: COMMON_PADDING
             },
-            elevation: {
+            shadow: { type: 'boolean', label: 'Raised (soft shadow)', group: 'Appearance' },
+            bordered: { type: 'boolean', label: 'Outline', group: 'Appearance' },
+            borderColor: {
                 type: 'select',
-                label: 'Elevation',
+                label: 'Outline Color',
                 group: 'Appearance',
-                options: ['none', 'sm', 'md', 'lg', 'xl']
+                options: [null, 'primary', 'secondary', 'tertiary'],
+                optionLabels: { null: 'Theme Default' }
+            },
+            borderStrength: {
+                type: 'select',
+                label: 'Outline Strength',
+                group: 'Appearance',
+                options: ['normal', 'soft']
+            },
+            borderStyle: {
+                type: 'select',
+                label: 'Outline Style',
+                group: 'Appearance',
+                options: ['solid', 'dashed', 'dotted']
+            },
+            radius: {
+                type: 'select',
+                label: 'Corner Radius',
+                group: 'Appearance',
+                options: [null, 'sm', 'md', 'lg', 'xl'],
+                optionLabels: { null: 'Theme Default' }
+            },
+            wrap: { type: 'boolean', label: 'Wrap Items (flex layouts)', group: 'Layout' },
+            theme: {
+                type: 'select',
+                label: 'Theme Override',
+                group: 'Appearance',
+                options: THEME_OVERRIDES,
+                optionLabels: THEME_OPTION_LABELS
             },
             width: {
                 type: 'text',
@@ -1001,13 +1268,13 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Gap',
                 group: 'Spacing',
-                options: COMMON_GAPS
+                options: LAYOUT_GAPS
             },
             columns: {
                 type: 'select',
-                label: 'Grid Columns',
+                label: 'Columns (grid and multicolumn)',
                 group: 'Layout',
-                options: [1, 2, 3, 4, 5, 6, 'auto']
+                options: COLUMN_OPTIONS
             },
             align: {
                 type: 'select',
@@ -1021,12 +1288,12 @@ const COMPONENT_METADATA = {
                 group: 'Layout',
                 options: JUSTIFY_OPTIONS
             },
-            hover: { type: 'boolean', label: 'Enable Hover Effects', group: 'Appearance' },
+            hover: { type: 'boolean', label: 'Hover (automatic with onClick)', group: 'Appearance' },
             backgroundColor: {
                 type: 'select',
                 label: 'Background Variant',
                 group: 'Appearance',
-                options: [null, 'surface', 'background', 'primary', 'secondary', 'tertiary'],
+                options: FILL_COLORS,
                 optionLabels: { null: 'Theme Default' }
             },
             ...BACKGROUND_PROP_CONFIGS,
@@ -1044,14 +1311,61 @@ const COMPONENT_METADATA = {
         component: Container,
         defaultProps: {
             layout: 'flex',
+            gap: 'lg',
+            padding: 'md',
+            columns: 1,
+            wrap: true,
+            hoverable: false,
+            overflow: null,
             align: 'center',
             justify: 'center',
+            theme: null,
             backgroundColor: null,
             ...BACKGROUND_DEFAULT_PROPS,
             genie: createContainerGenieConfig('click'),
             genieTrigger: 'click'
         },
         propConfigs: {
+            layout: {
+                type: 'select',
+                label: 'Layout Type',
+                group: 'Layout',
+                options: COMMON_LAYOUTS
+            },
+            columns: {
+                type: 'select',
+                label: 'Columns (grid and multicolumn)',
+                group: 'Layout',
+                options: COLUMN_OPTIONS
+            },
+            gap: {
+                type: 'select',
+                label: 'Gap',
+                group: 'Spacing',
+                options: LAYOUT_GAPS
+            },
+            padding: {
+                type: 'select',
+                label: 'Padding',
+                group: 'Spacing',
+                options: COMMON_PADDING
+            },
+            wrap: { type: 'boolean', label: 'Wrap Items (flex layouts)', group: 'Layout' },
+            overflow: {
+                type: 'select',
+                label: 'Overflow',
+                group: 'Layout',
+                options: [null, 'auto', 'hidden', 'scroll', 'visible'],
+                optionLabels: { null: 'Default' }
+            },
+            hoverable: { type: 'boolean', label: 'Hoverable (hover background)', group: 'Appearance' },
+            theme: {
+                type: 'select',
+                label: 'Theme Override',
+                group: 'Appearance',
+                options: THEME_OVERRIDES,
+                optionLabels: THEME_OPTION_LABELS
+            },
             width: {
                 type: 'text',
                 label: 'Width',
@@ -1080,7 +1394,7 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Background Variant',
                 group: 'Appearance',
-                options: [null, 'surface', 'background', 'primary', 'secondary', 'tertiary'],
+                options: FILL_COLORS,
                 optionLabels: { null: 'Theme Default' }
             },
             ...BACKGROUND_PROP_CONFIGS,
@@ -1100,6 +1414,12 @@ const COMPONENT_METADATA = {
             children: null, // Will be handled specially
             size: 'md',
             spaced: false,
+            vertical: false,
+            wrap: true,
+            selectable: true,
+            justify: 'center',
+            align: 'center',
+            width: null,
             theme: null
         },
         propConfigs: {
@@ -1107,9 +1427,25 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Size',
                 group: 'Size',
-                options: STANDARD_SIZES
+                options: SMALL_SIZES
             },
+            width: { type: 'text', label: 'Width', group: 'Size', placeholder: 'e.g., 100%, 400px' },
             spaced: { type: 'boolean', label: 'Add Spacing Between Buttons', group: 'Layout' },
+            vertical: { type: 'boolean', label: 'Vertical (stacked buttons)', group: 'Layout' },
+            wrap: { type: 'boolean', label: 'Wrap Buttons', group: 'Layout' },
+            justify: {
+                type: 'select',
+                label: 'Justify (needs a width)',
+                group: 'Layout',
+                options: FLEX_JUSTIFY_OPTIONS
+            },
+            align: {
+                type: 'select',
+                label: 'Align',
+                group: 'Layout',
+                options: ALIGN_OPTIONS
+            },
+            selectable: { type: 'boolean', label: 'Selectable (toggle on click)', group: 'Behavior' },
             theme: {
                 type: 'select',
                 label: 'Theme Override',
@@ -1204,6 +1540,13 @@ const COMPONENT_METADATA = {
             showConnectors: false,
             multiSelect: false,
             allowDragDrop: false,
+            indentSize: 'md',
+            expandIcon: 'FiChevronRight',
+            collapseIcon: 'FiChevronDown',
+            maxDepth: null,
+            caseSensitive: false,
+            searchPlaceholder: 'Search nodes...',
+            genieTrigger: 'contextmenu',
             theme: null,
             getNodeGenie: (node) => ({
                 trigger: 'contextmenu',
@@ -1243,7 +1586,33 @@ const COMPONENT_METADATA = {
             showIcons: { type: 'boolean', label: 'Show Expand Icons', group: 'Features' },
             showConnectors: { type: 'boolean', label: 'Show Connectors', group: 'Features' },
             multiSelect: { type: 'boolean', label: 'Allow Multi-Select', group: 'Features' },
-            allowDragDrop: { type: 'boolean', label: 'Enable Drag & Drop', group: 'Features' }
+            allowDragDrop: { type: 'boolean', label: 'Enable Drag & Drop', group: 'Features' },
+            caseSensitive: { type: 'boolean', label: 'Case-Sensitive Search', group: 'Features' },
+            searchPlaceholder: { type: 'text', label: 'Search Placeholder', group: 'Features' },
+            indentSize: {
+                type: 'select',
+                label: 'Indent Size',
+                group: 'Appearance',
+                options: ['sm', 'md', 'lg']
+            },
+            iconSize: {
+                type: 'select',
+                label: 'Icon Size',
+                group: 'Appearance',
+                options: [null, ...STANDARD_SIZES, '2xl'],
+                optionLabels: { null: 'From Size' }
+            },
+            maxDepth: { type: 'number', label: 'Max Depth (0 = top level only)', group: 'Features', min: 0, max: 10 },
+            expandIcon: { type: 'text', label: 'Collapsed Icon Name', group: 'Appearance', placeholder: 'e.g., FiChevronRight' },
+            collapseIcon: { type: 'text', label: 'Expanded Icon Name', group: 'Appearance', placeholder: 'e.g., FiChevronDown' },
+            nodeIcon: { type: 'text', label: 'Node Icon Name', group: 'Appearance', placeholder: 'e.g., FiBox' },
+            leafIcon: { type: 'text', label: 'Leaf Icon Name', group: 'Appearance', placeholder: 'e.g., FiFileText' },
+            genieTrigger: {
+                type: 'select',
+                label: 'Node Genie Trigger',
+                group: 'Genie',
+                options: GENIE_TRIGGERS
+            }
         },
         description: 'Hierarchical tree view for displaying nested data structures'
     },
@@ -1423,18 +1792,28 @@ const COMPONENT_METADATA = {
                 }
             },
             variant: 'table',
+            size: 'sm',
             sortable: true,
             selector: false,
+            flat: false,
             pageSize: 10,
             theme: null,
-            genie: createDataRowGenieConfig('click')
+            genie: createDataRowGenieConfig('click'),
+            genieTrigger: 'click'
         },
         propConfigs: {
             size: {
                 type: 'select',
                 label: 'Component Size',
                 group: 'Size',
-                options: STANDARD_SIZES
+                options: SMALL_SIZES
+            },
+            flat: { type: 'boolean', label: 'Flat (no border, shadow or padding)', group: 'Appearance' },
+            genieTrigger: {
+                type: 'select',
+                label: 'Row Genie Trigger',
+                group: 'Genie',
+                options: ['click', 'contextmenu']
             },
             variant: {
                 type: 'select',
@@ -1489,19 +1868,19 @@ const COMPONENT_METADATA = {
                     document: 'Document (Rich Text)'
                 }
             },
-            placeholder: { type: 'text', label: 'Placeholder', group: 'Content' },
+            placeholder: { type: 'text', label: 'Placeholder (markdown, document modes)', group: 'Content' },
             filePath: { type: 'text', label: 'File Path (code mode)', group: 'Content' },
             readOnly: { type: 'boolean', label: 'Read Only', group: 'Behavior' },
-            showToolbar: { type: 'boolean', label: 'Show Toolbar', group: 'Toolbar' },
+            showToolbar: { type: 'boolean', label: 'Show Toolbar (markdown mode)', group: 'Toolbar' },
             toolbarPosition: {
                 type: 'select',
-                label: 'Toolbar Position',
+                label: 'Toolbar Position (markdown mode)',
                 group: 'Toolbar',
-                options: ['top', 'bottom', 'none']
+                options: ['top', 'none']
             },
             theme: {
                 type: 'select',
-                label: 'Theme Override',
+                label: 'Theme Override (markdown mode)',
                 group: 'Appearance',
                 options: THEME_OVERRIDES,
                 optionLabels: THEME_OPTION_LABELS
@@ -1528,7 +1907,9 @@ const COMPONENT_METADATA = {
                     '480px': '480px'
                 }
             },
-            diffContent: { type: 'text', label: 'Diff Content', group: 'Advanced' }
+            height: { type: 'text', label: 'Height', group: 'Layout', placeholder: 'e.g., 400px' },
+            maxHeight: { type: 'text', label: 'Max Height (markdown mode)', group: 'Layout', placeholder: 'e.g., 600px' },
+            diffContent: { type: 'text', label: 'Diff Content (markdown mode)', group: 'Advanced' }
         },
     description: 'Tri-modal editor: rich Markdown (MDX), code (Monaco), and rich-text document modes'
     },
@@ -1734,6 +2115,10 @@ const COMPONENT_METADATA = {
             minimap: false,
             background: true,
             backgroundVariant: 'dots',
+            backgroundGap: 12,
+            backgroundSize: 2,
+            toolbar: true,
+            readOnly: false,
             theme: null,
             width: '100%'
         },
@@ -1763,7 +2148,9 @@ const COMPONENT_METADATA = {
                     'none': 'Click Only'
                 }
             },
-            controls: { type: 'boolean', label: 'Show Controls', group: 'UI Elements' },
+            readOnly: { type: 'boolean', label: 'Read Only', group: 'Interaction' },
+            toolbar: { type: 'boolean', label: 'Show Toolbar', group: 'UI Elements' },
+            controls: { type: 'boolean', label: 'Show Zoom Controls (toolbar off)', group: 'UI Elements' },
             minimap: { type: 'boolean', label: 'Show Minimap', group: 'UI Elements' },
             background: { type: 'boolean', label: 'Show Background', group: 'UI Elements' },
             backgroundVariant: {
@@ -1772,6 +2159,8 @@ const COMPONENT_METADATA = {
                 group: 'UI Elements',
                 options: ['dots', 'lines', 'cross']
             },
+            backgroundGap: { type: 'number', label: 'Background Gap (px)', group: 'UI Elements', min: 4, max: 60 },
+            backgroundSize: { type: 'number', label: 'Background Dot Size (px)', group: 'UI Elements', min: 1, max: 10 },
             theme: {
                 type: 'select',
                 label: 'Theme Override',
@@ -1805,9 +2194,10 @@ const COMPONENT_METADATA = {
             disabled: false,
             draggable: false,
             badge: null,
+            badgeColor: 'error',
             snapToEdges: true,
             snapThreshold: 100,
-            edgePadding: 15,
+            edgePadding: 16,
             parentType: 'auto',
             theme: null,
             genie: createFabGenieConfig('click'),
@@ -1844,7 +2234,13 @@ const COMPONENT_METADATA = {
                 type: 'text',
                 label: 'Badge Text',
                 group: 'Content',
-                placeholder: 'e.g., 5, New, !'
+                placeholder: 'e.g., 5, New, ! (up to 10 characters)'
+            },
+            badgeColor: {
+                type: 'select',
+                label: 'Badge Color',
+                group: 'Appearance',
+                options: BADGE_COLORS
             },
             snapToEdges: { type: 'boolean', label: 'Snap To Edges', group: 'Behavior' },
             snapThreshold: { type: 'number', label: 'Snap Threshold (px)', group: 'Behavior', min: 10, max: 300 },
@@ -1870,6 +2266,118 @@ const COMPONENT_METADATA = {
             }
         },
     description: 'Floating action button with fixed positioning and drag support'
+    },
+
+    Genie: {
+        component: Genie,
+        defaultProps: {
+            visible: false,
+            variant: 'popover',
+            animation: 'scale',
+            backdrop: false,
+            closeOnClickOutside: false,
+            closeOnEscape: true,
+            autoClose: null,
+            shadow: true,
+            layout: 'flex-column',
+            columns: 1,
+            gap: 'sm',
+            padding: 'md',
+            align: 'start',
+            justify: 'start',
+            width: '240px',
+            height: null,
+            backgroundColor: null,
+            borderColor: null,
+            borderStyle: 'solid',
+            theme: null
+        },
+        propConfigs: {
+            visible: { type: 'boolean', label: 'Visible', group: 'State' },
+            variant: {
+                type: 'select',
+                label: 'Variant',
+                group: 'Appearance',
+                options: ['default', 'tooltip', 'popover', 'menu', 'dropdown', 'modal', 'notification']
+            },
+            animation: {
+                type: 'select',
+                label: 'Animation',
+                group: 'Appearance',
+                options: ['scale', 'slide-up', 'slide-down', 'fade']
+            },
+            backdrop: { type: 'boolean', label: 'Backdrop (click it to close)', group: 'Appearance' },
+            shadow: { type: 'boolean', label: 'Drop Shadow', group: 'Appearance' },
+            backgroundColor: {
+                type: 'select',
+                label: 'Background Variant',
+                group: 'Appearance',
+                options: [null, 'transparent', 'surface', 'background', 'primary', 'secondary', 'tertiary'],
+                optionLabels: { null: 'Theme Default' }
+            },
+            borderColor: {
+                type: 'select',
+                label: 'Outline Color',
+                group: 'Appearance',
+                options: [null, 'primary', 'secondary', 'tertiary'],
+                optionLabels: { null: 'Theme Default' }
+            },
+            borderStyle: {
+                type: 'select',
+                label: 'Outline Style',
+                group: 'Appearance',
+                options: ['solid', 'dashed', 'dotted']
+            },
+            theme: {
+                type: 'select',
+                label: 'Theme Override',
+                group: 'Appearance',
+                options: THEME_OVERRIDES,
+                optionLabels: THEME_OPTION_LABELS
+            },
+            closeOnClickOutside: { type: 'boolean', label: 'Close On Click Outside', group: 'Behavior' },
+            closeOnEscape: { type: 'boolean', label: 'Close On Escape', group: 'Behavior' },
+            autoClose: { type: 'number', label: 'Auto Close After (ms, 0 = never)', group: 'Behavior', min: 0, max: 30000, step: 500 },
+            layout: {
+                type: 'select',
+                label: 'Layout Type',
+                group: 'Layout',
+                options: COMMON_LAYOUTS
+            },
+            columns: {
+                type: 'select',
+                label: 'Columns (grid and multicolumn)',
+                group: 'Layout',
+                options: COLUMN_OPTIONS
+            },
+            align: {
+                type: 'select',
+                label: 'Align Items',
+                group: 'Layout',
+                options: ALIGN_OPTIONS
+            },
+            justify: {
+                type: 'select',
+                label: 'Justify Content',
+                group: 'Layout',
+                options: FLEX_JUSTIFY_OPTIONS
+            },
+            gap: {
+                type: 'select',
+                label: 'Gap',
+                group: 'Spacing',
+                options: LAYOUT_GAPS
+            },
+            padding: {
+                type: 'select',
+                label: 'Padding',
+                group: 'Spacing',
+                options: COMMON_PADDING
+            },
+            width: { type: 'text', label: 'Width', group: 'Size', placeholder: 'e.g., 240px, 50vw' },
+            height: { type: 'text', label: 'Height', group: 'Size', placeholder: 'e.g., 200px, 40vh' }
+        },
+        description: 'Floating card above all other elements, opened here from a button; components open one through their genie prop'
     },
 
     Image: {
@@ -1906,6 +2414,8 @@ const COMPONENT_METADATA = {
                 }
             },
             alt: { type: 'text', label: 'Alt Text', group: 'Content' },
+            width: { type: 'text', label: 'Width', group: 'Size', placeholder: 'e.g., 320px, 100%' },
+            height: { type: 'text', label: 'Height', group: 'Size', placeholder: 'e.g., 240px' },
             editable: { type: 'boolean', label: 'Editable', group: 'Behavior' },
             size: {
                 type: 'select',
@@ -1924,7 +2434,7 @@ const COMPONENT_METADATA = {
                 type: 'select',
                 label: 'Controls Placement',
                 group: 'Layout',
-                options: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+                options: FAB_POSITIONS
             },
             allowDownload: { type: 'boolean', label: 'Allow Download', group: 'Behavior' },
             fileName: { type: 'text', label: 'Download File Name', group: 'Behavior' },
@@ -1949,12 +2459,14 @@ const COMPONENT_METADATA = {
     Video: {
         component: Video,
         defaultProps: {
-            src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+            src: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
             poster: 'https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=1200&auto=format&fit=crop',
             autoPlay: false,
             loop: false,
             muted: false,
             volume: 0.8,
+            playbackRate: 1,
+            controls: true,
             aspectRatio: '16/9',
             width: '100%',
             color: 'default',
@@ -1984,6 +2496,15 @@ const COMPONENT_METADATA = {
                 max: 1,
                 step: 0.05
             },
+            playbackRate: {
+                type: 'number',
+                label: 'Playback Rate',
+                group: 'Playback',
+                min: 0.25,
+                max: 4,
+                step: 0.25
+            },
+            controls: { type: 'boolean', label: 'Show Controls', group: 'Playback' },
             aspectRatio: {
                 type: 'select',
                 label: 'Aspect Ratio',
@@ -2038,6 +2559,7 @@ const COMPONENT_METADATA = {
             loop: false,
             muted: false,
             initialVolume: 0.8,
+            editable: false,
             color: 'default',
             size: 'md',
             theme: null
@@ -2073,6 +2595,7 @@ const COMPONENT_METADATA = {
                 group: 'Content',
                 placeholder: 'Album or track cover image'
             },
+            editable: { type: 'boolean', label: 'Editable (Edit button for track details)', group: 'Content' },
             autoPlay: { type: 'boolean', label: 'Autoplay', group: 'Playback' },
             loop: { type: 'boolean', label: 'Loop', group: 'Playback' },
             muted: { type: 'boolean', label: 'Muted', group: 'Playback' },
@@ -2145,6 +2668,13 @@ const COMPONENT_METADATA = {
                 group: 'Content',
                 placeholder: 'https://example.com/model.glb'
             },
+            format: {
+                type: 'text',
+                label: 'Format Override',
+                group: 'Content',
+                placeholder: 'e.g., glb, obj, stl (when the URL has no extension)'
+            },
+            alt: { type: 'text', label: 'Alt Text', group: 'Content' },
             controls: {
                 type: 'boolean',
                 label: 'Orbit Controls',
@@ -2252,6 +2782,153 @@ const COMPONENT_METADATA = {
         },
         description: 'Interactive 3D model viewer with orbit controls, multiple lighting presets, and auto-rotation'
     },
+
+    PdfViewer: {
+        component: PdfViewer,
+        defaultProps: {
+            blob: createSamplePdf(),
+            fileName: 'sample.pdf',
+            readOnly: false,
+            compact: false,
+            color: 'primary',
+            width: '100%',
+            height: '520px'
+        },
+        propConfigs: {
+            fileName: { type: 'text', label: 'File Name', group: 'Content' },
+            readOnly: { type: 'boolean', label: 'Read Only (no annotation tools)', group: 'Behavior' },
+            compact: { type: 'boolean', label: 'Compact Page Navigation', group: 'Appearance' },
+            color: {
+                type: 'select',
+                label: 'Active Tool Badge Color',
+                group: 'Appearance',
+                options: BADGE_COLORS
+            },
+            width: {
+                type: 'select',
+                label: 'Width',
+                group: 'Layout',
+                options: ['100%', '80%', '640px']
+            },
+            height: {
+                type: 'select',
+                label: 'Height',
+                group: 'Layout',
+                options: ['400px', '520px', '640px', '800px']
+            }
+        },
+        description: 'PDF viewer with zoom, page navigation and annotation tools; saving writes the annotated PDF back into the demo'
+    },
+
+    Frame: {
+        component: Frame,
+        defaultProps: {
+            html: SAMPLE_FRAME_HTML,
+            title: 'Sample page',
+            width: '100%',
+            height: '320px',
+            fit: false,
+            dressed: false,
+            bordered: true,
+            themed: true,
+            theme: null
+        },
+        propConfigs: {
+            html: { type: 'text', label: 'Page HTML', group: 'Content' },
+            title: { type: 'text', label: 'Frame Title', group: 'Content' },
+            fit: { type: 'boolean', label: 'Fit Height To Page', group: 'Layout' },
+            width: {
+                type: 'select',
+                label: 'Width',
+                group: 'Layout',
+                options: ['100%', '80%', '480px']
+            },
+            height: {
+                type: 'select',
+                label: 'Height (ignored when fitting)',
+                group: 'Layout',
+                options: ['160px', '320px', '480px']
+            },
+            maxHeight: { type: 'text', label: 'Max Height (when fitting)', group: 'Layout', placeholder: 'e.g., 300px' },
+            themed: { type: 'boolean', label: 'Pass App Theme To Page', group: 'Appearance' },
+            dressed: { type: 'boolean', label: 'Dress Buttons In App Style', group: 'Appearance' },
+            bordered: { type: 'boolean', label: 'Bordered', group: 'Appearance' },
+            theme: {
+                type: 'select',
+                label: 'Theme Override',
+                group: 'Appearance',
+                options: THEME_OVERRIDES,
+                optionLabels: THEME_OPTION_LABELS
+            }
+        },
+        description: 'Sealed frame that runs a web page given as text, with no network and no access to the app'
+    },
+
+    Slides: {
+        component: Slides,
+        defaultProps: {
+            blob: null,
+            fileName: 'slides.pptx',
+            compact: false,
+            width: '100%',
+            height: '480px'
+        },
+        propConfigs: {
+            fileName: { type: 'text', label: 'File Name', group: 'Content' },
+            compact: { type: 'boolean', label: 'Compact', group: 'Appearance' },
+            width: {
+                type: 'select',
+                label: 'Width',
+                group: 'Layout',
+                options: ['100%', '80%', '640px']
+            },
+            height: {
+                type: 'select',
+                label: 'Height',
+                group: 'Layout',
+                options: ['320px', '480px', '640px']
+            }
+        },
+        description: 'PowerPoint viewer, one slide at a time; choose a .pptx file in the demo area to show it'
+    },
+
+    Sheet: {
+        component: Sheet,
+        defaultProps: {
+            text: SAMPLE_SHEET_CSV,
+            fileName: 'inventory.csv',
+            view: 'grid',
+            editable: false,
+            compact: false,
+            width: '100%',
+            height: '420px'
+        },
+        propConfigs: {
+            fileName: { type: 'text', label: 'File Name (.csv or .tsv)', group: 'Content' },
+            view: {
+                type: 'select',
+                label: 'View',
+                group: 'Layout',
+                options: ['grid', 'data'],
+                optionLabels: { grid: 'Grid', data: 'Data (records)' }
+            },
+            editable: { type: 'boolean', label: 'Editable', group: 'Behavior' },
+            compact: { type: 'boolean', label: 'Compact', group: 'Appearance' },
+            width: {
+                type: 'select',
+                label: 'Width',
+                group: 'Layout',
+                options: ['100%', '80%', '640px']
+            },
+            height: {
+                type: 'select',
+                label: 'Height',
+                group: 'Layout',
+                options: ['320px', '420px', '560px']
+            }
+        },
+        description: 'Spreadsheet viewer and editor for CSV text and spreadsheet files'
+    },
 };
 const DEFAULT_COMPONENT = Object.keys(COMPONENT_METADATA)[0];
 
@@ -2289,11 +2966,20 @@ const generateJSXPreview = (componentName, props = {}) => {
         edges, 
         innerWidth,
         innerHeight,
-        ...restProps 
+        blob,
+        html,
+        text,
+        ...restProps
     } = props;
     
     // Create a mutable copy of props to display
     const displayProps = { ...restProps };
+
+    const { actions: pageActions, brand: pageBrand } = restProps;
+    if (componentName === 'Page') {
+        delete displayProps.actions;
+        delete displayProps.brand;
+    }
 
     // Special handling for Button icon props which are not native to Button but used in demo
     if (componentName === 'Button') {
@@ -2303,7 +2989,7 @@ const generateJSXPreview = (componentName, props = {}) => {
 
     // Generate JSX props with proper formatting
     const propStrings = Object.entries(displayProps)
-        .filter(([_, value]) => value !== null && value !== undefined)
+        .filter(([_, value]) => value !== null && value !== undefined && value !== '')
         .map(([key, value]) => {
             if (typeof value === 'boolean') {
                 return value ? key : `${key}={false}`;
@@ -2327,6 +3013,19 @@ const generateJSXPreview = (componentName, props = {}) => {
     if (componentName === 'Editor') {
         if (content) propStrings.push(`content={${JSON.stringify(content)}}`);
         if (diffContent) propStrings.push(`diffContent={${JSON.stringify(diffContent)}}`);
+    }
+
+    if (blob) propStrings.push('blob={fileBlob}');
+    if (html) propStrings.push(`html={${JSON.stringify(html)}}`);
+    if (text) propStrings.push(`text={${JSON.stringify(text)}}`);
+
+    if (componentName === 'Page') {
+        if (pageActions) propStrings.push('actions={<Button size="sm" color="secondary" variant="solid"><Icon name="FiPlus" />Add item</Button>}');
+        if (pageBrand) propStrings.push('brand={<Typography size="md" weight="bold" font="secondary">App Base</Typography>}');
+    }
+
+    if (componentName === 'Genie') {
+        propStrings.push('triggerRef={triggerRef}', 'onClose={() => setVisible(false)}');
     }
 
     // Add nodes and edges for Flow
@@ -2369,6 +3068,10 @@ const generateJSXPreview = (componentName, props = {}) => {
     }
     
     let childrenText = typeof children === 'string' ? children : '';
+
+    if (componentName === 'Genie') {
+        childrenText = '<YourContent />';
+    }
 
     // Special case: Button with icons
     if (componentName === 'Button' && (props.icon || childrenText)) {
@@ -2501,7 +3204,13 @@ const ComponentDemoRefactoredNew = () => {
     const [selectedComponent, setSelectedComponent] = useState(DEFAULT_COMPONENT);
     const [componentProps, setComponentProps] = useState(() => cloneDefaultPropsForComponent(DEFAULT_COMPONENT));
     const [pageProps, setPageProps] = useState(() => cloneDefaultPropsForComponent('Page'));
-    const activePageProps = selectedComponent === 'Page' ? componentProps : pageProps;
+    const chosenPageProps = selectedComponent === 'Page' ? componentProps : pageProps;
+    const activePageProps = {
+        ...chosenPageProps,
+        actions: chosenPageProps.actions ? <Button size="sm" color="secondary" variant="solid"><Icon name="FiPlus" />Add item</Button> : null,
+        brand: chosenPageProps.brand ? <Typography size="md" weight="bold" font="secondary">App Base</Typography> : null
+    };
+    const genieTriggerRef = useRef(null);
 
     const jsxPreview = useMemo(
         () => generateJSXPreview(selectedComponent, componentProps),
@@ -2654,16 +3363,14 @@ const ComponentDemoRefactoredNew = () => {
                     >
                         <Select
                             label={config.label}
-                            value={value === null ? 'null' : value}
+                            value={value === null ? 'null' : value === undefined ? value : String(value)}
                             onChange={(selectedValue) => {
-                                // Convert 'null' string back to actual null
-                                const normalized = Array.isArray(selectedValue)
-                                    ? selectedValue.map(v => v === 'null' ? null : v)
-                                    : selectedValue === 'null' ? null : selectedValue;
-                                handleChange(normalized);
+                                // Option values are strings so the Select can search them; map back to the real option
+                                const original = config.options.find(opt => (opt === null ? 'null' : String(opt)) === selectedValue);
+                                handleChange(original === undefined ? selectedValue : original);
                             }}
                             options={config.options.map(opt => ({
-                                value: opt === null ? 'null' : opt,
+                                value: opt === null ? 'null' : String(opt),
                                 label: config.optionLabels?.[opt] || (opt === null ? 'None' : String(opt))
                             }))}
                             size="sm"
@@ -2690,6 +3397,7 @@ const ComponentDemoRefactoredNew = () => {
                             variant="outline"
                             {...(config.min !== undefined && { min: config.min })}
                             {...(config.max !== undefined && { max: config.max })}
+                            {...(config.step !== undefined && { step: config.step })}
                         />
                     </Container>
                 );
@@ -2748,7 +3456,9 @@ const ComponentDemoRefactoredNew = () => {
             return (
                 <ComponentToRender
                     {...effectiveProps}
-                    onChange={(e) => handlePropChange('value', e.target.value)}
+                    onChange={(e) => (e.target.type === 'checkbox'
+                        ? handlePropChange('checked', e.target.checked)
+                        : handlePropChange('value', e.target.value))}
                 />
             );
         }
@@ -2776,10 +3486,12 @@ const ComponentDemoRefactoredNew = () => {
         }
 
         if (selectedComponent === 'TreeView') {
+            const { genieTrigger, ...treeProps } = effectiveProps;
+
             return (
                 <Container width="100%" maxWidth="400px" padding="none">
                     <ComponentToRender
-                        {...effectiveProps}
+                        {...treeProps}
                         onNodeExpand={handleTreeNodeExpand}
                         onNodeSelect={handleTreeNodeSelect}
                     />
@@ -2788,9 +3500,15 @@ const ComponentDemoRefactoredNew = () => {
         }
 
         if (selectedComponent === 'Data') {
+            const { genieTrigger, ...dataProps } = effectiveProps;
+
             return (
                 <Container width="100%" padding="none">
-                    <ComponentToRender {...effectiveProps} />
+                    {/* Data reads variant and pageSize only on mount, so a change remounts it */}
+                    <ComponentToRender
+                        key={`${dataProps.variant}-${dataProps.pageSize}`}
+                        {...dataProps}
+                    />
                 </Container>
             );
         }
@@ -2809,12 +3527,125 @@ const ComponentDemoRefactoredNew = () => {
         if (selectedComponent === 'Flow') {
             return (
                 <Container width="100%" minHeight="300px" padding="none">
+                    {/* Flow reads minimap and backgroundVariant only on mount, so a change remounts it */}
                     <ComponentToRender
+                        key={`${effectiveProps.minimap}-${effectiveProps.backgroundVariant}`}
                         {...effectiveProps}
                         onChange={({ nodes, edges }) => {
                             handlePropChange('nodes', nodes);
                             handlePropChange('edges', edges);
                         }}
+                    />
+                </Container>
+            );
+        }
+
+        if (selectedComponent === 'Audio') {
+            const { title, artist, album } = effectiveProps;
+
+            return (
+                <ComponentToRender
+                    {...effectiveProps}
+                    metadata={{ title, artist, album }}
+                    onMetadataSave={(patch) => setComponentProps(prev => ({
+                        ...prev,
+                        ...Object.fromEntries(['title', 'artist', 'album', 'cover'].filter(key => key in patch).map(key => [key, patch[key]]))
+                    }))}
+                />
+            );
+        }
+
+        if (selectedComponent === 'Divider') {
+            const vertical = effectiveProps.orientation === 'vertical';
+
+            return (
+                <Container
+                    layout={vertical ? 'flex' : 'flex-column'}
+                    align="stretch"
+                    gap="sm"
+                    padding="none"
+                    width="100%"
+                    maxWidth="480px"
+                    height={vertical ? '120px' : null}
+                >
+                    <Typography color="muted" size="sm">{vertical ? 'Left' : 'Above the divider'}</Typography>
+                    <ComponentToRender {...effectiveProps} />
+                    <Typography color="muted" size="sm">{vertical ? 'Right' : 'Below the divider'}</Typography>
+                </Container>
+            );
+        }
+
+        if (selectedComponent === 'Genie') {
+            const close = () => handlePropChange('visible', false);
+
+            return (
+                <>
+                    <Button ref={genieTriggerRef} onClick={() => handlePropChange('visible', true)}>
+                        Open Genie
+                    </Button>
+                    <ComponentToRender
+                        {...effectiveProps}
+                        triggerRef={genieTriggerRef}
+                        onClose={close}
+                        onBackdropClick={close}
+                    >
+                        <Typography size="sm" weight="semibold">Genie</Typography>
+                        <Typography size="sm">Floating content placed next to the button that opened it.</Typography>
+                        <Button size="sm" variant="ghost" onClick={close}>Close</Button>
+                    </ComponentToRender>
+                </>
+            );
+        }
+
+        if (selectedComponent === 'PdfViewer') {
+            return (
+                <ComponentToRender
+                    {...effectiveProps}
+                    onSave={(savedBlob) => handlePropChange('blob', savedBlob)}
+                />
+            );
+        }
+
+        if (selectedComponent === 'Frame') {
+            return (
+                <Container width="100%" padding="none">
+                    <ComponentToRender {...effectiveProps} />
+                </Container>
+            );
+        }
+
+        if (selectedComponent === 'Slides') {
+            return (
+                <Container layout="flex-column" gap="sm" padding="none" width="100%">
+                    <Input
+                        type="file"
+                        accept=".pptx"
+                        size="sm"
+                        placeholder="Choose a .pptx file"
+                        onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            handlePropChange('blob', file);
+                            handlePropChange('fileName', file.name);
+                        }}
+                    />
+                    {effectiveProps.blob ? (
+                        <ComponentToRender {...effectiveProps} />
+                    ) : (
+                        <Typography size="sm" color="muted">
+                            Choose a .pptx file to show it here. Nothing is uploaded.
+                        </Typography>
+                    )}
+                </Container>
+            );
+        }
+
+        if (selectedComponent === 'Sheet') {
+            return (
+                <Container width="100%" padding="none">
+                    <ComponentToRender
+                        {...effectiveProps}
+                        onTextChange={(next) => handlePropChange('text', next)}
                     />
                 </Container>
             );
@@ -2858,7 +3689,7 @@ const ComponentDemoRefactoredNew = () => {
 
         if (selectedComponent === 'Card') {
             // Extract layout-related props from componentProps
-            const { layout, gap, align, justify, columns, padding, elevation, backgroundColor, children, width, height, innerWidth, innerHeight, genie, genieTrigger, ...restProps } = effectiveProps;
+            const { layout, gap, align, justify, columns, padding, backgroundColor, children, width, height, innerWidth, innerHeight, genie, genieTrigger, ...restProps } = effectiveProps;
             // The genie belongs to the inner cards; the outer card stays a plain surface.
             const innerSize = { width: innerWidth || undefined, height: innerHeight || undefined, genie, genieTrigger };
             
@@ -2870,22 +3701,21 @@ const ComponentDemoRefactoredNew = () => {
                     justify={justify}
                     columns={columns}
                     padding={padding}
-                    elevation={elevation}
                     backgroundColor={backgroundColor}
                     width={width || 'fit-content'}
                     height={height || 'fit-content'}
                     {...restProps}
                 >
                     <Card padding="md" backgroundColor="primary" {...innerSize}>
-                        <Typography weight="bold" color="white">Primary</Typography>
+                        <Typography weight="bold" color="contrast">Primary</Typography>
                     </Card>
                     
                     <Card padding="md" backgroundColor="secondary" {...innerSize}>
-                        <Typography weight="bold" color="white">Secondary</Typography>
+                        <Typography weight="bold" color="contrast">Secondary</Typography>
                     </Card>
 
                     <Card padding="md" backgroundColor="tertiary" {...innerSize}>
-                        <Typography weight="bold" color="white">Tertiary</Typography>
+                        <Typography weight="bold" color="contrast">Tertiary</Typography>
                     </Card>
 
                     <Card padding="md" backgroundColor="surface" {...innerSize}>
@@ -2922,6 +3752,8 @@ const ComponentDemoRefactoredNew = () => {
                         <br/>
                         (Borders added for visibility)
                     </Typography>
+                    <Typography color="muted" size="sm">Second item</Typography>
+                    <Typography color="muted" size="sm">Third item</Typography>
                 </ComponentToRender>
             );
         }
@@ -3027,7 +3859,7 @@ const ComponentDemoRefactoredNew = () => {
 
                 {/* Section 3: Props Control Panel */}
                 <Container layout="flex" justify="center" align="center" padding="none" width="100%">
-                    <Card padding="md" elevation="md" gap="md">
+                    <Card padding="md" gap="md">
                            <Typography color="primary" size="xl" weight="semibold">
                                 Properties
                             </Typography>

@@ -89,6 +89,10 @@ export const Page = forwardRef(({
     children,
     className = '',
     title = '',
+    lead = '', // One line under the title saying what the page is for
+    actions = null, // The page's own actions, shown at the right of the title
+    brand = null, // Shown at the left of the title row in place of a title, for a page whose heading is in its content
+    frame = false, // true keeps the content in the app's one column; a page with a title is always framed
     // Layout props (same as Container)
     layout = 'block', // 'block', 'flex', 'flex-wrap', 'flex-column', 'grid', 'multicolumn', 'positioned'
     columns = 1, // 1-6 for grid layouts, or 'auto', 'auto-sm', 'auto-lg'
@@ -224,23 +228,51 @@ export const Page = forwardRef(({
         ...props.style
     };
 
+    // A framed page keeps its title row and its content on the same two lines as every other page, and leaves
+    // the corner of the title row free for the floating navigation button.
+    const framed = frame || Boolean(title || brand);
+    const layoutClasses = framed
+        ? 'page-framed'
+        : `${getLayoutClass()} ${getColumnsClass()} ${getGapClass()} ${getPaddingClass()} ${getAlignClass()} ${getJustifyClass()}`;
+
     const pageElement = (
         <div
             ref={pageRef}
             {...domProps}
             {...triggerProps}
             style={mergedStyle}
-            className={`page themed-page ${getLayoutClass()} ${getColumnsClass()} ${getGapClass()} ${getPaddingClass()} ${getAlignClass()} ${getJustifyClass()} ${genieConfig ? 'genie-trigger' : ''} ${backgroundClass} theme-${pageTheme} ${className}`}
+            className={`page themed-page ${layoutClasses} ${genieConfig ? 'genie-trigger' : ''} ${backgroundClass} theme-${pageTheme} ${className}`}
             data-theme={pageTheme}
             data-theme-source={theme ? 'local' : 'inherited'}
             data-genie-position={genieConfig?.position || 'auto'}
         >
-            {title && (
-                <Container className="page-header">
-                    <Typography as="h1" color='primary'>{title}</Typography>
-                </Container>
-            )}
-            {children}
+            {framed ? (
+                <div className="page-frame">
+                    {(title || actions || brand) && (
+                        <header className="page-header">
+                            <div className="page-header-text">
+                                {brand}
+                                {title && <Typography as="h1" size="xl" weight="semibold" font="secondary">{title}</Typography>}
+                                {lead && <Typography as="p" size="xs" color="muted" margin="none">{lead}</Typography>}
+                            </div>
+                            {actions && <div className="page-header-actions">{actions}</div>}
+                        </header>
+                    )}
+                    <Container
+                        className="page-body"
+                        layout={layout === 'flex-wrap' ? 'flex' : layout === 'block' ? 'flex-column' : layout}
+                        columns={columns}
+                        gap={gap}
+                        align={layout === 'block' ? 'stretch' : align}
+                        justify={justify}
+                        padding="none"
+                        width="100%"
+                        wrap={layout === 'flex' || layout === 'flex-wrap'}
+                    >
+                        {children}
+                    </Container>
+                </div>
+            ) : children}
 
             {/* Genie Integration */}
             {GeniePortal}

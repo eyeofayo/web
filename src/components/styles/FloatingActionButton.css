@@ -1,10 +1,7 @@
-/* ===== FloatingActionButton Component CSS ===== */
-/* Floating Action Button with complete positional awareness and parent container detection */
-
-/* FAB Container - holds both FAB and Genie for unified positioning */
+/* The container is what gets placed and dragged; it holds the button, its badge and its Genie. */
 .fab-container {
     position: fixed;
-    z-index: 100000;
+    z-index: var(--z-fab, 100000);
     touch-action: none;
 }
 
@@ -12,46 +9,20 @@
     position: absolute;
     cursor: move;
     user-select: none;
-    /* Use absolute positioning instead of predefined positions */
     transform: none !important;
 }
 
 .fab-container.fab-dragging {
     transition: none !important;
-    z-index: 100002; /* Raise z-index while dragging */
+    z-index: calc(var(--z-fab, 100000) + 2);
 }
 
-/* Snapping animation */
+/* The drag code moves left and top, so those are what ease into the snapped place (its timer is 300ms). */
 .fab-container.fab-snapping {
-    transition: left 0.3s ease-out, top 0.3s ease-out !important;
-    z-index: 100001;
+    transition: left 0.3s var(--ease), top 0.3s var(--ease) !important;
+    z-index: calc(var(--z-fab, 100000) + 1);
 }
 
-/* Show subtle indication when near snap edge */
-.fab-container.fab-dragging.fab-near-edge .floating-action-button {
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25), 0 3px 8px rgba(0, 0, 0, 0.18),
-    0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-/* Snap preview pulse animation */
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-        opacity: 0.4;
-    }
-    100% {
-        transform: scale(1.02);
-        opacity: 0.6;
-    }
-}
-
-/* Snap preview indicator - semi-transparent clone of the actual button */
-.fab-snap-preview {
-    animation: pulse 0.8s ease-in-out infinite alternate;
-    opacity: 0.5;
-}
-
-/* Cursor for draggable buttons */
 .fab-container.fab-draggable .floating-action-button.fab-handle {
     cursor: grab;
 }
@@ -60,146 +31,123 @@
     cursor: grabbing;
 }
 
-.floating-action-button {
-    /* Remove positioning from button since container handles it */
+/* ===== The button: a solid circle that floats =====
+   Button.css names each colour's tone and contrast; the circle is filled with the tone and its icon takes the contrast. */
+.fab-container .floating-action-button.button.themed-button {
+    --fab-size: 48px;
+    --fab-icon: 20px;
     position: relative;
-    z-index: inherit; /* Keep button layering consistent with container */
-    padding: var(--spacing-sm) !important; /* Default inner padding for medium FABs */
-
-    /* Override Button component styles for perfect circular shape */
-    border-radius: 50% !important; /* Force circular shape; Override button border radius */
-    width: 56px;
-    height: 56px; /* Override Button height */
-    min-width: 56px; /* Prevent shrinking */
-    min-height: 56px; /* Prevent shrinking */
-    margin: var(--spacing-xs) !important; /* Override button margins */
-
-    /* Enhanced shadow for floating appearance */
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
-
-    /* Smooth transitions */
-    transition: transform var(--transition-normal),
-    box-shadow var(--transition-normal),
-    opacity var(--transition-normal);
-
-    /* Prevent text selection */
-    user-select: none;
-
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    /* Accessibility */
-    cursor: pointer;
+    width: var(--fab-size);
+    height: var(--fab-size);
+    min-width: var(--fab-size);
+    min-height: var(--fab-size);
+    margin: 0;
+    padding: 0;
+    border-color: var(--button-tone);
+    border-radius: 50%;
+    background-color: var(--button-tone);
+    color: var(--button-contrast);
+    box-shadow: var(--shadow-md);
+    user-select: none;
 }
 
-/* Enhanced hover effects */
-.floating-action-button:not(:disabled):hover {
-    transform: scale(1.1);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), 0 3px 8px rgba(0, 0, 0, 0.15);
-    z-index: 100001; /* Slightly higher on hover */
+.fab-container .floating-action-button.button.themed-button .themed-icon {
+    width: var(--fab-icon);
+    height: var(--fab-icon);
+    font-size: var(--fab-icon);
 }
 
-/* Active state */
-.floating-action-button:not(:disabled):active {
-    transform: scale(0.95);
+@media (hover: hover) and (pointer: fine) {
+    .fab-container .floating-action-button.button.themed-button:hover:not(:disabled) {
+        border-color: color-mix(in srgb, var(--button-tone) 86%, var(--text-color));
+        background-color: color-mix(in srgb, var(--button-tone) 86%, var(--text-color));
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-1px);
+    }
 }
 
-/* Disabled state */
-.floating-action-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.fab-container .floating-action-button.button.themed-button:active:not(:disabled) {
+    box-shadow: var(--shadow-sm);
+    transform: translateY(0) scale(0.97);
+    transition-duration: var(--motion-press);
+}
+
+/* While it is carried the button is lifted, not pressed. */
+.fab-container.fab-dragging .floating-action-button.button.themed-button:not(.fab-snap-preview) {
+    box-shadow: var(--shadow-lg);
     transform: none;
 }
 
-/* When floating card is active */
-.floating-action-button.has-floating-card-active {
-    z-index: 100002; /* Highest for active state */
+.fab-container.fab-dragging.fab-near-edge .floating-action-button.button.themed-button:not(.fab-snap-preview) {
+    box-shadow: var(--shadow-lg), 0 0 0 3px color-mix(in srgb, var(--button-tone) 30%, transparent);
 }
 
-/* ===== FAB Badge Positioning ===== */
-.fab-container .fab-badge {
+/* ghost: a quiet white circle, for a control that sits over content (the 3D viewer's settings) */
+.fab-container .floating-action-button.button.themed-button.themed-button-ghost {
+    border-color: var(--border-color);
+    background-color: var(--surface-color);
+    color: var(--button-ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .fab-container .floating-action-button.button.themed-button.themed-button-ghost:hover:not(:disabled) {
+        border-color: var(--control-border-color, var(--border-color));
+        background-color: color-mix(in srgb, var(--button-ink) 8%, var(--surface-color));
+    }
+}
+
+/* ===== Sizes: one value at every screen width ===== */
+.fab-container .floating-action-button.button.themed-button.xs { --fab-size: 32px; --fab-icon: 16px; }
+.fab-container .floating-action-button.button.themed-button.sm { --fab-size: 40px; --fab-icon: 18px; }
+.fab-container .floating-action-button.button.themed-button.md { --fab-size: 48px; --fab-icon: 20px; }
+.fab-container .floating-action-button.button.themed-button.lg { --fab-size: 56px; --fab-icon: 24px; }
+.fab-container .floating-action-button.button.themed-button.xl { --fab-size: 64px; --fab-icon: 28px; }
+
+/* ===== Snap preview: a faint copy of the button where it will land ===== */
+.fab-container .floating-action-button.button.themed-button.fab-snap-preview {
+    box-shadow: none;
+    animation: fab-snap-pulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes fab-snap-pulse {
+    from { opacity: 0.25; }
+    to { opacity: 0.5; }
+}
+
+/* ===== Badge: the Badge pill, filled so a count reads at 18px against the circle ===== */
+.fab-container .badge.fab-badge {
+    --fab-badge-ink: var(--text-contrast-color);
     position: absolute;
-    top: -4px;
-    right: -4px;
-    z-index: 100001; /* Above the FAB but below Genie */
-    pointer-events: none; /* Don't interfere with FAB clicks */
-    min-width: 16px;
-    height: 16px;
-    font-size: 10px;
-    font-weight: 600;
-    line-height: 1.2;
+    top: -3px;
+    right: -3px;
+    z-index: 2;
+    box-sizing: border-box;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: var(--text-xxs);
+    font-weight: var(--font-weight-semibold);
+    line-height: 18px;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    background-color: var(--badge-tone);
+    color: var(--fab-badge-ink);
+    box-shadow: 0 0 0 2px var(--surface-color);
+    pointer-events: none;
 }
 
-/* Badge size adjustments based on FAB size */
-.fab-container:has(.floating-action-button.small) .fab-badge {
-    top: -2px;
-    right: -2px;
-    min-width: 14px;
-    height: 14px;
-    font-size: 9px;
-}
+.fab-container .badge.fab-badge.themed-badge-primary { --fab-badge-ink: var(--primary-contrast-color, var(--text-contrast-color)); }
+.fab-container .badge.fab-badge.themed-badge-secondary { --fab-badge-ink: var(--secondary-contrast-color, var(--text-contrast-color)); }
+.fab-container .badge.fab-badge.themed-badge-tertiary { --fab-badge-ink: var(--tertiary-contrast-color, var(--text-contrast-color)); }
+.fab-container .badge.fab-badge.themed-badge-success { --fab-badge-ink: var(--success-contrast-color, var(--text-contrast-color)); }
+.fab-container .badge.fab-badge.themed-badge-warning { --fab-badge-ink: var(--warning-contrast-color, var(--text-contrast-color)); }
+.fab-container .badge.fab-badge.themed-badge-error,
+.fab-container .badge.fab-badge.themed-badge-danger { --fab-badge-ink: var(--error-contrast-color, var(--text-contrast-color)); }
 
-.fab-container:has(.floating-action-button.large) .fab-badge {
-    top: -6px;
-    right: -6px;
-    min-width: 20px;
-    height: 20px;
-    font-size: 11px;
-}
-
-/* ===== Size Variants ===== */
-.floating-action-button.xs {
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    min-height: 32px;
-    margin: 0 !important;
-    padding: var(--spacing-xs) !important;
-}
-
-.floating-action-button.sm {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-    margin: 0 !important;
-    padding: var(--spacing-sm) !important;
-}
-
-.floating-action-button.md {
-    width: 56px;
-    height: 56px;
-    min-width: 56px;
-    min-height: 56px;
-    padding: var(--spacing-md) !important;
-}
-
-.floating-action-button.lg {
-    width: 72px;
-    height: 72px;
-    min-width: 72px;
-    min-height: 72px;
-    margin: var(--spacing-sm) !important;
-    padding: var(--spacing-lg) !important;
-}
-
-.floating-action-button.xl {
-    width: 88px;
-    height: 88px;
-    min-width: 88px;
-    min-height: 88px;
-    margin: var(--spacing-md) !important;
-    padding: var(--spacing-xl) !important;
-}
-
-/* ===== Position Variants ===== */
-/* Default positioning with standard offsets - Apply to container */
-
-/* Top positions */
+/* ===== Positions (the component also sets these inline from its edge padding) ===== */
 .fab-container.fab-position-top-left {
     top: var(--spacing-lg);
     left: var(--spacing-lg);
@@ -211,24 +159,15 @@
     transform: translateX(-50%);
 }
 
-.fab-container.fab-position-top:hover .floating-action-button {
-    transform: scale(1.1);
-}
-
 .fab-container.fab-position-top-right {
     top: var(--spacing-lg);
     right: var(--spacing-lg);
 }
 
-/* Middle positions */
 .fab-container.fab-position-left {
     top: 50%;
     left: var(--spacing-lg);
     transform: translateY(-50%);
-}
-
-.fab-container.fab-position-left:hover .floating-action-button {
-    transform: scale(1.1);
 }
 
 .fab-container.fab-position-right {
@@ -237,11 +176,6 @@
     transform: translateY(-50%);
 }
 
-.fab-container.fab-position-right:hover .floating-action-button {
-    transform: scale(1.1);
-}
-
-/* Bottom positions */
 .fab-container.fab-position-bottom-left {
     bottom: var(--spacing-lg);
     left: var(--spacing-lg);
@@ -253,89 +187,30 @@
     transform: translateX(-50%);
 }
 
-.fab-container.fab-position-bottom:hover .floating-action-button {
-    transform: scale(1.1);
-}
-
 .fab-container.fab-position-bottom-right {
     bottom: var(--spacing-lg);
     right: var(--spacing-lg);
 }
 
-/* ===== Parent Type Awareness ===== */
-/* Adjust positioning based on parent container type */
-
-/* Page container - uses viewport positioning */
+/* ===== Parent awareness: fixed to the page, absolute inside a card or a container ===== */
 .fab-container.fab-parent-page {
     position: fixed;
 }
 
-/* Card container - positions relative to card bounds */
-.fab-container.fab-parent-card {
-    position: absolute;
-}
-
-/* Container - positions relative to container bounds */
-.fab-container.fab-parent-container {
-    position: absolute;
-}
-
-/* ===== Scroll Behavior ===== */
-/* Control whether FAB scrolls with content - always scroll with parent by default */
-
+.fab-container.fab-parent-card,
+.fab-container.fab-parent-container,
 .fab-container.fab-scroll-with-parent.fab-parent-card,
 .fab-container.fab-scroll-with-parent.fab-parent-container {
     position: absolute;
 }
 
-/* ===== Accessibility ===== */
-/* Focus styling */
-.floating-action-button:focus-visible {
-    outline: 2px solid var(--accent-color);
-    outline-offset: 2px;
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    .floating-action-button {
-        border: 2px solid;
-    }
-}
-
-/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-    .floating-action-button {
-        transition: none;
+    .fab-container,
+    .fab-container.fab-snapping {
+        transition: none !important;
     }
 
-    .floating-action-button:hover {
-        transform: none;
+    .fab-container .floating-action-button.button.themed-button.fab-snap-preview {
+        animation: none;
     }
 }
-
-/* ===== Animation Keyframes ===== */
-@keyframes fab-bounce-in {
-    0% {
-        transform: scale(0);
-        opacity: 0;
-    }
-    50% {
-        transform: scale(1.2);
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-/* Entry animation */
-.floating-action-button {
-    animation: fab-bounce-in 0.3s ease-out;
-}
-
-/* The icon keeps the same share of the circle on every screen. */
-.floating-action-button.button.themed-button .themed-icon { width: 24px; height: 24px; font-size: 24px; }
-.floating-action-button.button.themed-button.xs .themed-icon { width: 16px; height: 16px; font-size: 16px; }
-.floating-action-button.button.themed-button.sm .themed-icon { width: 20px; height: 20px; font-size: 20px; }
-.floating-action-button.button.themed-button.lg .themed-icon { width: 30px; height: 30px; font-size: 30px; }
-.floating-action-button.button.themed-button.xl .themed-icon { width: 36px; height: 36px; font-size: 36px; }

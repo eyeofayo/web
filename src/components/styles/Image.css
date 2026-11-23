@@ -13,7 +13,7 @@
 	outline: none;
 	vertical-align: top;
 	/* Smooth transitions for non-edit mode */
-	transition: filter 0.2s ease, transform 0.2s ease, opacity 0.3s ease;
+	transition: transform var(--motion-in) var(--ease), opacity var(--motion-in) var(--ease);
 }
 
 /* Edit mode - disable transitions for instant feedback */
@@ -48,22 +48,24 @@
 }
 
 .image-edit-border:not(.dragging) {
-	transition: transform 0.1s ease;
+	transition: transform var(--motion-in) var(--ease);
 }
 
 /* Base drag handle styles */
 .drag-handle {
 	position: absolute;
 	pointer-events: auto;
-	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	transition: transform var(--motion-in) var(--ease), box-shadow var(--motion-in) var(--ease);
 	user-select: none;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+	box-shadow: var(--shadow-sm);
 	/* Reset parent transform to prevent warping */
 	transform-origin: center;
 }
 
-.drag-handle:hover {
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+@media (hover: hover) and (pointer: fine) {
+    .drag-handle:hover {
+    	box-shadow: var(--shadow-md);
+    }
 }
 
 .drag-handle:active {
@@ -81,13 +83,15 @@
 	border-radius: 50%;
 	cursor: grab;
 	z-index: 10;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+	box-shadow: var(--shadow-sm);
 	/* Counter parent scale to maintain perfect circle */
 	transform: translateX(-50%) scale(var(--handle-scale-x, 1), var(--handle-scale-y, 1));
 }
 
-.rotation-handle:hover {
-	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+@media (hover: hover) and (pointer: fine) {
+    .rotation-handle:hover {
+    	box-shadow: var(--shadow-md);
+    }
 }
 
 /* Rotation connector line */
@@ -147,7 +151,7 @@
 .edge-handle {
 	background-color: var(--primary-color);
 	border: 1px solid var(--background-color);
-	border-radius: 4px;
+	border-radius: var(--border-radius);
 	z-index: 10;
 }
 
@@ -286,7 +290,7 @@
 	width: 40px;
 	height: 8px;
 	border: 1px solid var(--background-color);
-	border-radius: 4px;
+	border-radius: var(--border-radius);
 	cursor: ns-resize;
 }
 
@@ -304,7 +308,7 @@
 	width: 8px;
 	height: 40px;
 	border: 1px solid var(--background-color);
-	border-radius: 4px;
+	border-radius: var(--border-radius);
 	cursor: ew-resize;
 }
 

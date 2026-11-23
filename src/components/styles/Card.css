@@ -4,10 +4,11 @@
 .card,
 .themed-card {
     /* Base visual styling */
+    /* A card is barely there: one step off the page, a hairline, no shadow at rest. */
     background-color: var(--surface-color);
     border: 1px solid var(--border-color);
     border-radius: var(--card-radius, var(--border-radius));
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--card-shadow, none);
     font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
 
     /* Default padding (can be overridden with p-* utilities) */
@@ -23,7 +24,7 @@
     display: block;
 
     /* Transitions */
-    transition: all var(--transition-normal);
+    transition: border-color var(--motion-out) var(--ease), box-shadow var(--motion-out) var(--ease), background-color var(--motion-out) var(--ease);
 
     /* Prevent unwanted stacking contexts for Genie */
     isolation: auto;
@@ -395,34 +396,30 @@
 
 /* ===== Card-Specific Features ===== */
 /* Hover effects */
+/* A card that can be pressed answers the pointer: its edge firms and a soft shadow appears. No transform, which
+   would trap the dropdowns and Genies inside it. */
 .card.themed-card-hover,
 .themed-card.themed-card-hover {
-    transition: all var(--transition-normal);
+    cursor: pointer;
 }
 
-.card.themed-card-hover:hover,
-.themed-card.themed-card-hover:hover {
-    /* Removed transform to prevent stacking context issues with dropdowns */
-    box-shadow: 0 10px 15px -3px var(--shadow-color-hover);
-}
-
-/* Shadow on hover when Genie is active */
-.card.themed-card-hover.has-genie-active:hover,
-.card.themed-card-hover.no-hover-transform:hover,
-.themed-card.themed-card-hover.has-genie-active:hover,
-.themed-card.themed-card-hover.no-hover-transform:hover {
-    box-shadow: 0 10px 15px -3px var(--shadow-color-hover);
-}
-
-/* Disable hover transforms for cards containing floating elements */
-.card.themed-card-hover:has(.genie-container):hover,
-.themed-card.themed-card-hover:has(.genie-container):hover {
-    box-shadow: 0 10px 15px -3px var(--shadow-color-hover);
+@media (hover: hover) and (pointer: fine) {
+    .card.themed-card-hover:hover,
+    .themed-card.themed-card-hover:hover {
+        border-color: color-mix(in srgb, var(--text-color) 34%, var(--surface-color));
+        box-shadow: var(--card-shadow-hover, 0 10px 24px -14px var(--shadow-color-hover));
+        transition-duration: var(--motion-in);
+    }
 }
 
 .card.card-borderless,
 .themed-card.card-borderless {
     border: none;
+}
+
+.card.card-raised,
+.themed-card.card-raised {
+    box-shadow: var(--shadow-md);
 }
 
 .card.card-border-primary,
@@ -555,4 +552,14 @@
 .themed-card.card-border-dotted {
     border-style: dotted;
     border-width: 2px;
+}
+
+/* A column never wraps into a second column: in a box with a set height that pushed its content out sideways. */
+.card.layout-flex-column.flex-wrap, .themed-card.layout-flex-column.flex-wrap {
+    flex-wrap: nowrap;
+}
+
+/* In a column a filling block still counts its own content, so it grows its box and is never squeezed to nothing. */
+.card.layout-flex-column > .flex-fill, .themed-card.layout-flex-column > .flex-fill {
+    flex-basis: auto;
 }

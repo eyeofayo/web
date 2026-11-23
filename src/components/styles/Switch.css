@@ -3,6 +3,8 @@
 }
 
 .switch-container {
+    --switch-w: 2.25rem;
+    --switch-h: 1.25rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -12,497 +14,94 @@
 
 .switch-label {
     background: transparent !important;
+    color: var(--text-color);
 }
 
+/* The thumb sits 2px inside the track's edge; it travels the track's inner width less the thumb and both gaps. */
 .switch-track {
+    --switch-thumb: calc(var(--switch-h) - 6px);
+    --switch-edge: var(--control-border-color, var(--border-color));
+    position: relative;
     display: flex;
     align-items: center;
-    width: 2.5rem;
-    height: 1.25rem;
+    box-sizing: border-box;
+    flex: none;
+    width: var(--switch-w);
+    height: var(--switch-h);
+    border: 1px solid var(--switch-edge);
     border-radius: var(--border-radius-full);
-    position: relative;
+    background-color: var(--surface-color, var(--background-color));
     cursor: pointer;
-    transition: all var(--transition-fast);
-    background-color: var(--border-color);
-    border: 1px solid var(--border-color);
-}
-
-.switch-track.checked {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    transition: background-color var(--motion-out) var(--ease), border-color var(--motion-out) var(--ease);
 }
 
 .switch-thumb {
-    display: block;
-    width: 1rem;
-    height: 1rem;
-    border-radius: var(--border-radius-full);
     position: absolute;
     top: 50%;
-    left: 0.125rem;
+    left: 2px;
+    display: block;
+    width: var(--switch-thumb);
+    height: var(--switch-thumb);
+    border-radius: var(--border-radius-full);
+    background-color: var(--text-muted);
     transform: translateY(-50%);
-    transition: all var(--transition-fast);
-    background-color: var(--surface-color);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform var(--motion-in) var(--ease), background-color var(--motion-out) var(--ease);
 }
 
-.switch-track.checked .switch-thumb {
-    transform: translateX(1.25rem) translateY(-50%);
+@media (hover: hover) and (pointer: fine) {
+    .switch-input:not(:disabled, :checked) + .switch-track:not(.checked):hover {
+        --switch-edge: color-mix(in srgb, var(--text-color) 55%, var(--control-border-color, var(--border-color)));
+        transition-duration: var(--motion-in);
+    }
 }
 
-.switch-track.disabled {
-    opacity: 0.6;
+.switch-track.checked,
+.switch-input:checked + .switch-track {
+    border-color: var(--primary-color);
+    background-color: var(--primary-color);
+}
+
+.switch-track.checked .switch-thumb,
+.switch-input:checked + .switch-track .switch-thumb {
+    background-color: var(--primary-contrast-color, var(--text-contrast-color, #fff));
+    transform: translate(calc(var(--switch-w) - var(--switch-thumb) - 6px), -50%);
+}
+
+.switch-input:focus-visible + .switch-track {
+    border-color: var(--focus-ring-color, var(--primary-color));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring-color, var(--primary-color)) 18%, transparent);
+    transition: none;
+}
+
+.switch-track.disabled,
+.switch-input:disabled + .switch-track {
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
-/* Switch size variants: xs, sm, md, lg, xl */
-/* Mobile base styles (< 480px) - Extra compact for small phones */
-.switch-xs .switch-track {
-    width: 1.5rem;          /* 24px */
-    height: 0.75rem;        /* 12px */
-}
-
-.switch-xs .switch-thumb {
-    width: 0.5rem;          /* 8px */
-    height: 0.5rem;         /* 8px */
-}
-
-.switch-xs .switch-track.checked .switch-thumb {
-    transform: translateX(0.75rem) translateY(-50%);
-}
-
-.switch-sm .switch-track {
-    width: 1.75rem;         /* 28px */
-    height: 0.875rem;       /* 14px */
-}
-
-.switch-sm .switch-thumb {
-    width: 0.625rem;        /* 10px */
-    height: 0.625rem;       /* 10px */
-}
-
-.switch-sm .switch-track.checked .switch-thumb {
-    transform: translateX(0.875rem) translateY(-50%);
-}
-
-/* Default/medium size */
-.switch-md .switch-track {
-    width: 2rem;            /* 32px */
-    height: 1rem;           /* 16px */
-}
-
-.switch-md .switch-thumb {
-    width: 0.75rem;         /* 12px */
-    height: 0.75rem;        /* 12px */
-}
-
-.switch-md .switch-track.checked .switch-thumb {
-    transform: translateX(1rem) translateY(-50%);
-}
-
-.switch-lg .switch-track {
-    width: 2.25rem;         /* 36px */
-    height: 1.125rem;       /* 18px */
-}
-
-.switch-lg .switch-thumb {
-    width: 0.875rem;        /* 14px */
-    height: 0.875rem;       /* 14px */
-}
-
-.switch-lg .switch-track.checked .switch-thumb {
-    transform: translateX(1.125rem) translateY(-50%);
-}
-
-.switch-xl .switch-track {
-    width: 2.5rem;          /* 40px */
-    height: 1.25rem;        /* 20px */
-}
-
-.switch-xl .switch-thumb {
-    width: 1rem;            /* 16px */
-    height: 1rem;           /* 16px */
-}
-
-.switch-xl .switch-track.checked .switch-thumb {
-    transform: translateX(1.25rem) translateY(-50%);
-}
-
-/* Large phone adjustments (480px - 767px) - Slightly larger for standard phones */
-@media (min-width: 480px) {
-    .switch-xs .switch-track {
-        width: 1.625rem;        /* 26px */
-        height: 0.8125rem;      /* 13px */
-    }
-
-    .switch-xs .switch-thumb {
-        width: 0.5625rem;       /* 9px */
-        height: 0.5625rem;      /* 9px */
-    }
-
-    .switch-xs .switch-track.checked .switch-thumb {
-        transform: translateX(0.8125rem) translateY(-50%);
-    }
-
-    .switch-sm .switch-track {
-        width: 1.875rem;        /* 30px */
-        height: 0.9375rem;      /* 15px */
-    }
-
-    .switch-sm .switch-thumb {
-        width: 0.6875rem;       /* 11px */
-        height: 0.6875rem;      /* 11px */
-    }
-
-    .switch-sm .switch-track.checked .switch-thumb {
-        transform: translateX(0.9375rem) translateY(-50%);
-    }
-
-    .switch-md .switch-track {
-        width: 2.125rem;        /* 34px */
-        height: 1.0625rem;      /* 17px */
-    }
-
-    .switch-md .switch-thumb {
-        width: 0.8125rem;       /* 13px */
-        height: 0.8125rem;      /* 13px */
-    }
-
-    .switch-md .switch-track.checked .switch-thumb {
-        transform: translateX(1.0625rem) translateY(-50%);
-    }
-
-    .switch-lg .switch-track {
-        width: 2.5rem;          /* 40px */
-        height: 1.25rem;        /* 20px */
-    }
-
-    .switch-lg .switch-thumb {
-        width: 1rem;            /* 16px */
-        height: 1rem;           /* 16px */
-    }
-
-    .switch-lg .switch-track.checked .switch-thumb {
-        transform: translateX(1.25rem) translateY(-50%);
-    }
-
-    .switch-xl .switch-track {
-        width: 2.875rem;        /* 46px */
-        height: 1.4375rem;      /* 23px */
-    }
-
-    .switch-xl .switch-thumb {
-        width: 1.1875rem;       /* 19px */
-        height: 1.1875rem;      /* 19px */
-    }
-
-    .switch-xl .switch-track.checked .switch-thumb {
-        transform: translateX(1.4375rem) translateY(-50%);
-    }
-}
-
-/* Tablet adjustments (768px - 1024px) - Moderately sized for comfortable viewing */
-@media (min-width: 768px) {
-    .switch-xs .switch-track {
-        width: 1.75rem;         /* 28px */
-        height: 0.875rem;       /* 14px */
-    }
-
-    .switch-xs .switch-thumb {
-        width: 0.625rem;        /* 10px */
-        height: 0.625rem;       /* 10px */
-    }
-
-    .switch-xs .switch-track.checked .switch-thumb {
-        transform: translateX(0.875rem) translateY(-50%);
-    }
-
-    .switch-sm .switch-track {
-        width: 2rem;            /* 32px */
-        height: 1rem;           /* 16px */
-    }
-
-    .switch-sm .switch-thumb {
-        width: 0.75rem;         /* 12px */
-        height: 0.75rem;        /* 12px */
-    }
-
-    .switch-sm .switch-track.checked .switch-thumb {
-        transform: translateX(1rem) translateY(-50%);
-    }
-
-    .switch-md .switch-track {
-        width: 2.25rem;         /* 36px */
-        height: 1.125rem;       /* 18px */
-    }
-
-    .switch-md .switch-thumb {
-        width: 0.875rem;        /* 14px */
-        height: 0.875rem;       /* 14px */
-    }
-
-    .switch-md .switch-track.checked .switch-thumb {
-        transform: translateX(1.125rem) translateY(-50%);
-    }
-
-    .switch-lg .switch-track {
-        width: 2.75rem;         /* 44px */
-        height: 1.375rem;       /* 22px */
-    }
-
-    .switch-lg .switch-thumb {
-        width: 1.125rem;        /* 18px */
-        height: 1.125rem;       /* 18px */
-    }
-
-    .switch-lg .switch-track.checked .switch-thumb {
-        transform: translateX(1.375rem) translateY(-50%);
-    }
-
-    .switch-xl .switch-track {
-        width: 3.25rem;         /* 52px */
-        height: 1.625rem;       /* 26px */
-    }
-
-    .switch-xl .switch-thumb {
-        width: 1.375rem;        /* 22px */
-        height: 1.375rem;       /* 22px */
-    }
-
-    .switch-xl .switch-track.checked .switch-thumb {
-        transform: translateX(1.625rem) translateY(-50%);
-    }
-}
-
-/* Desktop adjustments (1025px - 1439px) - Spacious for optimal desktop experience */
-@media (min-width: 1025px) {
-    .switch-xs .switch-track {
-        width: 2rem;            /* 32px */
-        height: 1rem;           /* 16px */
-    }
-
-    .switch-xs .switch-thumb {
-        width: 0.75rem;         /* 12px */
-        height: 0.75rem;        /* 12px */
-    }
-
-    .switch-xs .switch-track.checked .switch-thumb {
-        transform: translateX(1rem) translateY(-50%);
-    }
-
-    .switch-sm .switch-track {
-        width: 2.25rem;         /* 36px */
-        height: 1.125rem;       /* 18px */
-    }
-
-    .switch-sm .switch-thumb {
-        width: 0.875rem;        /* 14px */
-        height: 0.875rem;       /* 14px */
-    }
-
-    .switch-sm .switch-track.checked .switch-thumb {
-        transform: translateX(1.125rem) translateY(-50%);
-    }
-
-    .switch-md .switch-track {
-        width: 2.5rem;          /* 40px */
-        height: 1.25rem;        /* 20px */
-    }
-
-    .switch-md .switch-thumb {
-        width: 1rem;            /* 16px */
-        height: 1rem;           /* 16px */
-    }
-
-    .switch-md .switch-track.checked .switch-thumb {
-        transform: translateX(1.25rem) translateY(-50%);
-    }
-
-    .switch-lg .switch-track {
-        width: 3rem;            /* 48px */
-        height: 1.5rem;         /* 24px */
-    }
-
-    .switch-lg .switch-thumb {
-        width: 1.25rem;         /* 20px */
-        height: 1.25rem;        /* 20px */
-    }
-
-    .switch-lg .switch-track.checked .switch-thumb {
-        transform: translateX(1.5rem) translateY(-50%);
-    }
-
-    .switch-xl .switch-track {
-        width: 3.625rem;        /* 58px */
-        height: 1.8125rem;      /* 29px */
-    }
-
-    .switch-xl .switch-thumb {
-        width: 1.5625rem;       /* 25px */
-        height: 1.5625rem;      /* 25px */
-    }
-
-    .switch-xl .switch-track.checked .switch-thumb {
-        transform: translateX(1.8125rem) translateY(-50%);
-    }
-}
-
-/* Large desktop adjustments (>= 1440px) - Extra spacious for large monitors */
-@media (min-width: 1440px) {
-    .switch-xs .switch-track {
-        width: 2.125rem;        /* 34px */
-        height: 1.0625rem;      /* 17px */
-    }
-
-    .switch-xs .switch-thumb {
-        width: 0.8125rem;       /* 13px */
-        height: 0.8125rem;      /* 13px */
-    }
-
-    .switch-xs .switch-track.checked .switch-thumb {
-        transform: translateX(1.0625rem) translateY(-50%);
-    }
-
-    .switch-sm .switch-track {
-        width: 2.5rem;          /* 40px */
-        height: 1.25rem;        /* 20px */
-    }
-
-    .switch-sm .switch-thumb {
-        width: 1rem;            /* 16px */
-        height: 1rem;           /* 16px */
-    }
-
-    .switch-sm .switch-track.checked .switch-thumb {
-        transform: translateX(1.25rem) translateY(-50%);
-    }
-
-    .switch-md .switch-track {
-        width: 2.75rem;         /* 44px */
-        height: 1.375rem;       /* 22px */
-    }
-
-    .switch-md .switch-thumb {
-        width: 1.125rem;        /* 18px */
-        height: 1.125rem;       /* 18px */
-    }
-
-    .switch-md .switch-track.checked .switch-thumb {
-        transform: translateX(1.375rem) translateY(-50%);
-    }
-
-    .switch-lg .switch-track {
-        width: 3.25rem;         /* 52px */
-        height: 1.625rem;       /* 26px */
-    }
-
-    .switch-lg .switch-thumb {
-        width: 1.375rem;        /* 22px */
-        height: 1.375rem;       /* 22px */
-    }
-
-    .switch-lg .switch-track.checked .switch-thumb {
-        transform: translateX(1.625rem) translateY(-50%);
-    }
-
-    .switch-xl .switch-track {
-        width: 4rem;            /* 64px */
-        height: 2rem;           /* 32px */
-    }
-
-    .switch-xl .switch-thumb {
-        width: 1.75rem;         /* 28px */
-        height: 1.75rem;        /* 28px */
-    }
-
-    .switch-xl .switch-track.checked .switch-thumb {
-        transform: translateX(2rem) translateY(-50%);
-    }
-}
+.switch-xs { --switch-w: 1.625rem; --switch-h: 0.875rem; }
+.switch-sm { --switch-w: 1.875rem; --switch-h: 1rem; }
+.switch-md { --switch-w: 2.25rem; --switch-h: 1.25rem; }
+.switch-lg { --switch-w: 2.75rem; --switch-h: 1.5rem; }
+.switch-xl { --switch-w: 3.25rem; --switch-h: 1.75rem; }
+
+/* A row is as tall as an input of its size and its label has the input's text size. */
+.switch-row-xxs { min-height: var(--control-h-xxs); }
+.switch-row-xxs .switch-label { font-size: var(--control-text-xxs); }
+.switch-row-xs { min-height: var(--control-h-xs); }
+.switch-row-xs .switch-label { font-size: var(--control-text-xs); }
+.switch-row-sm { min-height: var(--control-h-sm); }
+.switch-row-sm .switch-label { font-size: var(--control-text-sm); }
+.switch-row-md { min-height: var(--control-h-md); }
+.switch-row-md .switch-label { font-size: var(--control-text-md); }
+.switch-row-lg { min-height: var(--control-h-lg); }
+.switch-row-lg .switch-label { font-size: var(--control-text-lg); }
+.switch-row-xl { min-height: var(--control-h-xl); }
+.switch-row-xl .switch-label { font-size: var(--control-text-xl); }
 
 /* JustifySelf utility classes for Switch components */
-.switch-container.justify-self-auto {
-    justify-self: auto;
-}
-
-.switch-container.justify-self-start {
-    justify-self: start;
-}
-
-.switch-container.justify-self-end {
-    justify-self: end;
-}
-
-.switch-container.justify-self-center {
-    justify-self: center;
-}
-
-.switch-container.justify-self-stretch {
-    justify-self: stretch;
-}
-
-/* A switch row is as tall as an input of the same size, and its label uses the input's text size, at every
-   screen width. These values mirror the .input-<size> rules in Input.css; change them together. */
-
-.switch-row-xs { min-height: 1.25rem; }
-.switch-row-xs .switch-label { font-size: 0.625rem; }
-.switch-row-sm { min-height: 1.5rem; }
-.switch-row-sm .switch-label { font-size: 0.6875rem; }
-.switch-row-md { min-height: 1.875rem; }
-.switch-row-md .switch-label { font-size: 0.75rem; }
-.switch-row-lg { min-height: 2rem; }
-.switch-row-lg .switch-label { font-size: 0.8125rem; }
-.switch-row-xl { min-height: 2.25rem; }
-.switch-row-xl .switch-label { font-size: 0.875rem; }
-
-@media (min-width: 480px) {
-    .switch-row-xs { min-height: 1.5rem; }
-    .switch-row-xs .switch-label { font-size: 0.6875rem; }
-    .switch-row-sm { min-height: 1.75rem; }
-    .switch-row-sm .switch-label { font-size: 0.75rem; }
-    .switch-row-md { min-height: 2rem; }
-    .switch-row-md .switch-label { font-size: 0.8125rem; }
-    .switch-row-lg { min-height: 2.25rem; }
-    .switch-row-lg .switch-label { font-size: 0.875rem; }
-    .switch-row-xl { min-height: 2.5rem; }
-    .switch-row-xl .switch-label { font-size: 0.9375rem; }
-}
-
-@media (min-width: 768px) {
-    .switch-row-xs { min-height: 1.75rem; }
-    .switch-row-xs .switch-label { font-size: 0.75rem; }
-    .switch-row-sm { min-height: 2rem; }
-    .switch-row-sm .switch-label { font-size: 0.8125rem; }
-    .switch-row-md { min-height: 2.25rem; }
-    .switch-row-md .switch-label { font-size: 0.875rem; }
-    .switch-row-lg { min-height: 2.5rem; }
-    .switch-row-lg .switch-label { font-size: 0.9375rem; }
-    .switch-row-xl { min-height: 2.875rem; }
-    .switch-row-xl .switch-label { font-size: 1rem; }
-}
-
-@media (min-width: 1025px) {
-    .switch-row-xs { min-height: 2rem; }
-    .switch-row-xs .switch-label { font-size: 0.8125rem; }
-    .switch-row-sm { min-height: 2.25rem; }
-    .switch-row-sm .switch-label { font-size: 0.875rem; }
-    .switch-row-md { min-height: 2.5rem; }
-    .switch-row-md .switch-label { font-size: 0.9375rem; }
-    .switch-row-lg { min-height: 2.75rem; }
-    .switch-row-lg .switch-label { font-size: 1rem; }
-    .switch-row-xl { min-height: 3.125rem; }
-    .switch-row-xl .switch-label { font-size: 1.0625rem; }
-}
-
-@media (min-width: 1440px) {
-    .switch-row-xs { min-height: 2.125rem; }
-    .switch-row-xs .switch-label { font-size: 0.875rem; }
-    .switch-row-sm { min-height: 2.375rem; }
-    .switch-row-sm .switch-label { font-size: 0.9375rem; }
-    .switch-row-md { min-height: 2.75rem; }
-    .switch-row-md .switch-label { font-size: 1rem; }
-    .switch-row-lg { min-height: 3rem; }
-    .switch-row-lg .switch-label { font-size: 1.0625rem; }
-    .switch-row-xl { min-height: 3.5rem; }
-    .switch-row-xl .switch-label { font-size: 1.125rem; }
-}
+.switch-container.justify-self-auto { justify-self: auto; }
+.switch-container.justify-self-start { justify-self: start; }
+.switch-container.justify-self-end { justify-self: end; }
+.switch-container.justify-self-center { justify-self: center; }
+.switch-container.justify-self-stretch { justify-self: stretch; }

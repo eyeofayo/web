@@ -4,7 +4,7 @@
 .model3d-viewer {
     position: relative;
     overflow: hidden;
-    border-radius: var(--border-radius-md);
+    border-radius: var(--border-radius);
     background: var(--background-color);
 }
 
@@ -15,11 +15,13 @@
 
 .model3d-fab {
     opacity: 0.7;
-    transition: opacity var(--transition-normal);
+    transition: opacity var(--motion-in) var(--ease);
 }
 
-.model3d-fab:hover {
-    opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+    .model3d-fab:hover {
+        opacity: 1;
+    }
 }
 
 /* Controls grid inside Genie popover */
@@ -40,7 +42,7 @@
     padding: var(--spacing-xl);
     background: var(--background-color);
     color: var(--text-color);
-    border-radius: var(--border-radius-md);
+    border-radius: var(--border-radius);
 }
 
 /* Loading overlay that covers the canvas */
@@ -67,15 +69,17 @@
     justify-content: center;
     background: transparent;
     border: none;
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius);
     color: var(--text-color);
     cursor: pointer;
-    transition: all var(--transition-normal);
+    transition: background-color var(--motion-out) var(--ease), border-color var(--motion-out) var(--ease), color var(--motion-out) var(--ease), box-shadow var(--motion-out) var(--ease), opacity var(--motion-out) var(--ease), transform var(--motion-out) var(--ease);
 }
 
-.model3d-control-button:hover {
-    background: color-mix(in srgb, var(--primary-color) 15%, transparent);
-    color: var(--primary-color);
+@media (hover: hover) and (pointer: fine) {
+    .model3d-control-button:hover {
+        background: color-mix(in srgb, var(--primary-color) 15%, transparent);
+        color: var(--primary-color);
+    }
 }
 
 .model3d-control-button:active {
