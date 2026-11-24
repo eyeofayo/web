@@ -700,7 +700,7 @@ export const Data = forwardRef(({
                         {...triggerProps}
                     >
                         {selector && (
-                            <td className="table-cell">
+                            <td className="table-cell" onClick={(event) => event.stopPropagation()}>
                                 <Container padding="md">
                                     <Input
                                         type="checkbox"
@@ -779,7 +779,7 @@ export const Data = forwardRef(({
         } : null;
 
         const itemCheck = (item, rowIndex) => selector && (
-            <Container padding="none" className="data-item-check">
+            <Container padding="none" className="data-item-check" onClick={(event) => event.stopPropagation()}>
                 <Input
                     type="checkbox"
                     checked={isItemSelected(item, rowIndex)}

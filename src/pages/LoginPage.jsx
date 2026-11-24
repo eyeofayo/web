@@ -19,6 +19,13 @@ export const LoginPage = () => {
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  // Continuing takes this long only when the server is still starting.
+  const [waking, setWaking] = useState(false);
+  useEffect(() => {
+    if (!isLoading) return undefined;
+    const timer = setTimeout(() => setWaking(true), 4000);
+    return () => { clearTimeout(timer); setWaking(false); };
+  }, [isLoading]);
   const [twoFactorStep, setTwoFactorStep] = useState(false);
   const [twoFactorToken, setTwoFactorToken] = useState('');
   const { login, resume, continueSession, signOutAway } = useAuth();
@@ -89,7 +96,7 @@ export const LoginPage = () => {
               Welcome back
             </Typography>
             <Typography align="center">
-              You were away for a while. Continue where you left off.
+              {waking ? 'The server is starting. This can take a minute or two.' : 'You were away for a while. Continue where you left off.'}
             </Typography>
           </Container>
           <Container layout="flex-column" gap="md" padding="none" width="92%">

@@ -167,6 +167,21 @@ if (typeof window !== 'undefined') {
     }, 30000);
 }
 
+// A sleeping server takes a minute or two to start. Waits for it with a request that changes nothing,
+// because a refresh token works once and must not be lost to a request that gave up.
+const WAKE_MS = 3 * 60 * 1000;
+export const serverReady = async () => {
+    const until = Date.now() + WAKE_MS;
+    for (;;) {
+        try {
+            return await axios.get(`${API_BASE_URL}/auth/csrf-token`, { withCredentials: true, timeout: 70000, validateStatus: (status) => status < 500 });
+        } catch (error) {
+            if (navigator.onLine === false || Date.now() > until) throw error;
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+        }
+    }
+};
+
 // Deduplicate concurrent token refresh attempts.
 // If multiple requests get a 401 at the same time only one /refresh-token
 // call is made; all others wait for that same promise to resolve.
@@ -177,7 +192,7 @@ export const attemptTokenRefresh = () => {
         _refreshPromise = axios
             .post(`${API_BASE_URL}/auth/refresh-token`, {}, {
                 withCredentials: true,
-                timeout: 10000
+                timeout: 30000
             })
             .finally(() => { _refreshPromise = null; });
     }

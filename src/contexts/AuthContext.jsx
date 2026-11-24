@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import authService from '../client/auth.client';
-import { isAway, backNow, lastUser, attemptTokenRefresh } from '../client/app.client';
+import { isAway, backNow, lastUser, serverReady, attemptTokenRefresh } from '../client/app.client';
 import { useNotification } from './NotificationContext';
 
 const AuthContext = createContext();
@@ -82,19 +82,20 @@ export const AuthProvider = ({ children }) => {
     const continueSession = async () => {
         const from = resume?.from || '/';
         try {
+            await serverReady();
             await attemptTokenRefresh();
             backNow();
             const response = await authService.getUserProfile();
             signedIn(response.user || response);
             return from;
         } catch (error) {
-            if (error.response) {
+            if ([400, 401, 403].includes(error.response?.status)) {
                 lastUser(null);
                 backNow();
                 setResume(null);
                 showError('Your session has ended. Please sign in with your password.');
             } else {
-                showError('We could not reach the server. Check your connection and try again.');
+                showError(navigator.onLine === false ? 'You are offline. Check your connection and try again.' : 'The server did not answer. Try again in a minute.');
             }
             throw error;
         }
