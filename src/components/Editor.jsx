@@ -51,8 +51,20 @@ loader.init(); // pre-warm Monaco bundle
 // --code-* CSS custom properties each app theme defines on document.body
 // (ThemeContext sets the .theme-<name> body class which activates those vars).
 // ---------------------------------------------------------------------------
+// Monaco reads only hex colours, and shows red for anything else, so a colour-mix or rgb value is worked out first.
+const _hex = (value) => {
+    if (!value || value.startsWith('#')) return value;
+    const probe = document.body.appendChild(document.createElement('span'));
+    probe.style.color = value;
+    const shown = getComputedStyle(probe).color;
+    probe.remove();
+    const parts = shown.match(/[\d.]+(?:e-?\d+)?/g)?.map(Number) || [];
+    if (parts.length < 3) return '';
+    const unit = shown.startsWith('color(') ? 255 : 1;
+    return `#${[parts[0] * unit, parts[1] * unit, parts[2] * unit, (parts[3] ?? 1) * 255].map((part) => Math.round(Math.min(255, part)).toString(16).padStart(2, '0')).join('')}`;
+};
 const _cssVar = (name) => {
-    try { return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+    try { return _hex(getComputedStyle(document.body).getPropertyValue(name).trim()); }
     catch { return ''; }
 };
 const _tokenColor  = (name) => { const v = _cssVar(name); return v ? v.replace(/^#/, '') : null; };

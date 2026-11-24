@@ -17,7 +17,7 @@
     position: relative;
     width: 100%;
     height: var(--progress-h);
-    background-color: var(--surface-accent-color, var(--border-light));
+    background-color: color-mix(in srgb, var(--progress-track, var(--primary-accent-color)) 35%, transparent);
     border-radius: 9999px;
     overflow: hidden;
 }
@@ -82,3 +82,11 @@
 .progress-wrapper.justify-self-end { justify-self: end; }
 .progress-wrapper.justify-self-center { justify-self: center; }
 .progress-wrapper.justify-self-stretch { justify-self: stretch; }
+
+/* The part not filled: the accent of the bar's colour, thinned so it never passes for the filled part */
+.progress-bar.progress-track-primary { --progress-track: var(--primary-accent-color); }
+.progress-bar.progress-track-secondary { --progress-track: var(--secondary-accent-color); }
+.progress-bar.progress-track-tertiary { --progress-track: var(--tertiary-accent-color); }
+.progress-bar.progress-track-success { --progress-track: var(--success-accent-color); }
+.progress-bar.progress-track-warning { --progress-track: var(--warning-accent-color); }
+.progress-bar.progress-track-error { --progress-track: var(--error-accent-color); }

@@ -52,6 +52,8 @@ export const ProgressBar = ({
                 return 'progress-bar-md';
         }
     };
+    // The part not filled takes the accent of the bar's own colour.
+    const getTrackClass = () => getDynamicColorClass().replace('progress-', 'progress-track-');
     const getAnimatedClass = () => animated ? 'progress-animated' : '';
     const getStripedClass = () => striped ? 'progress-striped' : '';
 
@@ -118,7 +120,7 @@ export const ProgressBar = ({
                 </div>
             )}
             <div
-                className={`progress-bar themed-progress-bar ${getSizeClass()} ${getAnimatedClass()} ${getStripedClass()} theme-${progressTheme}`}
+                className={`progress-bar themed-progress-bar ${getSizeClass()} ${getTrackClass()} ${getAnimatedClass()} ${getStripedClass()} theme-${progressTheme}`}
                 data-theme={progressTheme}
                 {...props}
             >
