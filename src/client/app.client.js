@@ -104,7 +104,7 @@ api.interceptors.request.use(
 // Sign-in is renewed without asking only while the person is here. After IDLE_MS with no input and nothing
 // running, it is not renewed: the app shows the one-click continue page. Being away is kept in localStorage,
 // so every tab agrees and a reload does not undo it.
-const IDLE_MS = 20 * 60 * 1000;
+const IDLE_MS = 40 * 60 * 1000;
 const ACTIVE_KEY = 'auth:lastActive';
 const AWAY_KEY = 'auth:away';
 const USER_KEY = 'auth:lastUser';
