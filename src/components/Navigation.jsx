@@ -4,6 +4,7 @@ import { useAuth } from '@contexts/AuthContext';
 import { useTheme } from '@contexts/ThemeContext';
 import { GALLERY_THEMES } from '../styles/theme.gallery.js';
 import { loadThemeFonts } from '../styles/theme.compiler.js';
+import { billingService } from '../client/billing.client.js';
 import { Badge, Button, ButtonGroup, CircularProgress, Container, FloatingActionButton, Icon, Page, Switch, Typography } from './Components';
 
 const LOADING_MESSAGES = [
@@ -85,6 +86,14 @@ export const Navigation = ({
     const {currentTheme, mode, setMode, switchTheme, availableThemes, themes} = useTheme();
     const navigate = useNavigate();
 
+    const [billing, setBilling] = useState(false);
+    useEffect(() => {
+        let current = true;
+        if (!user) setBilling(false);
+        else billingService.isOn(user.id || user._id).then((on) => current && setBilling(on));
+        return () => { current = false; };
+    }, [user]);
+
     // Navigation menu items based on authentication and roles
     const getNavigationItems = () => {
         const items = [];
@@ -108,6 +117,16 @@ export const Navigation = ({
                 roles: ['USER', 'CREATOR', 'ADMIN', 'OWNER'],
                 requireAuth: true
             });
+
+            if (billing) {
+                items.push({
+                    id: 'billing',
+                    label: 'Billing',
+                    icon: 'FiCreditCard',
+                    path: '/billing',
+                    requireAuth: true
+                });
+            }
 
             // Admin panel for admin users
             if (hasRole('ADMIN') || hasRole('OWNER')) {

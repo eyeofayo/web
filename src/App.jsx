@@ -11,6 +11,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AdminPage from './pages/AdminPage';
+import BillingPage from './pages/BillingPage';
 
 // Import Navigation and NotificationDisplay components
 import { Navigation, NotificationDisplay, RouteAccessControl } from '@components/Components';
@@ -47,6 +48,11 @@ function AppRouter() {
         <Route path="/components" element={
           <RouteAccessControl path="/components">
             <ComponentDemo />
+          </RouteAccessControl>
+        } />
+        <Route path="/billing" element={
+          <RouteAccessControl path="/billing">
+            <BillingPage />
           </RouteAccessControl>
         } />
         <Route path="/admin" element={
