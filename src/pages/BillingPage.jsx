@@ -59,6 +59,12 @@ const AddCredit = ({ state }) => {
     const { error: notifyError } = useNotification();
     const [amount, setAmount] = useState(String(state.smallest / 100));
     const [busy, setBusy] = useState(false);
+    // Coming back from Stripe with the browser's back gesture restores this page as it was left, still busy.
+    useEffect(() => {
+        const restored = (event) => { if (event.persisted) setBusy(false); };
+        window.addEventListener('pageshow', restored);
+        return () => window.removeEventListener('pageshow', restored);
+    }, []);
     const cents = toCents(amount);
     const problem = !Number.isFinite(cents) || cents < state.smallest
         ? `The smallest purchase is ${formatMoney(state.smallest)}.`
@@ -246,6 +252,10 @@ const BillingPage = () => {
 
     useEffect(() => {
         load();
+        // A page restored by the back gesture shows what it showed before paying; read the balance again.
+        const restored = (event) => { if (event.persisted) load(); };
+        window.addEventListener('pageshow', restored);
+        return () => window.removeEventListener('pageshow', restored);
     }, [load]);
 
     // Stripe tells the server, not this page, so after paying the balance is read again until the credit shows.
