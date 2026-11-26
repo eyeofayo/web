@@ -7,7 +7,7 @@ let asked = null;
 export const billingService = {
     getState: () => api.get('/billing'),
     getLines: (params) => api.get('/billing/lines', { params }),
-    startCheckout: (amount) => api.post('/billing/checkout', { amount }),
+    startCheckout: (amount, inPage = false) => api.post('/billing/checkout', { amount, inPage }),
     findPeople: (find) => api.get('/billing/people', { params: { find } }),
     getPerson: (id, params) => api.get(`/billing/people/${id}`, { params }),
     adjust: (id, amount, reason) => api.post(`/billing/people/${id}/adjustments`, { amount, reason }),

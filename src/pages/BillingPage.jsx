@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { Page, Container, Card, Typography, Button, ButtonGroup, Badge, Icon, Input, Data, CircularProgress } from '@components/Components';
 import { useNotification } from '@contexts/NotificationContext';
 import { useAuth } from '@contexts/AuthContext';
+import { useTheme } from '@contexts/ThemeContext';
 import { billingService, formatMoney } from '../client/billing.client';
 
 const AMOUNTS = [1000, 2500, 5000, 10000];
@@ -55,10 +56,114 @@ const Totals = ({ balance, held }) => (
     </Container>
 );
 
-const AddCredit = ({ state }) => {
+// Stripe's own script, loaded from Stripe's address as Stripe requires (never bundled), once, when a payment starts.
+let stripeScript = null;
+const loadStripe = () => stripeScript ||= new Promise((resolve, reject) => {
+    if (window.Stripe) {
+        resolve(window.Stripe);
+        return;
+    }
+    const tag = document.createElement('script');
+    tag.src = 'https://js.stripe.com/endive/stripe.js';
+    tag.onload = () => (window.Stripe ? resolve(window.Stripe) : reject(new Error('Stripe did not load.')));
+    tag.onerror = () => {
+        stripeScript = null;
+        tag.remove();
+        reject(new Error('Stripe could not be reached. Check your connection and try again.'));
+    };
+    document.head.appendChild(tag);
+});
+
+// Paying inside this page: Stripe's card field sits in it, in the theme's colours, and this page's button pays.
+// The card number goes from Stripe's field straight to Stripe.
+const PayHere = ({ cents, onPaid, onBack }) => {
+    const { readColors, mode } = useTheme();
+    const field = useRef(null);
+    const actions = useRef(null);
+    const [state, setState] = useState({ status: 'loading', message: '' });
+
+    useEffect(() => {
+        let element = null;
+        let gone = false;
+        (async () => {
+            try {
+                const answer = await billingService.startCheckout(cents, true);
+                if (answer.url) {
+                    window.location.assign(answer.url);
+                    return;
+                }
+                const Stripe = await loadStripe();
+                if (gone) return;
+                const colors = readColors();
+                const style = getComputedStyle(document.body);
+                const checkout = Stripe(answer.publishableKey).initCheckoutElementsSdk({
+                    clientSecret: answer.clientSecret,
+                    elementsOptions: {
+                        appearance: {
+                            theme: mode === 'dark' ? 'night' : 'stripe',
+                            variables: {
+                                colorPrimary: colors.button || colors.primary,
+                                colorBackground: colors.card,
+                                colorText: colors.text,
+                                fontFamily: style.getPropertyValue('--font-family').trim() || undefined,
+                                borderRadius: style.getPropertyValue('--input-radius').trim() || undefined
+                            }
+                        }
+                    }
+                });
+                element = checkout.createPaymentElement();
+                element.mount(field.current);
+                const loaded = await checkout.loadActions();
+                if (gone) return;
+                if (loaded.type !== 'success') throw new Error(loaded.error?.message || 'Stripe could not start the payment.');
+                actions.current = loaded.actions;
+                setState({ status: 'ready', message: '' });
+            } catch (error) {
+                if (!gone) setState({ status: 'failed', message: failText(error, error?.message || 'The payment could not be started.') });
+            }
+        })();
+        return () => {
+            gone = true;
+            element?.destroy?.();
+        };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const pay = async () => {
+        setState({ status: 'paying', message: '' });
+        try {
+            const result = await actions.current.confirm({ redirect: 'if_required' });
+            if (result.type === 'error') {
+                setState({ status: 'ready', message: result.error?.message || 'The payment did not go through.' });
+                return;
+            }
+            onPaid();
+        } catch (error) {
+            setState({ status: 'ready', message: error?.message || 'The payment did not go through.' });
+        }
+    };
+
+    return (
+        <Container layout="flex-column" gap="md" padding="none" width="100%">
+            <Typography as="h3" size="sm" weight="semibold">{`Pay ${formatMoney(cents)}`}</Typography>
+            <Container ref={field} padding="none" width="100%" minHeight="120px" />
+            {state.status === 'loading' && <Typography as="p" size="xs" color="muted">Loading Stripe's card field…</Typography>}
+            {state.message && <Typography as="p" size="xs" color="error">{state.message}</Typography>}
+            <Container layout="flex" gap="xs" padding="none">
+                <Button size="sm" color="secondary" disabled={state.status !== 'ready'} onClick={pay}>
+                    <Icon name="FiLock" />{state.status === 'paying' ? 'Paying…' : `Pay ${formatMoney(cents)}`}
+                </Button>
+                <Button size="sm" variant="ghost" disabled={state.status === 'paying'} onClick={onBack}>Change amount</Button>
+            </Container>
+            <Typography as="p" size="xxs" color="muted">The card field is Stripe's: your card number goes straight to Stripe and never reaches this app.</Typography>
+        </Container>
+    );
+};
+
+const AddCredit = ({ state, onPaid }) => {
     const { error: notifyError } = useNotification();
     const [amount, setAmount] = useState(String(state.smallest / 100));
     const [busy, setBusy] = useState(false);
+    const [paying, setPaying] = useState(false);
     // Coming back from Stripe with the browser's back gesture restores this page as it was left, still busy.
     useEffect(() => {
         const restored = (event) => { if (event.persisted) setBusy(false); };
@@ -71,6 +176,10 @@ const AddCredit = ({ state }) => {
         : cents > state.most ? `You can buy up to ${formatMoney(state.most)} now.` : '';
 
     const pay = async () => {
+        if (state.inPage) {
+            setPaying(true);
+            return;
+        }
         setBusy(true);
         try {
             const { url } = await billingService.startCheckout(cents);
@@ -80,6 +189,8 @@ const AddCredit = ({ state }) => {
             setBusy(false);
         }
     };
+
+    if (paying) return <PayHere cents={cents} onPaid={() => { setPaying(false); onPaid(); }} onBack={() => setPaying(false)} />;
 
     return (
         <Container layout="flex-column" gap="md" padding="none" width="100%">
@@ -91,7 +202,7 @@ const AddCredit = ({ state }) => {
             </ButtonGroup>
             <Input label="Amount in US dollars" size="sm" value={amount} onChange={(event) => setAmount(event.target.value)}
                 validationState={problem ? 'error' : 'default'} helpText={problem} width="100%" />
-            <Typography as="p" size="xxs" color="muted">You pay on Stripe's page. This app never sees or keeps your card number.</Typography>
+            <Typography as="p" size="xxs" color="muted">{state.inPage ? 'You pay here, in a card field run by Stripe.' : 'You pay on Stripe\'s page.'} This app never sees or keeps your card number.</Typography>
             <Button size="sm" disabled={busy || Boolean(problem)} onClick={pay}><Icon name="FiCreditCard" />Continue to payment</Button>
         </Container>
     );
@@ -259,13 +370,7 @@ const BillingPage = () => {
     }, [load]);
 
     // Stripe tells the server, not this page, so after paying the balance is read again until the credit shows.
-    useEffect(() => {
-        if (!paid) return undefined;
-        setParams({}, { replace: true });
-        if (paid !== 'yes') {
-            info('The payment was cancelled. Nothing was charged.');
-            return undefined;
-        }
+    const afterPaying = () => {
         success('Payment received. Your credit shows here in a moment.');
         let tries = 0;
         const timer = setInterval(async () => {
@@ -274,6 +379,16 @@ const BillingPage = () => {
             if (tries >= 8) clearInterval(timer);
         }, 2500);
         return () => clearInterval(timer);
+    };
+
+    useEffect(() => {
+        if (!paid) return undefined;
+        setParams({}, { replace: true });
+        if (paid !== 'yes') {
+            info('The payment was cancelled. Nothing was charged.');
+            return undefined;
+        }
+        return afterPaying();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const showEarlier = async () => {
@@ -298,7 +413,7 @@ const BillingPage = () => {
                         <Container layout="flex" justify="between" align="end" gap="md" padding="none" width="100%">
                             <Totals balance={state.balance} held={state.held} />
                             <Button size="sm" disabled={!canBuy}
-                                genie={canBuy ? { trigger: 'click', variant: 'popover', width: '360px', padding: 'lg', content: <AddCredit state={state} /> } : null}>
+                                genie={canBuy ? { trigger: 'click', variant: 'popover', width: state.inPage ? '420px' : '360px', padding: 'lg', content: <AddCredit state={state} onPaid={afterPaying} /> } : null}>
                                 <Icon name="FiPlus" />Add credit
                             </Button>
                         </Container>
