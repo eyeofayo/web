@@ -24,6 +24,15 @@ if (localStorage.getItem('selectedTheme') === 'dark') {
 
 const CUSTOM_THEME_KEY = 'customThemeDoc';
 
+// A theme picked during a visit holds for that tab, reloads included; a fresh visit opens in the account's favourite.
+const PICKED_KEY = 'themePicked';
+const markPicked = () => {
+    try { sessionStorage.setItem(PICKED_KEY, '1'); } catch { /* storage may be blocked */ }
+};
+const pickedThisVisit = () => {
+    try { return sessionStorage.getItem(PICKED_KEY) === '1'; } catch { return false; }
+};
+
 /** Restore an applied custom theme from localStorage (flash-free boot) */
 const restoreCustomTheme = () => {
     try {
@@ -117,6 +126,7 @@ export const ThemeProvider = ({ children, theme: overrideTheme }) => {
 
   const setMode = (next) => {
     if (isNestedProvider) return parentContext.setMode(next);
+    markPicked();
     const kept = { ...modes, [currentTheme]: next };
     localStorage.setItem(MODES_KEY, JSON.stringify(kept));
     setModes(kept);
@@ -153,6 +163,7 @@ export const ThemeProvider = ({ children, theme: overrideTheme }) => {
   }, [currentTheme, mode, customTheme, isNestedProvider, overrideTheme]);
 
   const switchTheme = (themeName) => {
+    if (!isNestedProvider) markPicked();
     // Re-selecting the applied custom theme (e.g. from the nav switcher)
     if (customTheme && themeName === customThemeClass(customTheme)) {
       setGlobalTheme(themeName);
@@ -206,11 +217,78 @@ export const ThemeProvider = ({ children, theme: overrideTheme }) => {
       console.warn('applyCustomTheme requires a theme document with slug and tokens');
       return;
     }
+    markPicked();
+    putCustomDoc(themeDoc);
+  };
+
+  const putCustomDoc = (themeDoc) => {
     injectCustomTheme(themeDoc);
     backgrounds.delete(customThemeClass(themeDoc));
     localStorage.setItem(CUSTOM_THEME_KEY, JSON.stringify(themeDoc));
     setCustomTheme(themeDoc);
     setGlobalTheme(customThemeClass(themeDoc));
+  };
+
+  // The colours the page shows right now, as plain hex, and the theme's page pattern: what an email needs to wear
+  // the theme. A colour that is not solid is left out.
+  const readColors = () => {
+    const style = getComputedStyle(document.body);
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 1;
+    const pen = canvas.getContext('2d', { willReadFrequently: true });
+    const hexOf = (name) => {
+      const value = style.getPropertyValue(name).trim();
+      if (!value || !pen) return null;
+      pen.clearRect(0, 0, 1, 1);
+      pen.fillStyle = value;
+      pen.fillRect(0, 0, 1, 1);
+      const [r, g, b, a] = pen.getImageData(0, 0, 1, 1).data;
+      return a === 255 ? `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')}` : null;
+    };
+    const roles = {
+      page: '--background-color', card: '--surface-color', text: '--text-color', muted: '--text-muted',
+      heading: '--primary-text-color', primary: '--primary-color', onPrimary: '--primary-contrast-color',
+      button: '--secondary-color', buttonText: '--secondary-contrast-color', border: '--border-color', warning: '--warning-color'
+    };
+    const colors = {};
+    for (const [role, name] of Object.entries(roles)) {
+      const hex = hexOf(name);
+      if (hex) colors[role] = hex;
+    }
+    const pattern = themeBackground(currentTheme);
+    colors.pattern = /^[a-z]+$/.test(pattern) ? pattern : '';
+    return colors;
+  };
+
+  // The variant a theme opens in: the one last used with it, else its own.
+  const modeOf = (themeName) => {
+    if (modes[themeName]) return modes[themeName];
+    if (themeName.startsWith('custom-')) return customTheme?.tokens?.darkMode && customThemeClass(customTheme) === themeName ? 'dark' : 'light';
+    return themes[themeName]?.dark ? 'dark' : 'light';
+  };
+
+  /** Open the account's favourite ("theme:mode"), unless a theme was picked during this visit. A custom theme
+   *  not kept here is asked of `findTheme(slug)`, which each app answers through its own client. */
+  const openFavorite = async (favorite, findTheme = null) => {
+    if (isNestedProvider || !favorite || pickedThisVisit()) return;
+    const [themeName, favoriteMode] = favorite.split(':');
+    if (themeName === currentTheme && favoriteMode === mode) return;
+    if (themeName.startsWith('custom-')) {
+      const slug = themeName.slice('custom-'.length);
+      let doc = customTheme?.slug === slug ? customTheme : null;
+      if (!doc && findTheme) doc = await findTheme(slug).catch(() => null);
+      if (!doc?.tokens || pickedThisVisit()) return;
+      putCustomDoc(doc);
+    } else if (themes[themeName]) {
+      setGlobalTheme(themeName);
+    } else {
+      return;
+    }
+    setModes((kept) => {
+      const next = { ...kept, [themeName]: favoriteMode === 'dark' ? 'dark' : 'light' };
+      localStorage.setItem(MODES_KEY, JSON.stringify(next));
+      return next;
+    });
   };
 
   // Get CSS variables as an object for external use
@@ -255,6 +333,9 @@ export const ThemeProvider = ({ children, theme: overrideTheme }) => {
     currentTheme,
     mode,
     setMode,
+    modeOf,
+    openFavorite,
+    readColors,
     switchTheme,
     applyCustomTheme,
     clearCustomTheme,

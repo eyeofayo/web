@@ -237,6 +237,7 @@ export const compileThemeTokens = (tokens, className) => {
     --fab-radius: ${r.fab ?? '50%'};
     --progress-radius: ${r.progress ?? '9999px'};
     --notification-radius: ${r.notification ?? r.card ?? '0.5rem'};
+    ${/^[a-z]+$/.test(tokens.pageBackground || '') ? `--page-background: ${tokens.pageBackground};` : ''}
     ${Object.entries(tokens.effects || {}).map(([name, value]) => `--${name}: ${value};`).join('\n    ')}`;
 
     return `.theme-${className} {${vars}\n}\nbody.theme-${className} {\n    background-color: var(--background-color);\n    color: var(--text-color);\n    font-family: ${fontPrimary};\n}`

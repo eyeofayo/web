@@ -54,7 +54,7 @@ const getRouteConfig = () => {
     };
 };
 
-const PUBLIC_PAGES = ['/', '/components'];
+const PUBLIC_PAGES = ['/', '/components', '/verify-email'];
 
 // Signing out starts the app afresh; the desktop app has no web addresses to load, so it changes page in place.
 const goTo = (path) => {
@@ -349,7 +349,7 @@ export const RouteAccessControl = ({children, path}) => {
     }
 
     // Simple auth pages list
-    const authPages = ['/login', '/signup', '/forgot-password'];
+    const authPages = ['/login', '/signup', '/forgot-password', '/reset-password'];
     const isAuthPage = authPages.includes(path);
 
     // Redirect logic

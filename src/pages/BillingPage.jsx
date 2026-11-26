@@ -6,8 +6,8 @@ import { useAuth } from '@contexts/AuthContext';
 import { billingService, formatMoney } from '../client/billing.client';
 
 const AMOUNTS = [1000, 2500, 5000, 10000];
-const KINDS = { topup: 'Payment', charge: 'Charge', hold: 'Set aside', refund: 'Refund', adjustment: 'Adjustment' };
-const KIND_COLORS = { topup: 'success', charge: 'default', hold: 'warning', refund: 'secondary', adjustment: 'tertiary' };
+const KINDS = { topup: 'Payment', charge: 'Charge', hold: 'Set aside', refund: 'Refund', adjustment: 'Adjustment', dispute: 'Disputed' };
+const KIND_COLORS = { topup: 'success', charge: 'default', hold: 'warning', refund: 'secondary', adjustment: 'tertiary', dispute: 'error' };
 
 const failText = (error, fallback) => error?.response?.data?.message || fallback;
 const closeGenie = () => document.querySelector('[data-genie-backdrop]')?.click();

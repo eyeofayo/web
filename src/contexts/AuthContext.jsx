@@ -1,5 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import authService from '../client/auth.client';
+import userService from '../client/user.client';
+import themeService from '../client/theme.client';
+import { useTheme } from '@contexts/ThemeContext';
 import { isAway, backNow, lastUser, serverReady, attemptTokenRefresh } from '../client/app.client';
 import { useNotification } from './NotificationContext';
 
@@ -54,6 +57,55 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         initAuth();
     }, []);
+
+    // The account's favourite theme ("theme:mode"), shared by every app on it: a fresh visit opens in it.
+    const { currentTheme, mode, openFavorite } = useTheme();
+    const favorite = user?.favoriteTheme || null;
+    const findTheme = async (slug) => {
+        const [mine, shared] = await Promise.all([
+            themeService.getMyThemes().catch(() => ({ themes: [] })),
+            themeService.getPublicThemes({ limit: 100 }).catch(() => ({ themes: [] }))
+        ]);
+        return [...(mine.themes || []), ...(shared.themes || [])].find((doc) => doc.slug === slug) || null;
+    };
+    useEffect(() => {
+        if (favorite) openFavorite(favorite, findTheme);
+    }, [favorite]);
+
+    const saveFavoriteTheme = async (value) => {
+        const before = user?.favoriteTheme || null;
+        const change = value ? { favoriteTheme: value } : { favoriteTheme: null, favoriteColors: null };
+        setUser((now) => (now ? { ...now, ...change } : now));
+        try {
+            await userService.updateUser(user.id, change);
+        } catch (error) {
+            setUser((now) => (now ? { ...now, favoriteTheme: before } : now));
+            showError(error.response?.data?.message || 'The favourite theme could not be saved.');
+        }
+    };
+
+    // While the favourite is on screen its colours are read and kept with it, so emails can be drawn in them.
+    const { readColors } = useTheme();
+    useEffect(() => {
+        if (!user || !favorite || `${currentTheme}:${mode}` !== favorite) return undefined;
+        const timer = setTimeout(() => {
+            const colors = readColors();
+            if (JSON.stringify(colors) === JSON.stringify(user.favoriteColors || null)) return;
+            setUser((now) => (now ? { ...now, favoriteColors: colors } : now));
+            userService.updateUser(user.id, { favoriteColors: colors }).catch(() => {});
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [favorite, currentTheme, mode, Boolean(user)]);
+
+    // Switching the favourite between its light and dark variant keeps the favourite with it.
+    const shown = useRef({ currentTheme, mode });
+    useEffect(() => {
+        const was = shown.current;
+        shown.current = { currentTheme, mode };
+        if (!favorite || was.currentTheme !== currentTheme || was.mode === mode) return;
+        const [themeName, favoriteMode] = favorite.split(':');
+        if (themeName === currentTheme && favoriteMode !== mode) saveFavoriteTheme(`${themeName}:${mode}`);
+    }, [currentTheme, mode]);
 
     useEffect(() => {
         if (!user) return undefined;
@@ -215,6 +267,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         forgotPassword,
         resetPassword,
+        saveFavoriteTheme,
         hasRole,
         isAdmin: () => hasRole('ADMIN'),
         isOwner: () => hasRole('OWNER'),
