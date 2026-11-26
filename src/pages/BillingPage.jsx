@@ -5,6 +5,7 @@ import { useNotification } from '@contexts/NotificationContext';
 import { useAuth } from '@contexts/AuthContext';
 import { useTheme } from '@contexts/ThemeContext';
 import { billingService, formatMoney } from '../client/billing.client';
+import FONT_REGISTRY from '@styles/font.registry';
 
 const AMOUNTS = [1000, 2500, 5000, 10000];
 const KINDS = { topup: 'Payment', charge: 'Charge', hold: 'Set aside', refund: 'Refund', adjustment: 'Adjustment', dispute: 'Disputed' };
@@ -80,6 +81,7 @@ const PayHere = ({ cents, onPaid, onBack }) => {
     const { readColors, mode } = useTheme();
     const field = useRef(null);
     const actions = useRef(null);
+    const started = useRef(null);
     const [state, setState] = useState({ status: 'loading', message: '' });
 
     useEffect(() => {
@@ -87,7 +89,9 @@ const PayHere = ({ cents, onPaid, onBack }) => {
         let gone = false;
         (async () => {
             try {
-                const answer = await billingService.startCheckout(cents, true);
+                // One payment page per visit to this form, even when React runs this effect twice while developing.
+                started.current ||= billingService.startCheckout(cents, true);
+                const answer = await started.current;
                 if (answer.url) {
                     window.location.assign(answer.url);
                     return;
@@ -96,16 +100,21 @@ const PayHere = ({ cents, onPaid, onBack }) => {
                 if (gone) return;
                 const colors = readColors();
                 const style = getComputedStyle(document.body);
+                // Stripe's field cannot use this page's fonts, but it loads a Google Fonts stylesheet itself.
+                const family = style.getPropertyValue('--font-family').trim();
+                const first = family.split(',')[0].replace(/['"]/g, '').trim();
+                const font = Object.values(FONT_REGISTRY).find((entry) => entry.google && entry.family.split(',')[0].replace(/['"]/g, '').trim() === first);
                 const checkout = Stripe(answer.publishableKey).initCheckoutElementsSdk({
                     clientSecret: answer.clientSecret,
                     elementsOptions: {
+                        ...(font ? { fonts: [{ cssSrc: `https://fonts.googleapis.com/css2?family=${font.google}&display=swap` }] } : {}),
                         appearance: {
                             theme: mode === 'dark' ? 'night' : 'stripe',
                             variables: {
                                 colorPrimary: colors.button || colors.primary,
                                 colorBackground: colors.card,
                                 colorText: colors.text,
-                                fontFamily: style.getPropertyValue('--font-family').trim() || undefined,
+                                fontFamily: family || undefined,
                                 borderRadius: style.getPropertyValue('--input-radius').trim() || undefined
                             }
                         }
