@@ -2,6 +2,7 @@ import React, { forwardRef, useMemo, useRef } from 'react';
 import { ThemeProvider, useTheme } from '@contexts/ThemeContext';
 import { useGeniePortal } from './Genie';
 import { getBackgroundClass, STATUS_COLORS } from './Page';
+import { useResizable } from './Container';
 
 /**
  * Card - Themed card component for content containers
@@ -19,6 +20,8 @@ export const Card = forwardRef(({
     padding = 'lg', // 'none', 'xs', 'sm', 'md', 'lg', 'xl'
     hover = null, // true, false - the pointer effect; left out, a card with an onClick has it and any other does not
     bordered = true, // false removes the outline, for a card that is only a filled surface
+    resizable = false, // true or 'both', 'horizontal', 'vertical': its borders can be dragged; the parts beside it follow the parent's layout
+    onResize = null, // Called with the new size after a drag ({ width, height, span }), or null when it is given back
     borderColor = null, // Outline color: null (theme default), 'primary', 'secondary', 'tertiary'
     shadow = false, // true lifts the card off the page with a soft shadow; a card is flat without it
     borderStrength = 'normal', // 'normal', 'soft' - soft fades the outline so it is less prominent
@@ -164,6 +167,7 @@ export const Card = forwardRef(({
 
     // Genie integration using simplified portal hook
     const cardRef = ref || useRef(null);
+    const {resizeStyle, resizeHandles, resizeClass, resizeAxes} = useResizable(resizable, cardRef, onResize);
     const {triggerProps, GeniePortal} = useGeniePortal(
         genieConfig,
         cardRef,
@@ -290,14 +294,16 @@ export const Card = forwardRef(({
             ref={cardRef}
             {...domProps}
             {...triggerProps}
-            className={`card themed-card ${getLayoutClass()} ${getColumnsClass()} ${getGapClass()} ${getPaddingClass()} ${getAlignClass()} ${getJustifyClass()} ${getWrapClass()} ${getMarginClass()} ${hoverClass} ${borderClass} ${flexFillClass} ${spanClass} ${getJustifySelfClass()} ${genie ? 'genie-trigger' : ''} ${backgroundClass} theme-${cardTheme} ${className}`}
+            className={`card themed-card ${getLayoutClass()} ${getColumnsClass()} ${getGapClass()} ${getPaddingClass()} ${getAlignClass()} ${getJustifyClass()} ${getWrapClass()} ${getMarginClass()} ${hoverClass} ${borderClass} ${flexFillClass} ${spanClass} ${getJustifySelfClass()} ${genie ? 'genie-trigger' : ''} ${backgroundClass} ${resizeClass} theme-${cardTheme} ${className}`}
             data-theme={cardTheme}
             data-theme-source={theme ? 'local' : 'inherited'}
+            data-resizable={resizeAxes || undefined}
 
-            style={{...getBackgroundStyle(), ...getCustomStyle(), ...domProps.style}}
+            style={{...getBackgroundStyle(), ...getCustomStyle(), ...domProps.style, ...resizeStyle}}
 
         >
             {children}
+            {resizeHandles}
 
             {/* Genie Integration */}
             {GeniePortal}

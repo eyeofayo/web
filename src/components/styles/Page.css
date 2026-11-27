@@ -25,6 +25,10 @@
 .themed-page.page-framed {
     display: block;
     padding: 0;
+    margin: 0;
+    /* Room for a scrollbar on both sides, so the column sits in the middle of the window and the rails beside it
+       are centred in equal spaces. */
+    scrollbar-gutter: stable both-edges;
 }
 
 .page-frame {
@@ -753,4 +757,50 @@
     .has-background::before {
         animation: none !important;
     }
+}
+
+/* ===== Edge rails: fixed in the space beside the page's column, centred in it; a floating button stands in where there is no room ===== */
+.page-rail {
+    /* The width of the space between the screen's edge and the page's column. */
+    --page-side: calc((100% - min(100% - 2 * var(--page-gutter, 1.5rem), var(--page-max-width, 1280px))) / 2);
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: calc(var(--z-fab, 100000) - 1);
+    display: none;
+    width: var(--page-side);
+    max-height: 90vh;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* Nothing is clipped, so a button that lifts on hover is never cut off. */
+    overflow: visible;
+}
+
+/* One column of buttons sits in the middle of the space; with a section's subsections, the two columns share it. */
+.page-rail-left {
+    left: 0;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.page-rail-right {
+    right: 0;
+    flex-direction: column;
+    align-items: center;
+}
+
+.page-rail-right > * {
+    width: min(13rem, calc(100% - 2 * var(--spacing-md)));
+}
+
+@media (min-width: 1440px) {
+    .page-rail-left { display: flex; }
+    .page-rail-fab-left { display: none; }
+}
+
+@media (min-width: 1760px) {
+    .page-rail-right { display: flex; }
+    .page-rail-fab-right { display: none; }
 }

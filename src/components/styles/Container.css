@@ -96,6 +96,11 @@
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
+/* Narrow items, such as menu buttons: as many columns of at least 140px as fit, down to one. */
+.container.grid-auto-xs, .themed-container.grid-auto-xs {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
 .container.grid-auto-lg, .themed-container.grid-auto-lg {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
@@ -585,3 +590,27 @@
 .container.layout-flex-column > .flex-fill, .themed-container.layout-flex-column > .flex-fill {
     flex-basis: auto;
 }
+
+/* ===== Resizable borders (Container and Card `resizable`) =====
+   With the pointer on a border, only the side (or the two sides of a corner) that will move takes the theme's accent
+   colour, and the cursor shows which way it resizes; nothing else is drawn. */
+.resizable[data-resize-edge*='w'] { border-left-color: var(--primary-accent-color, var(--primary-color)); }
+.resizable[data-resize-edge*='e'] { border-right-color: var(--primary-accent-color, var(--primary-color)); }
+.resizable[data-resize-edge*='n'] { border-top-color: var(--primary-accent-color, var(--primary-color)); }
+.resizable[data-resize-edge*='s'] { border-bottom-color: var(--primary-accent-color, var(--primary-color)); }
+
+/* A Container has no outline to colour, so the side that will move glows faintly instead. */
+.themed-container.resizable[data-resize-edge='e'] { box-shadow: 6px 0 8px -6px color-mix(in srgb, var(--primary-accent-color, var(--primary-color)) 60%, transparent); }
+.themed-container.resizable[data-resize-edge='w'] { box-shadow: -6px 0 8px -6px color-mix(in srgb, var(--primary-accent-color, var(--primary-color)) 60%, transparent); }
+.themed-container.resizable[data-resize-edge='s'] { box-shadow: 0 6px 8px -6px color-mix(in srgb, var(--primary-accent-color, var(--primary-color)) 60%, transparent); }
+.themed-container.resizable[data-resize-edge='n'] { box-shadow: 0 -6px 8px -6px color-mix(in srgb, var(--primary-accent-color, var(--primary-color)) 60%, transparent); }
+.themed-container.resizable[data-resize-edge='se'] { box-shadow: 6px 0 8px -6px color-mix(in srgb, var(--primary-accent-color, var(--primary-color)) 60%, transparent), 0 6px 8px -6px color-mix(in srgb, var(--primary-accent-color, var(--primary-color)) 60%, transparent); }
+.themed-container.resizable[data-resize-edge='sw'] { box-shadow: -6px 0 8px -6px color-mix(in srgb, var(--primary-accent-color, var(--primary-color)) 60%, transparent), 0 6px 8px -6px color-mix(in srgb, var(--primary-accent-color, var(--primary-color)) 60%, transparent); }
+.themed-container.resizable[data-resize-edge='ne'] { box-shadow: 6px 0 8px -6px color-mix(in srgb, var(--primary-accent-color, var(--primary-color)) 60%, transparent), 0 -6px 8px -6px color-mix(in srgb, var(--primary-accent-color, var(--primary-color)) 60%, transparent); }
+.themed-container.resizable[data-resize-edge='nw'] { box-shadow: -6px 0 8px -6px color-mix(in srgb, var(--primary-accent-color, var(--primary-color)) 60%, transparent), 0 -6px 8px -6px color-mix(in srgb, var(--primary-accent-color, var(--primary-color)) 60%, transparent); }
+
+body[data-resize-cursor='ew'], body[data-resize-cursor='ew'] * { cursor: ew-resize !important; }
+body[data-resize-cursor='ns'], body[data-resize-cursor='ns'] * { cursor: ns-resize !important; }
+body[data-resize-cursor='nesw'], body[data-resize-cursor='nesw'] * { cursor: nesw-resize !important; }
+body[data-resize-cursor='nwse'], body[data-resize-cursor='nwse'] * { cursor: nwse-resize !important; }
+body[data-resizing], body[data-resizing] * { user-select: none !important; }

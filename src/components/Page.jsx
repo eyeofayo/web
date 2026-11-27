@@ -2,7 +2,11 @@ import React, { forwardRef, useMemo, useRef } from 'react';
 import { ThemeProvider, useTheme } from '@contexts/ThemeContext';
 import Typography from './Typography';
 import Container from './Container';
+import Button from './Button';
+import ButtonGroup from './ButtonGroup';
+import Icon from './Icon';
 import { useGeniePortal } from './Genie';
+import FloatingActionButton from './FloatingActionButton';
 
 // =============================================================================
 // DECORATIVE BACKGROUNDS
@@ -93,6 +97,14 @@ export const Page = forwardRef(({
     actions = null, // The page's own actions, shown at the right of the title
     brand = null, // Shown at the left of the title row in place of a title, for a page whose heading is in its content
     frame = false, // true keeps the content in the app's one column; a page with a title is always framed
+    // Rails in the spaces beside the page's column, centred in them both ways. Where the screen is too
+    // narrow for them, each becomes one floating button that opens it: the left one at the top left, the right one at
+    // the bottom right. Each is { content, icon, label } or, for a rail of buttons, { actions, icon, label } with each
+    // action { icon, label, onClick, selected, children }: a column of round buttons, or the floating button's own helper
+    // buttons. The chosen section's `children` (its subsections, the same shape) make a second column beside it, which
+    // shares the space; under the floating button they unfold beside their section, every section staying in place.
+    left = null,
+    right = null,
     // Layout props (same as Container)
     layout = 'block', // 'block', 'flex', 'flex-wrap', 'flex-column', 'grid', 'multicolumn', 'positioned'
     columns = 1, // 1-6 for grid layouts, or 'auto', 'auto-sm', 'auto-lg'
@@ -275,6 +287,27 @@ export const Page = forwardRef(({
                     </Container>
                 </div>
             ) : children}
+
+            {[['left', left, 'top-left'], ['right', right, 'bottom-right']].filter(([, rail]) => rail?.content || rail?.actions?.length).map(([side, rail, corner]) => (
+                <React.Fragment key={side}>
+                    <aside className={`page-rail page-rail-${side}`} aria-label={rail.label}>
+                        {rail.actions ? [rail.actions, rail.actions.find((action) => action.selected && action.children?.length)?.children].filter(Boolean).map((column, depth) => (
+                            <ButtonGroup key={depth} size="lg" vertical spaced selectable={false}>
+                                {column.map((action) => (
+                                    <Button key={action.label} size="lg" round selected={Boolean(action.selected)} title={action.label} aria-label={action.label} onClick={action.onClick} {...(action.tip || {})}>
+                                        <Icon name={action.icon} size="md" />
+                                    </Button>
+                                ))}
+                            </ButtonGroup>
+                        )) : rail.content}
+                    </aside>
+                    <div className={`page-rail-fab page-rail-fab-${side}`}>
+                        <FloatingActionButton parentType="page" position={corner} size="lg" icon={rail.icon || 'FiMenu'} aria-label={rail.label} title={rail.label}
+                            actions={rail.actions || null}
+                            genie={rail.actions ? null : { trigger: 'click', position: side === 'left' ? 'bottom' : 'top', content: <Container layout="flex-column" gap="sm" padding="sm">{rail.content}</Container> }} />
+                    </div>
+                </React.Fragment>
+            ))}
 
             {/* Genie Integration */}
             {GeniePortal}

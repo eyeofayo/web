@@ -1193,6 +1193,9 @@ const COMPONENT_METADATA = {
             width: '70%',
             innerWidth: '50%',
             innerHeight: '',
+            innerResizable: 'both',
+            innerWhich: 'first two',
+            resizable: 'none',
             backgroundColor: null,
             ...BACKGROUND_DEFAULT_PROPS,
             background: 'plus',
@@ -1266,6 +1269,24 @@ const COMPONENT_METADATA = {
                 group: 'Layout',
                 placeholder: 'e.g., 80px'
             },
+            innerResizable: {
+                type: 'select',
+                label: 'Inner cards resizable (drag a border; the others follow the layout)',
+                group: 'Resizing',
+                options: ['none', 'both', 'horizontal', 'vertical']
+            },
+            innerWhich: {
+                type: 'select',
+                label: 'Which inner cards are resizable (the rest never shrink; they are only moved)',
+                group: 'Resizing',
+                options: ['all', 'first two', 'first only']
+            },
+            resizable: {
+                type: 'select',
+                label: 'Outer card resizable (it then grows to make room; otherwise a child stops at its edge)',
+                group: 'Resizing',
+                options: ['none', 'both', 'horizontal', 'vertical']
+            },
             layout: {
                 type: 'select',
                 label: 'Layout Type',
@@ -1331,9 +1352,23 @@ const COMPONENT_METADATA = {
             backgroundColor: null,
             ...BACKGROUND_DEFAULT_PROPS,
             genie: createContainerGenieConfig('click'),
-            genieTrigger: 'click'
+            genieTrigger: 'click',
+            resizable: 'none',
+            childResizable: 'both'
         },
         propConfigs: {
+            resizable: {
+                type: 'select',
+                label: 'This container resizable',
+                group: 'Resizing',
+                options: ['none', 'both', 'horizontal', 'vertical']
+            },
+            childResizable: {
+                type: 'select',
+                label: 'Inner containers resizable (drag a border; the others follow the layout)',
+                group: 'Resizing',
+                options: ['none', 'both', 'horizontal', 'vertical']
+            },
             layout: {
                 type: 'select',
                 label: 'Layout Type',
@@ -2302,10 +2337,12 @@ const COMPONENT_METADATA = {
             backgroundColor: null,
             borderColor: null,
             borderStyle: 'solid',
-            theme: null
+            theme: null,
+            resizable: true
         },
         propConfigs: {
             visible: { type: 'boolean', label: 'Visible', group: 'State' },
+            resizable: { type: 'boolean', label: 'Resizable card (drag its borders)', group: 'Resizing' },
             variant: {
                 type: 'select',
                 label: 'Variant',
@@ -3702,9 +3739,12 @@ const ComponentDemoRefactoredNew = () => {
 
         if (selectedComponent === 'Card') {
             // Extract layout-related props from componentProps
-            const { layout, gap, align, justify, columns, padding, backgroundColor, children, width, height, innerWidth, innerHeight, genie, genieTrigger, ...restProps } = effectiveProps;
-            // The genie belongs to the inner cards; the outer card stays a plain surface.
-            const innerSize = { width: innerWidth || undefined, height: innerHeight || undefined, genie, genieTrigger };
+            const { layout, gap, align, justify, columns, padding, backgroundColor, children, width, height, innerWidth, innerHeight, innerResizable, innerWhich, resizable, genie, genieTrigger, ...restProps } = effectiveProps;
+            // The genie belongs to the inner cards; the outer card stays a plain surface. The chosen inner cards' borders can
+            // be dragged; the others are never made smaller, only moved by the outer card's layout, and the outer card grows
+            // to make room when it is resizable itself.
+            const resizableCount = innerWhich === 'all' ? 5 : innerWhich === 'first only' ? 1 : 2;
+            const innerSize = (index) => ({ width: innerWidth || undefined, height: innerHeight || undefined, genie, genieTrigger, resizable: innerResizable === 'none' || index >= resizableCount ? false : innerResizable });
             
             return (
                 <ComponentToRender
@@ -3717,25 +3757,26 @@ const ComponentDemoRefactoredNew = () => {
                     backgroundColor={backgroundColor}
                     width={width || 'fit-content'}
                     height={height || 'fit-content'}
+                    resizable={resizable === 'none' ? false : resizable}
                     {...restProps}
                 >
-                    <Card padding="md" backgroundColor="primary" {...innerSize}>
+                    <Card padding="md" backgroundColor="primary" {...innerSize(0)}>
                         <Typography weight="bold" color="contrast">Primary</Typography>
                     </Card>
                     
-                    <Card padding="md" backgroundColor="secondary" {...innerSize}>
+                    <Card padding="md" backgroundColor="secondary" {...innerSize(1)}>
                         <Typography weight="bold" color="contrast">Secondary</Typography>
                     </Card>
 
-                    <Card padding="md" backgroundColor="tertiary" {...innerSize}>
+                    <Card padding="md" backgroundColor="tertiary" {...innerSize(2)}>
                         <Typography weight="bold" color="contrast">Tertiary</Typography>
                     </Card>
 
-                    <Card padding="md" backgroundColor="surface" {...innerSize}>
+                    <Card padding="md" backgroundColor="surface" {...innerSize(3)}>
                         <Typography weight="bold">Surface</Typography>
                     </Card>
 
-                    <Card padding="md" backgroundColor="background" {...innerSize}>
+                    <Card padding="md" backgroundColor="background" {...innerSize(4)}>
                         <Typography weight="bold">Background</Typography>
                     </Card>
                 </ComponentToRender>
@@ -3744,29 +3785,28 @@ const ComponentDemoRefactoredNew = () => {
 
         if (selectedComponent === 'Container') {
             // Extract layout-related props from componentProps
-            const { layout, align, justify, backgroundColor, children, width, height, ...restProps } = effectiveProps;
-            
+            const { layout, align, justify, backgroundColor, children, width, height, resizable, childResizable, ...restProps } = effectiveProps;
+            const own = resizable === 'none' ? false : resizable;
+            const inner = childResizable === 'none' ? false : childResizable;
+            const outline = { border: '1px dashed var(--border-color)', borderRadius: 'var(--border-radius)' };
+
             return (
                 <ComponentToRender
                     layout={layout}
                     align={align}
                     justify={justify}
                     backgroundColor={backgroundColor}
-                    width={width || "300px"}
-                    height={height || "200px"}
-                    style={{
-                        border: '1px dashed var(--border-color)',
-                        borderRadius: 'var(--border-radius)'
-                    }}
+                    width={width || "100%"}
+                    height={height || "260px"}
+                    style={outline}
+                    resizable={own}
                     {...restProps}
                 >
-                    <Typography color="muted" align="center" size="sm">
-                        Invisible Container
-                        <br/>
-                        (Borders added for visibility)
-                    </Typography>
-                    <Typography color="muted" size="sm">Second item</Typography>
-                    <Typography color="muted" size="sm">Third item</Typography>
+                    {['First', 'Second', 'Third'].map((name) => (
+                        <Container key={name} padding="sm" minWidth="96px" style={outline} resizable={inner}>
+                            <Typography color="muted" size="sm">{`${name} container`}</Typography>
+                        </Container>
+                    ))}
                 </ComponentToRender>
             );
         }
