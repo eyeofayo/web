@@ -1150,7 +1150,7 @@ export const Data = forwardRef(({
                                             <Select
                                                 placeholder={`Filter by ${formatFieldName(field)}...`}
                                                 value={columnFilters[field] || ''}
-                                                onChange={(e) => handleColumnFilterChange(field, e.target.value)}
+                                                onChange={(value) => handleColumnFilterChange(field, value?.target ? value.target.value : value)}
                                                 options={[
                                                     {value: '', label: 'All'},
                                                     ...options.map(option => ({
