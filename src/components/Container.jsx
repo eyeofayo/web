@@ -32,6 +32,18 @@ const layoutOf = (element) => {
     if (style.display.includes('flex')) return { kind: style.flexDirection.startsWith('column') ? 'column' : 'row', wrap: style.flexWrap !== 'nowrap' };
     return { kind: 'block' };
 };
+// The floating frame a part sits in (a Genie's), looking through plain wrappers that hold nothing else (a theme
+// wrapper), or null when the part sits in the page.
+const frameOf = (element) => {
+    let part = element.parentElement;
+    let held = element;
+    for (let depth = 0; part && depth < 4; depth += 1, held = part, part = part.parentElement) {
+        const style = window.getComputedStyle(part);
+        if (style.position === 'absolute' || style.position === 'fixed') return part;
+        if (style.position !== 'static' || part.children.length !== 1 || part.firstElementChild !== held) return null;
+    }
+    return null;
+};
 // Whether a part can be resized that way (set by this hook on every resizable part).
 const resizableOn = (part, axis) => Boolean(part?.getAttribute?.('data-resizable')?.includes(axis));
 // The other parts that share the parent's line with this one, in the order they stand.
@@ -209,8 +221,32 @@ export const useResizable = (resizable, elementRef, onResize = null) => {
             if (!drag.floating) return drag.edge.includes('n') ? box.bottom + window.scrollY - MARGIN : Infinity;
             return drag.edge.includes('n') ? box.bottom - MARGIN : window.innerHeight - box.top - MARGIN;
         };
+        // A floating part (a Genie's card) has the whole window: nothing beside it to make room for. Its frame is pinned
+        // by one side, so the card's margin on that side moves the edge pulled while the other stays where it is.
+        const floatingMove = (event) => {
+            const next = { ...drag.from, layout: 'block' };
+            const frame = drag.frame?.style || {};
+            const pinnedRight = frame.left === 'auto';
+            const pinnedBottom = frame.top === 'auto';
+            if (drag.edge.includes('e') || drag.edge.includes('w')) {
+                const east = drag.edge.includes('e');
+                const width = Math.min(windowLimit('x'), Math.max(LEAST.x, Math.round(drag.start.x + (east ? 1 : -1) * (event.clientX - drag.x))));
+                next.width = width;
+                if (east && pinnedRight) next.marginRight = drag.edgeMargin.right - (width - drag.start.x);
+                if (!east && !pinnedRight) next.marginLeft = drag.edgeMargin.left - (width - drag.start.x);
+            }
+            if (drag.edge.includes('n') || drag.edge.includes('s')) {
+                const south = drag.edge.includes('s');
+                const height = Math.min(windowLimit('y'), Math.max(LEAST.y, Math.round(drag.start.y + (south ? 1 : -1) * (event.clientY - drag.y))));
+                next.height = height;
+                if (south && pinnedBottom) next.marginBottom = drag.edgeMargin.bottom - (height - drag.start.y);
+                if (!south && !pinnedBottom) next.marginTop = drag.edgeMargin.top - (height - drag.start.y);
+            }
+            setSize(next);
+        };
         const move = (event) => {
             if (!drag) return;
+            if (drag.floating) return floatingMove(event);
             let next = { ...drag.from };
             if (drag.edge.includes('e') || drag.edge.includes('w')) {
                 const wanted = Math.min(windowLimit('x'), Math.max(LEAST.x, Math.round(drag.start.x + (drag.edge.includes('e') ? 1 : -1) * (event.clientX - drag.x))));
@@ -250,20 +286,23 @@ export const useResizable = (resizable, elementRef, onResize = null) => {
             setTimeout(() => window.removeEventListener('click', swallow, true), 0);
         };
         const escape = (key) => { if (key.key === 'Escape') { key.stopPropagation(); stop(key); } };
-        const start = (event) => {
-            if (!edge || (event.button !== undefined && event.button !== 0)) return;
-            event.preventDefault();
-            event.stopPropagation();
+        // What a drag starts from: the part's size and place, what is beside it and what holds it.
+        const prepare = (x, y) => {
             const box = element.getBoundingClientRect();
             const style = window.getComputedStyle(element);
             const layout = layoutOf(element);
             const now = sizeRef.current || {};
             const parentBox = element.parentElement?.getBoundingClientRect();
             const grows = (axis) => (resizableOn(element.parentElement, axis) ? (axis === 'x' ? parentBox.width : parentBox.height) : null);
-            const parentStyle = element.parentElement ? window.getComputedStyle(element.parentElement) : null;
+            const frame = frameOf(element);
             drag = {
-                edge, layout, x: event.clientX, y: event.clientY, saved: sizeRef.current, from: now, box,
-                floating: ['absolute', 'fixed'].includes(parentStyle?.position) || ['absolute', 'fixed'].includes(style.position),
+                edge, layout, x, y, saved: sizeRef.current, from: now, box,
+                frame,
+                floating: Boolean(frame) || ['absolute', 'fixed'].includes(style.position),
+                edgeMargin: {
+                    left: now.marginLeft ?? px(style.marginLeft), right: now.marginRight ?? px(style.marginRight),
+                    top: now.marginTop ?? px(style.marginTop), bottom: now.marginBottom ?? px(style.marginBottom)
+                },
                 start: { x: box.width, y: box.height },
                 room: { x: roomOf(element, 'x'), y: roomOf(element, 'y') },
                 margin: { x: Math.max(0, now.marginLeft ?? px(style.marginLeft)), y: Math.max(0, now.marginTop ?? px(style.marginTop)) },
@@ -273,15 +312,31 @@ export const useResizable = (resizable, elementRef, onResize = null) => {
                 column: layout.kind === 'grid' ? Math.max(1, Math.round((box.left - layout.left) / (layout.column + layout.gap)) + 1) : 1,
                 span: layout.kind === 'grid' ? Math.max(1, Math.round((box.width + layout.gap) / (layout.column + layout.gap))) : 1
             };
+        };
+        const start = (event) => {
+            if (!edge || (event.button !== undefined && event.button !== 0)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            prepare(event.clientX, event.clientY);
             document.body.setAttribute('data-resizing', EDGE_CURSORS[edge]);
             window.addEventListener('pointermove', move, true);
             window.addEventListener('pointerup', stop, true);
             window.addEventListener('keydown', escape, true);
         };
+        // A double click on a border: at its own size the part goes as far as that edge can (the same limits as a
+        // drag); resized, it gives the size back.
         const giveBack = (event) => {
             if (!edge) return;
             event.preventDefault();
             event.stopPropagation();
+            if (!sizeRef.current) {
+                prepare(event.clientX, event.clientY);
+                const far = 1e6;
+                move({ clientX: edge.includes('e') ? far : edge.includes('w') ? -far : event.clientX, clientY: edge.includes('s') ? far : edge.includes('n') ? -far : event.clientY });
+                drag = null;
+                setTimeout(() => reportRef.current?.(sizeRef.current), 0);
+                return;
+            }
             putBack();
             setSize(null);
             reportRef.current?.(null);
@@ -315,6 +370,8 @@ export const useResizable = (resizable, elementRef, onResize = null) => {
     }
     if (size?.marginLeft !== undefined) style.marginLeft = `${size.marginLeft}px`;
     if (size?.marginTop !== undefined) style.marginTop = `${size.marginTop}px`;
+    if (size?.marginRight !== undefined) style.marginRight = `${size.marginRight}px`;
+    if (size?.marginBottom !== undefined) style.marginBottom = `${size.marginBottom}px`;
     return { resizeStyle: style, resizeHandles: null, resizeClass: on ? 'resizable' : '', resizeAxes: axes.join('') };
 };
 
