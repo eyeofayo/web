@@ -182,6 +182,13 @@ const createDataRowGenieConfig = (trigger = 'click') => ({
     )
 });
 
+// The helper buttons the demo FAB unfolds when "Helper buttons" is on.
+const DEMO_FAB_ACTIONS = [
+    { icon: 'FiEdit', label: 'Write a note' },
+    { icon: 'FiImage', label: 'Add a picture' },
+    { icon: 'FiShare2', label: 'Share' }
+];
+
 const createFabGenieConfig = (trigger = 'click') => ({
     trigger,
     variant: 'popover',
@@ -2202,7 +2209,9 @@ const COMPONENT_METADATA = {
             parentType: 'auto',
             theme: null,
             genie: createFabGenieConfig('click'),
-            genieTrigger: 'click'
+            genieTrigger: 'click',
+            helpers: false,
+            actionsDirection: 'auto'
         },
         propConfigs: {
             icon: { 
@@ -2264,9 +2273,11 @@ const COMPONENT_METADATA = {
                 label: 'Genie Trigger',
                 group: 'Genie',
                 options: ['click', 'hover', 'contextmenu']
-            }
+            },
+            helpers: { type: 'boolean', label: 'Helper buttons (actions)', group: 'Helpers' },
+            actionsDirection: { type: 'select', label: 'Helpers unfold', group: 'Helpers', options: ['auto', 'up', 'down', 'left', 'right'] }
         },
-    description: 'Floating action button with fixed positioning and drag support'
+    description: 'Floating action button with fixed positioning and drag support; with actions, helper buttons unfold from it'
     },
 
     Genie: {
@@ -3670,7 +3681,8 @@ const ComponentDemoRefactoredNew = () => {
                         </Typography>
                     </Container>
                     <ComponentToRender
-                        {...effectiveProps}
+                        {...Object.fromEntries(Object.entries(effectiveProps).filter(([name]) => name !== 'helpers'))}
+                        {...(effectiveProps.helpers ? { genie: null, actions: DEMO_FAB_ACTIONS } : {})}
                     />
                 </Container>
             );

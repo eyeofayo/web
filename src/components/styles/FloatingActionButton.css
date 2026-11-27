@@ -214,3 +214,26 @@
         animation: none;
     }
 }
+
+/* ===== Helper buttons: a column or a row of round buttons unfolding away from the FAB ===== */
+.fab-container .fab-actions {
+    position: absolute;
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    animation: fab-actions-in 0.16s var(--ease, ease-out);
+}
+
+.fab-container .fab-actions-down { top: calc(100% + var(--spacing-sm)); left: 50%; transform: translateX(-50%); flex-direction: column; }
+.fab-container .fab-actions-up { bottom: calc(100% + var(--spacing-sm)); left: 50%; transform: translateX(-50%); flex-direction: column-reverse; }
+.fab-container .fab-actions-right { left: calc(100% + var(--spacing-sm)); top: 50%; transform: translateY(-50%); flex-direction: row; }
+.fab-container .fab-actions-left { right: calc(100% + var(--spacing-sm)); top: 50%; transform: translateY(-50%); flex-direction: row-reverse; }
+
+@keyframes fab-actions-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fab-container .fab-actions { animation: none; }
+}

@@ -3,6 +3,7 @@ import { useTheme } from '@contexts/ThemeContext';
 import { useGeniePortal } from './Genie';
 import Icon from './Icon';
 import Badge from './Badge';
+import Button from './Button';
 
 /**
  * FloatingActionButton - Enhanced floating action button with complete positional awareness
@@ -20,6 +21,7 @@ import Badge from './Badge';
  * - Draggable functionality within parent container boundaries
  * - Icon-based design with standardized icon prop (no children support)
  * - Optional badge support with auto-positioning (max 10 characters)
+ * - Optional helper buttons (`actions`) that unfold from it on a click, away from its edge
  *
  * Positioning System:
  * - Automatically detects parent container type (Page, Card, Container)
@@ -40,6 +42,11 @@ export const FloatingActionButton = forwardRef(({
     badge = null, // Badge text (max 10 characters) to display
     badgeColor = 'error', // Badge color variant
     position = 'bottom-right', // 'top-left', 'top', 'top-right', 'left', 'right', 'bottom-left', 'bottom', 'bottom-right'
+    // Helper buttons that unfold from the FAB on a click: [{ icon, label, onClick, selected, color, disabled, tip }] (tip:
+    // extra props for the button, such as a guide's). Each is
+    // a round button one size smaller, named by its label on hover; choosing one, clicking elsewhere or Escape folds them.
+    actions = null,
+    actionsDirection = 'auto', // 'auto' (away from the FAB's edge), 'up', 'down', 'left', 'right'
     theme = null, // Optional theme override
     width = null, // Width value (e.g., '100%', '200px', 'auto')
     height = null, // Height value (e.g., '2rem', '32px', 'auto')
@@ -134,6 +141,29 @@ export const FloatingActionButton = forwardRef(({
     }, [genie, genieTrigger, fabTheme]);
 
     const {triggerProps, GeniePortal} = useGeniePortal(genieConfig, fabRef, onGenieShow, onGenieHide);
+
+    // Helper buttons: open or folded, and which way they unfold.
+    const helpers = Array.isArray(actions) && actions.length > 0 ? actions : null;
+    const [unfolded, setUnfolded] = useState(false);
+    const unfoldTo = actionsDirection !== 'auto' ? actionsDirection
+        : position.startsWith('top') ? 'down'
+            : position.startsWith('bottom') ? 'up'
+                : position === 'left' ? 'right' : position === 'right' ? 'left' : 'up';
+    useEffect(() => {
+        if (!helpers || !unfolded) return undefined;
+        const away = (event) => {
+            if (fabContainerRef.current && !fabContainerRef.current.contains(event.target)) setUnfolded(false);
+        };
+        const escape = (event) => {
+            if (event.key === 'Escape') setUnfolded(false);
+        };
+        document.addEventListener('pointerdown', away);
+        document.addEventListener('keydown', escape);
+        return () => {
+            document.removeEventListener('pointerdown', away);
+            document.removeEventListener('keydown', escape);
+        };
+    }, [helpers, unfolded]);
 
     // Generate CSS classes
     const getVariantClass = () => {
@@ -601,9 +631,11 @@ export const FloatingActionButton = forwardRef(({
         `.trim().replace(/\s+/g, ' ')}
                 disabled={disabled}
                 onClick={(e) => {
+                    if (helpers) setUnfolded((open) => !open);
                     if (onClick) onClick(e);
                     if (triggerProps?.onClick) triggerProps.onClick(e);
                 }}
+                aria-expanded={helpers ? unfolded : undefined}
                 onMouseDown={draggable ? handleDragStart : undefined}
                 onTouchStart={draggable ? handleDragStart : undefined}
                 data-theme={fabTheme}
@@ -627,6 +659,32 @@ export const FloatingActionButton = forwardRef(({
                 >
                     {String(badge).slice(0, 10)}
                 </Badge>
+            )}
+
+            {/* Helper buttons, unfolded away from the FAB's edge */}
+            {helpers && unfolded && (
+                <div className={`fab-actions fab-actions-${unfoldTo}`} role="menu">
+                    {helpers.map((action, index) => (
+                        <Button
+                            key={action.label || index}
+                            round
+                            size={{ xs: 'xxs', sm: 'xs', md: 'sm', lg: 'md', xl: 'lg' }[size] || 'sm'}
+                            color={action.color || 'primary'}
+                            selected={Boolean(action.selected)}
+                            disabled={Boolean(action.disabled)}
+                            title={action.label}
+                            aria-label={action.label}
+                            role="menuitem"
+                            {...(action.tip || {})}
+                            onClick={(event) => {
+                                setUnfolded(false);
+                                action.onClick?.(event);
+                            }}
+                        >
+                            <Icon name={action.icon} size={{ xs: 'xxs', sm: 'xs', md: 'sm', lg: 'md', xl: 'lg' }[size] || 'sm'} />
+                        </Button>
+                    ))}
+                </div>
             )}
 
             {/* Genie Integration - Rendered within the same positioned container */}
