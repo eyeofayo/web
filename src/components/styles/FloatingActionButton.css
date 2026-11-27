@@ -229,6 +229,11 @@
 .fab-container .fab-actions-right { left: calc(100% + var(--spacing-sm)); top: 50%; transform: translateY(-50%); flex-direction: row; }
 .fab-container .fab-actions-left { right: calc(100% + var(--spacing-sm)); top: 50%; transform: translateY(-50%); flex-direction: row-reverse; }
 
+/* A helper and its own helpers, side by side across the way they unfold. */
+.fab-container .fab-actions-group { display: flex; gap: var(--spacing-sm); align-items: center; flex-direction: row; }
+.fab-container .fab-actions-left .fab-actions-group,
+.fab-container .fab-actions-right .fab-actions-group { flex-direction: column; }
+
 @keyframes fab-actions-in {
     from { opacity: 0; }
     to { opacity: 1; }

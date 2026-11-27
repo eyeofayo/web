@@ -42,8 +42,9 @@ export const FloatingActionButton = forwardRef(({
     badge = null, // Badge text (max 10 characters) to display
     badgeColor = 'error', // Badge color variant
     position = 'bottom-right', // 'top-left', 'top', 'top-right', 'left', 'right', 'bottom-left', 'bottom', 'bottom-right'
-    // Helper buttons that unfold from the FAB on a click: [{ icon, label, onClick, selected, color, disabled, tip }] (tip:
-    // extra props for the button, such as a guide's). Each is
+    // Helper buttons that unfold from the FAB on a click: [{ icon, label, onClick, selected, color, disabled, tip, children }]
+    // (tip: extra props for the button, such as a guide's; children: the chosen helper's own helpers, unfolding beside it
+    // while every helper stays in place). Each is
     // a round button one size smaller, named by its label on hover; choosing one, clicking elsewhere or Escape folds them.
     actions = null,
     actionsDirection = 'auto', // 'auto' (away from the FAB's edge), 'up', 'down', 'left', 'right'
@@ -664,9 +665,11 @@ export const FloatingActionButton = forwardRef(({
             {/* Helper buttons, unfolded away from the FAB's edge */}
             {helpers && unfolded && (
                 <div className={`fab-actions fab-actions-${unfoldTo}`} role="menu">
-                    {helpers.map((action, index) => (
+                    {helpers.map((action, index) => [action, ...(action.selected && action.children?.length ? action.children : [])]).map((group, index) => (
+                        <div key={group[0].label || index} className="fab-actions-group">
+                        {group.map((action, inner) => (
                         <Button
-                            key={action.label || index}
+                            key={action.label || inner}
                             round
                             size={{ xs: 'xxs', sm: 'xs', md: 'sm', lg: 'md', xl: 'lg' }[size] || 'sm'}
                             color={action.color || 'primary'}
@@ -677,12 +680,15 @@ export const FloatingActionButton = forwardRef(({
                             role="menuitem"
                             {...(action.tip || {})}
                             onClick={(event) => {
-                                setUnfolded(false);
+                                // A helper with its own helpers stays open, so they can be chosen next.
+                                if (!action.children?.length) setUnfolded(false);
                                 action.onClick?.(event);
                             }}
                         >
                             <Icon name={action.icon} size={{ xs: 'xxs', sm: 'xs', md: 'sm', lg: 'md', xl: 'lg' }[size] || 'sm'} />
                         </Button>
+                        ))}
+                        </div>
                     ))}
                 </div>
             )}
