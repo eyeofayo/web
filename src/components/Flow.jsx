@@ -521,7 +521,7 @@ const layoutLinked = (items, wires, kind) => {
 
 // Boxes that connectors join, directly or through others, are arranged as a set. Each set is then treated as one
 // box, and the smaller sets, along with any boxes that connect to nothing, are spread round the largest.
-const layoutItems = (items, wires, kind) => {
+export const layoutItems = (items, wires, kind) => {
   const lead = new Map(items.map((item) => [item.id, item.id]));
   const find = (id) => {
     let at = id;
